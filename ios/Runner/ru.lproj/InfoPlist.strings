@@ -1,0 +1,10 @@
+/* 
+  InfoPlist.strings
+  Runner
+
+  Created by Rauf Khalilov on 26.10.25.
+  
+*/
+"NSCameraUsageDescription" = "UniTalky нужен доступ к камере для прикрепления изображений в профиль, посты, чат и другие функции.";
+"NSPhotoLibraryUsageDescription" = "UniTalky нужен доступ к фотографиям для прикрепления изображений в профиль, посты, чат и другие функции.";
+"NSMicrophoneUsageDescription" = "UniTalky нужен доступ к микрофону для записи голосовых сообщений и звонков.";

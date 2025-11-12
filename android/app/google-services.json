@@ -1,0 +1,70 @@
+{
+  "project_info": {
+    "project_number": "648191628661",
+    "project_id": "unitalk-561c1",
+    "storage_bucket": "unitalk-561c1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:648191628661:android:8bbec4506a67adeab0af3c",
+        "android_client_info": {
+          "package_name": "com.devvibe.unitalk"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "648191628661-543gm5kkgt7o1psrgt7dhsvce2ae6j6v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.devvibe.unitalk",
+            "certificate_hash": "ead88809fd7cf050239fb77261976d7da302b427"
+          }
+        },
+        {
+          "client_id": "648191628661-jhm46jeenfqsfb8no4nlsuee635sj94h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.devvibe.unitalk",
+            "certificate_hash": "28514797c30c6e7a3ad94d10e85768ef79bdd2ee"
+          }
+        },
+        {
+          "client_id": "648191628661-n223oqjhppa6h7co8k0fn6t79pp3prrp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.devvibe.unitalk",
+            "certificate_hash": "52dffe77172a9a751e537fa42934467ca7de1c0f"
+          }
+        },
+        {
+          "client_id": "648191628661-ocjf8p4316td6pjg3lbuoudjtje5a018.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNDSfvBvAbWkv8ZqpxBoLrc7zi21fJXuc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "648191628661-ocjf8p4316td6pjg3lbuoudjtje5a018.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "648191628661-kd4e1f6il5uoedpneljie91lo1ik0jfo.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.devvibe.unitalk"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,10 @@
+/* 
+  InfoPlist.strings
+  Runner
+
+  Created by Rauf Khalilov on 26.10.25.
+  
+*/
+"NSCameraUsageDescription" = "UniTalky needs access to the camera to attach images to your profile, posts, chat, and other features.";
+"NSPhotoLibraryUsageDescription" = "UniTalky needs access to your photos to attach images to your profile, posts, chat, and other features.";
+"NSMicrophoneUsageDescription" = "UniTalky needs access to the microphone to record voice messages and enable calls.";

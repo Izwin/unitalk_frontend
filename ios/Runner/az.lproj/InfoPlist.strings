@@ -1,0 +1,10 @@
+/* 
+  InfoPlist.strings
+  Runner
+
+  Created by Rauf Khalilov on 26.10.25.
+  
+*/
+"NSCameraUsageDescription" = "UniTalky profilə, paylaşımlara, söhbətlərə və digər funksiyalara şəkil əlavə etmək üçün kameraya girişə ehtiyac duyur.";
+"NSPhotoLibraryUsageDescription" = "UniTalky profilə, paylaşımlara, söhbətlərə və digər funksiyalara şəkil əlavə etmək üçün fotolara girişə ehtiyac duyur.";
+"NSMicrophoneUsageDescription" = "UniTalky səsli mesajları yazmaq və zənglər üçün mikrofona girişə ehtiyac duyur.";
