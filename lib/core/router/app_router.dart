@@ -1,19 +1,19 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:unitalk/core/di/service_locator.dart';
 import 'package:unitalk/core/ui/common/fullscreen_image_viewer.dart';
 import 'package:unitalk/core/ui/common/fullscreen_video_player.dart';
 import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
-import 'package:go_router/go_router.dart';
-import 'package:unitalk/features/auth/presentation/edit_profile_page.dart';
 import 'package:unitalk/features/auth/presentation/page/about_page.dart';
 import 'package:unitalk/features/auth/presentation/page/auth_page.dart';
 import 'package:unitalk/features/auth/presentation/page/complete_profile_page.dart';
 import 'package:unitalk/features/auth/presentation/page/delete_account_page.dart';
 import 'package:unitalk/features/auth/presentation/page/privacy_policy_page.dart';
 import 'package:unitalk/features/auth/presentation/profile_page.dart';
+import 'package:unitalk/features/auth/presentation/edit_profile_page.dart';
 import 'package:unitalk/features/auth/presentation/verification_page.dart';
 import 'package:unitalk/features/chat/presentation/page/chat_participants_page.dart';
 import 'package:unitalk/features/chat/presentation/page/faculty_chat_screen.dart';
@@ -29,6 +29,8 @@ import 'package:unitalk/features/feed/presentation/page/feed_page.dart';
 import 'package:unitalk/features/feed/presentation/page/other_profile_screen.dart';
 import 'package:unitalk/features/feed/presentation/page/post_detail_page.dart';
 import 'package:unitalk/features/feed/presentation/page/post_likers_page.dart';
+import 'package:unitalk/features/friendship/presentation/pages/friend_requests_page.dart';
+import 'package:unitalk/features/friendship/presentation/pages/friends_list_page.dart';
 import 'package:unitalk/features/home/home_page.dart';
 import 'package:unitalk/features/notifications/presentation/page/notification_settings_page.dart';
 import 'package:unitalk/features/notifications/presentation/page/notifications_page.dart';
@@ -44,7 +46,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
     notifyListeners();
     _subscription = stream.asBroadcastStream().listen(
-      (dynamic _) => notifyListeners(),
+          (dynamic _) => notifyListeners(),
     );
   }
 
@@ -103,7 +105,7 @@ final GoRouter router = GoRouter(
                   create: (context) => sl<AnnouncementBloc>(),
                   child: BlocProvider(
                     create: (context) => sl<PostBloc>(),
-                    child: FeedPage(key: feedPageKey,),
+                    child: FeedPage(key: feedPageKey),
                   ),
                 ),
               ),
@@ -153,7 +155,7 @@ final GoRouter router = GoRouter(
       ],
     ),
 
-    // === STANDALONE ROUTES (outside bottom nav) ===
+    // === STANDALONE ROUTES ===
 
     // Notifications
     GoRoute(
@@ -216,7 +218,7 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const MyReportsPage(),
     ),
 
-    // Users
+    // ─── Users ──────────────────────────────────────────────────
     GoRoute(
       path: '/user/:id',
       builder: (context, state) {
@@ -228,6 +230,14 @@ final GoRouter router = GoRouter(
           ],
           child: OtherUserProfileScreen(userId: userId),
         );
+      },
+    ),
+    // ─── Друзья другого пользователя ──────────────────────────
+    GoRoute(
+      path: '/user/:id/friends',
+      builder: (context, state) {
+        final userId = state.pathParameters['id']!;
+        return FriendsListPage(userId: userId);
       },
     ),
 
@@ -268,6 +278,18 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(path: '/about', builder: (context, state) => AboutPage()),
     GoRoute(path: '/delete', builder: (context, state) => DeleteAccountPage()),
+
+    // ─── Friendship ───────────────────────────────────────────
+    GoRoute(
+      path: '/friends',
+      builder: (context, state) => const FriendsListPage(),
+    ),
+    GoRoute(
+      path: '/friend-requests',
+      builder: (context, state) => const FriendRequestsPage(),
+    ),
+
+    // Media fullscreen
     GoRoute(
       path: '/video/:videoUrl',
       name: 'fullscreen_video',

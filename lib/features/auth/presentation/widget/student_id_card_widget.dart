@@ -4,12 +4,16 @@ import 'package:unitalk/core/ui/common/fullscreen_image_viewer.dart';
 import 'package:unitalk/core/ui/widgets/default_avatar.dart';
 import 'package:unitalk/features/auth/data/model/user_model.dart';
 import 'package:unitalk/features/auth/presentation/widget/card_info_row.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friends_count_button.dart';
 import 'package:unitalk/l10n/app_localizations.dart';
 
 class StudentIdCardWidget extends StatelessWidget {
   final UserModel user;
 
-  const StudentIdCardWidget({super.key, required this.user});
+  const StudentIdCardWidget({
+    super.key,
+    required this.user,
+  });
 
   void _showImageFullscreen(BuildContext context, String imageUrl) {
     FullscreenImageViewer.showAvatar(
@@ -91,7 +95,7 @@ class StudentIdCardWidget extends StatelessWidget {
                         ],
                       ),
                     ),
-                    SizedBox(width: 20,),
+                    const SizedBox(width: 20),
                     if (user.university?.logoUrl != null)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
@@ -112,7 +116,7 @@ class StudentIdCardWidget extends StatelessWidget {
                       ),
                   ],
                 ),
-                SizedBox(height: 20,),
+                const SizedBox(height: 20),
 
                 // Student Info
                 Row(
@@ -174,7 +178,8 @@ class StudentIdCardWidget extends StatelessWidget {
                           const SizedBox(height: 3),
                           CardInfoRow(
                             label: l10n.faculty,
-                            value: user.faculty?.getLocalizedName(locale) ?? l10n.notAvailable,
+                            value: user.faculty?.getLocalizedName(locale) ??
+                                l10n.notAvailable,
                           ),
                           const SizedBox(height: 3),
                           CardInfoRow(

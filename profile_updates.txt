@@ -1,0 +1,1616 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/core/theme/bloc/theme_bloc.dart';
+import 'package:unitalk/core/theme/bloc/theme_event.dart';
+import 'package:unitalk/core/theme/bloc/theme_state.dart';
+import 'package:unitalk/core/theme/domain/entity/app_theme_mode.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_event.dart';
+import 'package:unitalk/features/auth/presentation/edit_profile_page.dart';
+import 'package:unitalk/features/auth/presentation/widget/profile_drawer.dart';
+import 'package:unitalk/features/auth/presentation/widget/student_id_card_widget.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_state.dart';
+import 'package:unitalk/features/feed/domain/repository/posts_repository.dart';
+import 'package:unitalk/features/feed/presentation/widget/post_item.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_bloc.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_state.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_event.dart';
+import 'package:unitalk/features/university/data/models/university_model.dart';
+import 'package:unitalk/features/university/presentation/manager/university_bloc.dart';
+import 'package:unitalk/features/university/presentation/manager/university_event.dart';
+import 'package:unitalk/features/university/presentation/manager/university_state.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:unitalk/l10n/bloc/locale_cubit.dart';
+import 'package:intl/intl.dart';
+
+import 'widget/verification_status_widget.dart';
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProfilePageContent();
+  }
+}
+
+class _ProfilePageContent extends StatefulWidget {
+  @override
+  State<_ProfilePageContent> createState() => _ProfilePageContentState();
+}
+
+class _ProfilePageContentState extends State<_ProfilePageContent> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<PostBloc>().add(GetPostsEvent(authorId: context.read<AuthBloc>().state.user!.id));
+  }
+
+  Future<void> _onRefresh() async {
+    final userId = context.read<AuthBloc>().state.user?.id;
+    if (userId == null) return;
+
+    context.read<PostBloc>().add(GetPostsEvent(authorId: userId));
+    context.read<AuthBloc>().add(GetCurrentUserEvent());
+
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      endDrawer: ProfileDrawer(),
+      body: SafeArea(
+        child: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, authState) {
+            final user = authState.user;
+            print('sdfsfsd ${user?.verification?.status}');
+            print('sdfsfsd ${user?.isVerified}');
+
+            if (user == null) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            return RefreshIndicator(
+              onRefresh: _onRefresh,
+              color: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              child: CustomScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: 0,
+                    pinned: false,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    title: Text(l10n.profile),
+                    actions: [
+                      IconButton(
+                        icon: Icon(Icons.edit_outlined),
+                        tooltip: l10n.editProfile,
+                        onPressed: () {
+                          context.push('/edit-profile');
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.menu),
+                        onPressed: () => Scaffold.of(context).openEndDrawer(),
+                      ),
+                    ],
+                  ),
+                  SliverPadding(
+                    padding: EdgeInsets.all(20),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        // Student Card
+                        StudentIdCardWidget(user: user),
+                        SizedBox(height: 24),
+
+                        // Verification Status
+                        VerificationStatusWidget(user: user),
+                        SizedBox(height: 24),
+
+                        // Posts Section Header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              l10n.myPosts,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            BlocBuilder<PostBloc, PostState>(
+                              builder: (context, state) {
+                                return Text(
+                                  l10n.postsCount(state.posts.length),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color
+                                        ?.withOpacity(0.6),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ]),
+                    ),
+                  ),
+
+                  // Posts List
+                  BlocBuilder<PostBloc, PostState>(
+                    builder: (context, state) {
+                      if (state.status == PostStatus.loading && state.posts.isEmpty) {
+                        return SliverFillRemaining(
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      if (state.posts.isEmpty) {
+                        return SliverFillRemaining(
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.article_outlined,
+                                  size: 64,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color
+                                      ?.withOpacity(0.3),
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  l10n.noPostsYet,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color
+                                        ?.withOpacity(0.6),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                            final post = state.posts[index];
+                            return PostItem(post: post);
+                          },
+                          childCount: state.posts.length,
+                        ),
+                      );
+                    },
+                  ),
+
+                  SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:unitalk/core/ui/common/fullscreen_image_viewer.dart';
+import 'package:unitalk/core/ui/widgets/default_avatar.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:unitalk/features/auth/presentation/widget/card_info_row.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+
+class StudentIdCardWidget extends StatelessWidget {
+  final UserModel user;
+
+  const StudentIdCardWidget({super.key, required this.user});
+
+  void _showImageFullscreen(BuildContext context, String imageUrl) {
+    FullscreenImageViewer.showAvatar(
+      context,
+      imageUrl,
+      userId: user.id,
+      heroTag: 'avatar_${user.id}',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final locale = Localizations.localeOf(context).languageCode;
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [const Color(0xFF1a237e), const Color(0xFF0d47a1)]
+              : [const Color(0xFF1976d2), const Color(0xFF42a5f5)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).shadowColor.withValues(alpha: .3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Background Pattern
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.1,
+              child: CustomPaint(
+                painter: _CardPatternPainter(),
+              ),
+            ),
+          ),
+
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.studentIdCard.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 2,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            user.university?.getLocalizedName(locale) ?? '',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white.withOpacity(0.85),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 20,),
+                    if (user.university?.logoUrl != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          width: 55,
+                          height: 55,
+                          decoration: const BoxDecoration(color: Colors.white),
+                          child: CachedNetworkImage(
+                            imageUrl: user.university!.logoUrl!,
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) => Icon(
+                              Icons.school,
+                              color: Theme.of(context).primaryColor,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                SizedBox(height: 20,),
+
+                // Student Info
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Avatar with fullscreen tap
+                    GestureDetector(
+                      onTap: user.photoUrl != null
+                          ? () => _showImageFullscreen(context, user.photoUrl!)
+                          : null,
+                      child: Hero(
+                        tag: 'avatar_${user.id}',
+                        child: Container(
+                          width: 75,
+                          height: 95,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: user.photoUrl != null
+                                ? CachedNetworkImage(
+                              imageUrl: user.photoUrl!,
+                              fit: BoxFit.cover,
+                              errorWidget: (_, __, ___) =>  DefaultAvatar(),
+                            )
+                                :  DefaultAvatar(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${user.firstName ?? ''} ${user.lastName ?? ''}'
+                                .toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 2,
+                          ),
+                          const SizedBox(height: 6),
+                          CardInfoRow(
+                            label: l10n.idLabel,
+                            value: user.id?.substring(0, 8).toUpperCase() ?? '',
+                          ),
+                          const SizedBox(height: 3),
+                          CardInfoRow(
+                            label: l10n.faculty,
+                            value: user.faculty?.getLocalizedName(locale) ?? l10n.notAvailable,
+                          ),
+                          const SizedBox(height: 3),
+                          CardInfoRow(
+                            label: l10n.sector,
+                            value: user.sector?.displayName ?? l10n.notAvailable,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Verified Badge
+          if (user.isVerified == true)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.verified, size: 12, color: Colors.white),
+                    const SizedBox(width: 4),
+                    Text(
+                      l10n.verified.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Painter for background pattern
+class _CardPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (int i = 0; i < 10; i++) {
+      canvas.drawCircle(
+        Offset(size.width * 0.8, size.height * 0.2 + i * 20),
+        30 + i * 5,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/core/di/service_locator.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_bloc.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_event.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_state.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_state.dart';
+import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_event.dart';
+import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_state.dart';
+import 'package:unitalk/features/feed/presentation/widget/post_item.dart';
+import 'package:unitalk/features/auth/presentation/widget/student_id_card_widget.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_bloc.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_event.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_state.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friendship_button.dart';
+import 'package:unitalk/features/report/presentation/user_moderation_actions.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+
+class OtherUserProfileScreen extends StatefulWidget {
+  final String userId;
+
+  const OtherUserProfileScreen({
+    Key? key,
+    required this.userId,
+  }) : super(key: key);
+
+  @override
+  State<OtherUserProfileScreen> createState() => _OtherUserProfileScreenState();
+}
+
+class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+
+    // Загружаем профиль пользователя
+    context.read<UserProfileBloc>().add(GetUserProfileEvent(widget.userId));
+
+    // Загружаем посты пользователя через PostBloc
+    context.read<PostBloc>().add(GetPostsEvent(
+      authorId: widget.userId,
+      page: 1,
+      limit: 20,
+    ));
+
+    // Проверяем статус блокировки
+    context.read<BlockBloc>().add(CheckBlockStatusEvent(widget.userId));
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onRefresh() async {
+    context.read<UserProfileBloc>().add(GetUserProfileEvent(widget.userId));
+    context.read<BlockBloc>().add(CheckBlockStatusEvent(widget.userId));
+
+    // Перезагружаем посты
+    context.read<PostBloc>().add(GetPostsEvent(
+      authorId: widget.userId,
+      page: 1,
+      limit: 20,
+    ));
+
+    await context.read<UserProfileBloc>().stream.firstWhere(
+          (state) => !state.isLoading,
+    );
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      final postState = context.read<PostBloc>().state;
+
+      // Проверяем, что посты не закончились и не идет загрузка
+      if (!postState.postsLastPage && !postState.isLoadingMore) {
+        context.read<PostBloc>().add(GetPostsEvent(
+          authorId: widget.userId,
+          page: postState.postsPage + 1,
+          limit: 20,
+        ));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return BlocProvider(
+  create: (context) => sl<FriendshipBloc>()..add(LoadFriendshipStatusEvent(widget.userId)),
+  child: Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: BlocBuilder<UserProfileBloc, UserProfileState>(
+        builder: (context, profileState) {
+          if (profileState.isLoading && profileState.user == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (profileState.errorMessage != null && profileState.user == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.color
+                        ?.withOpacity(0.3),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.errorMessage(profileState.errorMessage ?? ''),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.color
+                          ?.withOpacity(0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context
+                          .read<UserProfileBloc>()
+                          .add(GetUserProfileEvent(widget.userId));
+                    },
+                    child: Text(l10n.tryAgain),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final user = profileState.user;
+          if (user == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.person_off_outlined,
+                    size: 64,
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.color
+                        ?.withOpacity(0.3),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.userNotFound,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.color
+                          ?.withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return BlocBuilder<PostBloc, PostState>(
+            builder: (context, postState) {
+              return RefreshIndicator(
+                onRefresh: _onRefresh,
+                color: Theme.of(context).colorScheme.primary,
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    // App Bar
+                    SliverAppBar(
+                      expandedHeight: 0,
+                      pinned: false,
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      title: Text(l10n.profile),
+                      leading: IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => context.pop(),
+                      ),
+                    ),
+
+                    // Profile Content
+                    SliverPadding(
+                      padding: const EdgeInsets.all(20),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          // Student Card
+                          StudentIdCardWidget(user: user),
+                          const SizedBox(height: 24),
+
+                          // Moderation Actions
+                          BlocBuilder<AuthBloc, AuthState>(
+                            builder: (context, authState) {
+                              final currentUserId = authState.user?.id;
+                              final isOwnProfile = currentUserId == widget.userId;
+
+                              if (isOwnProfile) {
+                                return const SizedBox.shrink();
+                              }
+
+                              return BlocConsumer<BlockBloc, BlockState>(
+                                listener: (context, blockState) {
+                                  context.read<UserProfileBloc>().add(
+                                      GetUserProfileEvent(widget.userId));
+                                },
+                                builder: (context, blockState) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    child: UserModerationActions(
+                                      userId: widget.userId,
+                                      blockStatus: user.blockStatus,
+                                      userName: '${user.firstName} ${user.lastName}',
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          BlocBuilder<FriendshipBloc, FriendshipState>(
+                            builder: (context, friendshipState) {
+                              print(friendshipState.friendshipStatuses);
+                              final friendshipStatus = friendshipState.getFriendshipStatus(widget.userId);
+                              print('asdasd');
+                              print(friendshipStatus);
+                              return FriendshipButton(
+                                userId: widget.userId,
+                              );
+                            },
+                          ),
+                          // Posts Section Header
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                l10n.posts,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                l10n.postsCount(postState.posts.length),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color
+                                      ?.withOpacity(0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ]),
+                      ),
+                    ),
+
+                    // Posts List
+                    if (postState.posts.isEmpty && !postState.isLoading)
+                      SliverFillRemaining(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.article_outlined,
+                                size: 64,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.color
+                                    ?.withOpacity(0.3),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                l10n.userHasNoPosts,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color
+                                      ?.withOpacity(0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                            final post = postState.posts[index];
+                            return PostItem(post: post);
+                          },
+                          childCount: postState.posts.length,
+                        ),
+                      ),
+
+                    // Loading More Indicator
+                    if (postState.isLoadingMore)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                      ),
+
+                    // Bottom Padding
+                    const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+    ),
+);
+  }
+}import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:unitalk/core/ui/common/report_dialog.dart';
+import 'package:unitalk/features/block/data/model/block_model.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_bloc.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_event.dart';
+import 'package:unitalk/features/report/data/model/report_model.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+
+/// Widget для отображения действий модерации (блокировка и жалоба)
+class UserModerationActions extends StatelessWidget {
+  final String userId;
+  final BlockStatusModel? blockStatus;
+  final String userName;
+
+  const UserModerationActions({
+    Key? key,
+    required this.userId,
+    this.blockStatus,
+    required this.userName,
+  }) : super(key: key);
+
+  void _showBlockDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.08),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.block,
+                      color: Colors.red,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      l10n.blockUser,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                l10n.blockUserConfirmation(userName),
+                style: TextStyle(
+                  fontSize: 15,
+                  height: 1.5,
+                  color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    child: Text(
+                      l10n.cancel,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () {
+                      context.read<BlockBloc>().add(BlockUserEvent(userId));
+                      Navigator.pop(dialogContext);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(l10n.userBlocked),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      );
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      l10n.block,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showUnblockDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.unblockUser,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.unblockUserConfirmation(userName),
+                style: TextStyle(
+                  fontSize: 15,
+                  height: 1.5,
+                  color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    child: Text(
+                      l10n.cancel,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () {
+                      context.read<BlockBloc>().add(UnblockUserEvent(userId));
+                      Navigator.pop(dialogContext);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(l10n.userUnblocked),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      );
+                    },
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      l10n.unblock,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Если пользователь заблокирован текущим пользователем
+    if (blockStatus?.isBlocked == true) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.red.withOpacity(isDark ? 0.12 : 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.block,
+              color: Colors.red.shade400,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l10n.youBlockedThisUser,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.red.shade400,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => _showUnblockDialog(context),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                l10n.unblock,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red.shade400,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Если текущий пользователь заблокирован этим пользователем
+    if (blockStatus?.isBlockedBy == true) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.orange.withOpacity(isDark ? 0.12 : 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.orange.shade400,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                l10n.thisUserBlockedYou,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.orange.shade400,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Обычные действия
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => _showBlockDialog(context),
+            icon: const Icon(Icons.block, size: 18),
+            label: Text(l10n.block),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red,
+              side: BorderSide(
+                color: Colors.red.withOpacity(0.3),
+                width: 1,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              elevation: 0,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () {
+              ReportDialog.show(
+                context,
+                targetType: ReportTargetType.user,
+                targetId: userId,
+              );
+            },
+            icon: const Icon(Icons.flag_outlined, size: 18),
+            label: Text(l10n.report),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: isDark ? Colors.white70 : Colors.black87,
+              side: BorderSide(
+                color: isDark
+                    ? Colors.white.withOpacity(0.15)
+                    : Colors.black.withOpacity(0.15),
+                width: 1,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              elevation: 0,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}import 'package:json_annotation/json_annotation.dart';
+import 'package:unitalk/features/block/data/model/block_model.dart';
+import 'package:unitalk/features/faculty/data/models/faculty_model.dart';
+import 'package:unitalk/features/university/data/models/university_model.dart';
+import 'verification_model.dart';
+
+part 'user_model.g.dart';
+
+enum Sector {
+  @JsonValue('en')
+  english,
+  @JsonValue('ru')
+  russian,
+  @JsonValue('az')
+  azerbaijani;
+
+  String get code {
+    switch (this) {
+      case Sector.english:
+        return 'en';
+      case Sector.russian:
+        return 'ru';
+      case Sector.azerbaijani:
+        return 'az';
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case Sector.english:
+        return 'English';
+      case Sector.russian:
+        return 'Russian';
+      case Sector.azerbaijani:
+        return 'Azerbaijani';
+    }
+  }
+
+  String get flagEmoji {
+    switch (this) {
+      case Sector.english:
+        return '🇬🇧';
+      case Sector.russian:
+        return '🇷🇺';
+      case Sector.azerbaijani:
+        return '🇦🇿';
+    }
+  }
+
+  static Sector? fromCode(String? code) {
+    if (code == null) return null;
+    switch (code) {
+      case 'en':
+        return Sector.english;
+      case 'ru':
+        return Sector.russian;
+      case 'az':
+        return Sector.azerbaijani;
+      default:
+        return null;
+    }
+  }
+}
+
+@JsonSerializable()
+class UserModel {
+  @JsonKey(name: '_id')
+  final String? id;
+  final String? email;
+  final String? photoUrl;
+  final String? firstName;
+  final String? lastName;
+  @JsonKey(name: 'universityId')
+  final UniversityModel? university;
+  @JsonKey(name: 'facultyId')
+  final FacultyModel? faculty;
+  final Sector? sector;
+  final bool? isVerified;
+  @JsonKey(name: 'verificationId')
+  final VerificationModel? verification;
+  final BlockStatusModel? blockStatus;
+  final int? friendsCount;
+  final int? pendingRequestsCount;
+
+  // НОВОЕ: Язык пользователя с сервера
+  final String? language;
+
+  UserModel({
+    required this.id,
+    this.email,
+    this.photoUrl,
+    this.firstName,
+    this.lastName,
+    this.university,
+    this.faculty,
+    this.sector,
+    this.isVerified,
+    this.verification,
+    this.blockStatus,
+    this.friendsCount,
+    this.pendingRequestsCount,
+    this.language, // НОВОЕ
+  });
+
+  factory UserModel.fromJson(Map<String, dynamic> json) =>
+      _$UserModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserModelToJson(this);
+
+  bool get isProfileComplete =>
+      firstName != null &&
+          lastName != null &&
+          university != null &&
+          faculty != null &&
+          sector != null;
+
+  bool get canInteract => blockStatus?.canInteract ?? true;
+  bool get isBlocked => blockStatus?.isBlocked ?? false;
+  bool get isBlockedBy => blockStatus?.isBlockedBy ?? false;
+}import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:unitalk/core/di/service_locator.dart';
+import 'package:unitalk/core/ui/common/fullscreen_image_viewer.dart';
+import 'package:unitalk/core/ui/common/fullscreen_video_player.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/features/auth/presentation/edit_profile_page.dart';
+import 'package:unitalk/features/auth/presentation/page/about_page.dart';
+import 'package:unitalk/features/auth/presentation/page/auth_page.dart';
+import 'package:unitalk/features/auth/presentation/page/complete_profile_page.dart';
+import 'package:unitalk/features/auth/presentation/page/delete_account_page.dart';
+import 'package:unitalk/features/auth/presentation/page/privacy_policy_page.dart';
+import 'package:unitalk/features/auth/presentation/profile_page.dart';
+import 'package:unitalk/features/auth/presentation/verification_page.dart';
+import 'package:unitalk/features/chat/presentation/page/chat_participants_page.dart';
+import 'package:unitalk/features/chat/presentation/page/faculty_chat_screen.dart';
+import 'package:unitalk/features/feed/presentation/bloc/announcement/announcement_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/comment/comment_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/comment_likers/comment_likers_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post_likers/post_likers_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_bloc.dart';
+import 'package:unitalk/features/feed/presentation/page/comment_likers_page.dart';
+import 'package:unitalk/features/feed/presentation/page/create_post_page.dart';
+import 'package:unitalk/features/feed/presentation/page/feed_page.dart';
+import 'package:unitalk/features/feed/presentation/page/other_profile_screen.dart';
+import 'package:unitalk/features/feed/presentation/page/post_detail_page.dart';
+import 'package:unitalk/features/feed/presentation/page/post_likers_page.dart';
+import 'package:unitalk/features/friendship/presentation/pages/friend_requests_page.dart';
+import 'package:unitalk/features/friendship/presentation/pages/friends_list_page.dart';
+import 'package:unitalk/features/home/home_page.dart';
+import 'package:unitalk/features/notifications/presentation/page/notification_settings_page.dart';
+import 'package:unitalk/features/notifications/presentation/page/notifications_page.dart';
+import 'package:unitalk/features/report/presentation/page/blocked_users_page.dart';
+import 'package:unitalk/features/report/presentation/page/my_reports_page.dart';
+import 'package:unitalk/features/search/presentation/page/user_search_page.dart';
+import 'package:unitalk/features/support/presentation/page/create_support_message_page.dart';
+import 'package:unitalk/features/support/presentation/page/support_help_page.dart';
+import 'package:unitalk/features/support/presentation/page/support_message_details_page.dart';
+import 'package:unitalk/splash_page.dart';
+
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+      (dynamic _) => notifyListeners(),
+    );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
+final feedPageKey = GlobalKey<FeedPageState>();
+
+final GoRouter router = GoRouter(
+  initialLocation: '/splash',
+  refreshListenable: GoRouterRefreshStream(sl<AuthBloc>().stream),
+  navigatorKey: GlobalKey<NavigatorState>(),
+
+  routes: [
+    // === SPLASH & AUTH ===
+    GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
+    GoRoute(
+      path: '/auth',
+      builder: (context, state) => const IntroductionPage(),
+    ),
+    GoRoute(
+      path: '/introduction',
+      name: 'introduction',
+      builder: (context, state) => const IntroductionPage(),
+    ),
+    GoRoute(
+      path: '/profile-setup/name',
+      name: 'profile-setup-name',
+      builder: (context, state) => const CompleteProfilePage(),
+    ),
+    GoRoute(
+      path: '/profile-verification',
+      builder: (context, state) => const VerificationPage(),
+    ),
+
+    // === MAIN APP WITH BOTTOM NAV ===
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) {
+        return ScaffoldWithNavBar(navigationShell: navigationShell);
+      },
+      branches: [
+        // === FEED BRANCH ===
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/feed',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: BlocProvider(
+                  create: (context) => sl<AnnouncementBloc>(),
+                  child: BlocProvider(
+                    create: (context) => sl<PostBloc>(),
+                    child: FeedPage(key: feedPageKey),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // === SEARCH BRANCH ===
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/search',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const UserSearchPage(),
+              ),
+            ),
+          ],
+        ),
+
+        // === CHAT BRANCH ===
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/chat',
+              pageBuilder: (context, state) =>
+                  NoTransitionPage(key: state.pageKey, child: const ChatPage()),
+            ),
+          ],
+        ),
+
+        // === PROFILE BRANCH ===
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/profile',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: BlocProvider(
+                  create: (context) => sl<PostBloc>(),
+                  child: const ProfilePage(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+
+    // === STANDALONE ROUTES (outside bottom nav) ===
+
+    // Notifications
+    GoRoute(
+      path: '/notifications',
+      builder: (context, state) => const NotificationsPage(),
+    ),
+    GoRoute(
+      path: '/notification-settings',
+      builder: (context, state) => const NotificationSettingsPage(),
+    ),
+
+    // Posts
+    GoRoute(
+      path: '/create-post',
+      builder: (context, state) => BlocProvider(
+        create: (context) => sl<PostBloc>(),
+        child: CreatePostPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/post/:id',
+      builder: (context, state) {
+        final postId = state.pathParameters['id']!;
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => sl<CommentBloc>()),
+            BlocProvider(create: (context) => sl<PostBloc>()),
+          ],
+          child: PostDetailPage(postId: postId),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/post/:id/likers',
+      builder: (context, state) {
+        final postId = state.pathParameters['id']!;
+        return BlocProvider(
+          create: (context) => sl<PostLikersBloc>(),
+          child: PostLikersPage(postId: postId),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/comment/:id/likers',
+      builder: (context, state) {
+        final commentId = state.pathParameters['id']!;
+        return BlocProvider(
+          create: (context) => sl<CommentLikersBloc>(),
+          child: CommentLikersPage(commentId: commentId),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: '/blocked-users',
+      builder: (context, state) => const BlockedUsersPage(),
+    ),
+    GoRoute(
+      path: '/my-reports',
+      builder: (context, state) => const MyReportsPage(),
+    ),
+
+    // Users
+    GoRoute(
+      path: '/user/:id',
+      builder: (context, state) {
+        final userId = state.pathParameters['id']!;
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => sl<UserProfileBloc>()),
+            BlocProvider(create: (context) => sl<PostBloc>()),
+          ],
+          child: OtherUserProfileScreen(userId: userId),
+        );
+      },
+    ),
+
+    // Profile
+    GoRoute(
+      path: '/edit-profile',
+      builder: (context, state) => const EditProfilePage(),
+    ),
+
+    GoRoute(
+      path: '/chat/participants',
+      builder: (context, state) => const ChatParticipantsPage(),
+    ),
+
+    // Support
+    GoRoute(
+      path: '/support',
+      builder: (context, state) => const HelpSupportPage(),
+    ),
+    GoRoute(
+      path: '/support/create',
+      builder: (context, state) => const CreateSupportMessagePage(),
+    ),
+    GoRoute(
+      path: '/support/:id',
+      builder: (context, state) {
+        final messageId = state.pathParameters['id']!;
+        return SupportMessageDetailsPage(messageId: messageId);
+      },
+    ),
+    GoRoute(
+      path: '/privacy-policy',
+      builder: (context, state) => PrivacyPolicyPage(),
+    ),
+    GoRoute(
+      path: '/terms-of-use',
+      builder: (context, state) => TermsOfUsePage(),
+    ),
+    GoRoute(path: '/about', builder: (context, state) => AboutPage()),
+    GoRoute(path: '/delete', builder: (context, state) => DeleteAccountPage()),
+
+    // Добавьте в список роутов:
+    GoRoute(
+      path: '/friends',
+      builder: (context, state) => const FriendsListPage(),
+    ),
+    GoRoute(
+      path: '/friend-requests',
+      builder: (context, state) => const FriendRequestsPage(),
+    ),
+    GoRoute(
+      path: '/video/:videoUrl',
+      name: 'fullscreen_video',
+      builder: (context, state) {
+        final videoUrl = Uri.decodeComponent(state.pathParameters['videoUrl']!);
+        final autoPlay = state.uri.queryParameters['autoPlay'] == 'true';
+        return FullscreenVideoPlayer(videoUrl: videoUrl, autoPlay: autoPlay);
+      },
+    ),
+    GoRoute(
+      path: '/image/:imageUrl',
+      name: 'fullscreen_image',
+      builder: (context, state) {
+        final imageUrl = Uri.decodeComponent(state.pathParameters['imageUrl']!);
+        return FullscreenImageViewer(imageUrl: imageUrl);
+      },
+    ),
+  ],
+
+  errorBuilder: (context, state) => Scaffold(
+    body: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 64, color: Colors.red),
+          const SizedBox(height: 16),
+          Text(
+            'Navigation Error',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 8),
+          Text(state.error.toString()),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => context.go('/feed'),
+            child: const Text('Go to Feed'),
+          ),
+        ],
+      ),
+    ),
+  ),
+);

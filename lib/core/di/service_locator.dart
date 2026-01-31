@@ -46,6 +46,9 @@ import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post_likers/post_likers_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/replies/replies_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_bloc.dart';
+import 'package:unitalk/features/friendship/data/datasource/friendship_remote_datasource.dart';
+import 'package:unitalk/features/friendship/domain/repository/friendship_repository.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_bloc.dart';
 import 'package:unitalk/features/notifications/data/notifcation_remote_datasource.dart';
 import 'package:unitalk/features/notifications/data/notifcation_repository_impl.dart';
 import 'package:unitalk/features/notifications/domain/notifcation_repository.dart';
@@ -72,6 +75,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../../features/friendship/data/repository/friendship_repository_impl.dart';
 import '../../features/report/data/datasource/report_remote_datasource.dart' show ReportRemoteDataSource;
 
 final sl = GetIt.instance;
@@ -139,7 +143,19 @@ Future<void> initDependencies() async {
         () => PostRemoteDataSource(dio:  sl(instanceName: 'dioAuth'),
     ),
   );
+  sl.registerLazySingleton<FriendshipRemoteDataSource>(
+        () => FriendshipRemoteDataSource(dio: sl(instanceName: 'dioAuth')),
+  );
 
+  // ДОБАВЬТЕ ПОСЛЕ других Repositories:
+
+  sl.registerLazySingleton<FriendshipRepository>(
+        () => FriendshipRepositoryImpl(sl()),
+  );
+
+  // ДОБАВЬТЕ ПОСЛЕ других Blocs:
+
+  sl.registerFactory(() => FriendshipBloc(repository: sl()));
   sl.registerLazySingleton<LikeRemoteDataSource>(
         () => LikeRemoteDataSource(dio:  sl(instanceName: 'dioAuth'),
     ),

@@ -1,0 +1,1861 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:unitalk/core/ui/common/empty_state_widget.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_bloc.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_event.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_state.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friend_list_tile.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
+class FriendRequestsPage extends StatefulWidget {
+  const FriendRequestsPage({Key? key}) : super(key: key);
+
+  @override
+  State<FriendRequestsPage> createState() => _FriendRequestsPageState();
+}
+
+class _FriendRequestsPageState extends State<FriendRequestsPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final ScrollController _incomingScrollController = ScrollController();
+  final ScrollController _outgoingScrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _incomingScrollController.addListener(_onIncomingScroll);
+    _outgoingScrollController.addListener(_onOutgoingScroll);
+
+    // Загружаем входящие запросы при открытии
+    context.read<FriendshipBloc>().add(LoadIncomingRequestsEvent());
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _incomingScrollController.dispose();
+    _outgoingScrollController.dispose();
+    super.dispose();
+  }
+
+  void _onIncomingScroll() {
+    if (_isBottomIncoming) {
+      final state = context.read<FriendshipBloc>().state;
+      if (state.incomingHasMore && !state.isLoadingMore) {
+        context.read<FriendshipBloc>().add(LoadIncomingRequestsEvent(loadMore: true));
+      }
+    }
+  }
+
+  void _onOutgoingScroll() {
+    if (_isBottomOutgoing) {
+      final state = context.read<FriendshipBloc>().state;
+      if (state.outgoingHasMore && !state.isLoadingMore) {
+        context.read<FriendshipBloc>().add(LoadOutgoingRequestsEvent(loadMore: true));
+      }
+    }
+  }
+
+  bool get _isBottomIncoming {
+    if (!_incomingScrollController.hasClients) return false;
+    final maxScroll = _incomingScrollController.position.maxScrollExtent;
+    final currentScroll = _incomingScrollController.offset;
+    return currentScroll >= (maxScroll * 0.85);
+  }
+
+  bool get _isBottomOutgoing {
+    if (!_outgoingScrollController.hasClients) return false;
+    final maxScroll = _outgoingScrollController.position.maxScrollExtent;
+    final currentScroll = _outgoingScrollController.offset;
+    return currentScroll >= (maxScroll * 0.85);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: theme.scaffoldBackgroundColor,
+        surfaceTintColor: theme.scaffoldBackgroundColor,
+        title: Text(
+          l10n.friendRequests,
+          style: TextStyle(
+            color: theme.textTheme.titleLarge?.color,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: theme.primaryColor,
+          unselectedLabelColor: theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+          indicatorColor: theme.primaryColor,
+          onTap: (index) {
+            if (index == 0) {
+              context.read<FriendshipBloc>().add(LoadIncomingRequestsEvent());
+            } else {
+              context.read<FriendshipBloc>().add(LoadOutgoingRequestsEvent());
+            }
+          },
+          tabs: [
+            Tab(text: l10n.incoming),
+            Tab(text: l10n.outgoing),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildIncomingTab(l10n, theme),
+          _buildOutgoingTab(l10n, theme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIncomingTab(AppLocalizations l10n, ThemeData theme) {
+    return BlocBuilder<FriendshipBloc, FriendshipState>(
+      builder: (context, state) {
+        if (state.status == FriendshipStateStatus.loading && state.incomingRequests.isEmpty) {
+          return Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: theme.primaryColor,
+            ),
+          );
+        }
+
+        if (state.hasError) {
+          return EmptyStateWidget(
+            icon: Icons.error_outline,
+            title: state.errorMessage ?? l10n.anErrorOccurred,
+            subtitle: null,
+          );
+        }
+
+        if (state.incomingRequests.isEmpty) {
+          return EmptyStateWidget(
+            icon: Icons.inbox_outlined,
+            title: l10n.noIncomingRequests,
+            subtitle: l10n.noIncomingRequestsSubtitle,
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            context.read<FriendshipBloc>().add(LoadIncomingRequestsEvent());
+          },
+          child: ListView.separated(
+            controller: _incomingScrollController,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: state.incomingRequests.length + (state.incomingHasMore ? 1 : 0),
+            separatorBuilder: (context, index) => Divider(
+              height: 1,
+              color: theme.dividerColor.withOpacity(0.1),
+              indent: 76,
+            ),
+            itemBuilder: (context, index) {
+              if (index >= state.incomingRequests.length) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: theme.primaryColor,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              final request = state.incomingRequests[index];
+              return FriendListTile(
+                user: request.user,
+                subtitle: timeago.format(request.requestedAt),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.check, size: 20),
+                      onPressed: () {
+                        context.read<FriendshipBloc>().add(
+                          AcceptFriendRequestEvent(request.friendshipId),
+                        );
+                      },
+                      style: IconButton.styleFrom(
+                        backgroundColor: theme.primaryColor,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 20),
+                      onPressed: () {
+                        context.read<FriendshipBloc>().add(
+                          RejectFriendRequestEvent(request.friendshipId),
+                        );
+                      },
+                      style: IconButton.styleFrom(
+                        backgroundColor: theme.cardColor,
+                        foregroundColor: theme.textTheme.bodyMedium?.color,
+                        side: BorderSide(color: theme.dividerColor),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOutgoingTab(AppLocalizations l10n, ThemeData theme) {
+    return BlocBuilder<FriendshipBloc, FriendshipState>(
+      builder: (context, state) {
+        if (state.status == FriendshipStateStatus.loading && state.outgoingRequests.isEmpty) {
+          return Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: theme.primaryColor,
+            ),
+          );
+        }
+
+        if (state.hasError) {
+          return EmptyStateWidget(
+            icon: Icons.error_outline,
+            title: state.errorMessage ?? l10n.anErrorOccurred,
+            subtitle: null,
+          );
+        }
+
+        if (state.outgoingRequests.isEmpty) {
+          return EmptyStateWidget(
+            icon: Icons.send_outlined,
+            title: l10n.noOutgoingRequests,
+            subtitle: l10n.noOutgoingRequestsSubtitle,
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            context.read<FriendshipBloc>().add(LoadOutgoingRequestsEvent());
+          },
+          child: ListView.separated(
+            controller: _outgoingScrollController,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: state.outgoingRequests.length + (state.outgoingHasMore ? 1 : 0),
+            separatorBuilder: (context, index) => Divider(
+              height: 1,
+              color: theme.dividerColor.withOpacity(0.1),
+              indent: 76,
+            ),
+            itemBuilder: (context, index) {
+              if (index >= state.outgoingRequests.length) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: theme.primaryColor,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              final request = state.outgoingRequests[index];
+              return FriendListTile(
+                user: request.user,
+                subtitle: '${l10n.sentAt} ${timeago.format(request.requestedAt)}',
+                trailing: IconButton(
+                  icon: const Icon(Icons.close, size: 20),
+                  onPressed: () {
+                    context.read<FriendshipBloc>().add(
+                      RemoveFriendshipEvent(request.friendshipId),
+                    );
+                  },
+                  style: IconButton.styleFrom(
+                    backgroundColor: theme.cardColor,
+                    foregroundColor: theme.textTheme.bodyMedium?.color,
+                    side: BorderSide(color: theme.dividerColor),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:unitalk/features/friendship/data/model/friendship_model.dart' show FriendshipStatusResponse, FriendshipStatus;
+import 'package:unitalk/features/friendship/domain/repository/friendship_repository.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_state.dart' show FriendshipState, FriendshipStateStatus;
+import 'friendship_event.dart';
+
+
+class FriendshipBloc extends Bloc<FriendshipEvent, FriendshipState> {
+  final FriendshipRepository repository;
+
+  FriendshipBloc({required this.repository}) : super(FriendshipState.initial()) {
+    on<SendFriendRequestEvent>(_onSendFriendRequest);
+    on<AcceptFriendRequestEvent>(_onAcceptFriendRequest);
+    on<RejectFriendRequestEvent>(_onRejectFriendRequest);
+    on<RemoveFriendshipEvent>(_onRemoveFriendship);
+    on<LoadFriendsListEvent>(_onLoadFriendsList);
+    on<LoadIncomingRequestsEvent>(_onLoadIncomingRequests);
+    on<LoadOutgoingRequestsEvent>(_onLoadOutgoingRequests);
+    on<LoadFriendshipStatusEvent>(_onLoadFriendshipStatus);
+    on<ClearFriendshipStateEvent>(_onClearState);
+  }
+
+
+
+  // Загрузить список друзей
+  Future<void> _onLoadFriendsList(
+      LoadFriendsListEvent event,
+      Emitter<FriendshipState> emit,
+      ) async {
+    if (event.loadMore) {
+      if (!state.friendsHasMore || state.isLoadingMore) return;
+      emit(state.copyWith(status: FriendshipStateStatus.loadingMore));
+    } else {
+      emit(state.copyWith(
+        status: FriendshipStateStatus.loading,
+        friends: [],
+        friendsPage: 1,
+      ));
+    }
+
+    final page = event.loadMore ? state.friendsPage : 1;
+
+    final result = await repository.getFriendsList(page: page, limit: 20);
+
+    result.fold(
+          (failure) {
+        emit(state.copyWith(
+          status: FriendshipStateStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (newFriends) {
+        final updatedFriends = event.loadMore
+            ? [...state.friends, ...newFriends]
+            : newFriends;
+
+        emit(state.copyWith(
+          status: FriendshipStateStatus.success,
+          friends: updatedFriends,
+          friendsPage: page + 1,
+          friendsHasMore: newFriends.length >= 20,
+        ));
+      },
+    );
+  }
+
+  // Загрузить входящие запросы
+  Future<void> _onLoadIncomingRequests(
+      LoadIncomingRequestsEvent event,
+      Emitter<FriendshipState> emit,
+      ) async {
+    if (event.loadMore) {
+      if (!state.incomingHasMore || state.isLoadingMore) return;
+      emit(state.copyWith(status: FriendshipStateStatus.loadingMore));
+    } else {
+      emit(state.copyWith(
+        status: FriendshipStateStatus.loading,
+        incomingRequests: [],
+        incomingPage: 1,
+      ));
+    }
+
+    final page = event.loadMore ? state.incomingPage : 1;
+
+    final result = await repository.getIncomingRequests(page: page, limit: 20);
+
+    result.fold(
+          (failure) {
+        emit(state.copyWith(
+          status: FriendshipStateStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (newRequests) {
+        final updatedRequests = event.loadMore
+            ? [...state.incomingRequests, ...newRequests]
+            : newRequests;
+
+        emit(state.copyWith(
+          status: FriendshipStateStatus.success,
+          incomingRequests: updatedRequests,
+          incomingPage: page + 1,
+          incomingHasMore: newRequests.length >= 20,
+        ));
+      },
+    );
+  }
+
+  // Загрузить исходящие запросы
+  Future<void> _onLoadOutgoingRequests(
+      LoadOutgoingRequestsEvent event,
+      Emitter<FriendshipState> emit,
+      ) async {
+    if (event.loadMore) {
+      if (!state.outgoingHasMore || state.isLoadingMore) return;
+      emit(state.copyWith(status: FriendshipStateStatus.loadingMore));
+    } else {
+      emit(state.copyWith(
+        status: FriendshipStateStatus.loading,
+        outgoingRequests: [],
+        outgoingPage: 1,
+      ));
+    }
+
+    final page = event.loadMore ? state.outgoingPage : 1;
+
+    final result = await repository.getOutgoingRequests(page: page, limit: 20);
+
+    result.fold(
+          (failure) {
+        emit(state.copyWith(
+          status: FriendshipStateStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (newRequests) {
+        final updatedRequests = event.loadMore
+            ? [...state.outgoingRequests, ...newRequests]
+            : newRequests;
+
+        emit(state.copyWith(
+          status: FriendshipStateStatus.success,
+          outgoingRequests: updatedRequests,
+          outgoingPage: page + 1,
+          outgoingHasMore: newRequests.length >= 20,
+        ));
+      },
+    );
+  }
+
+  // Загрузить статус дружбы с пользователем
+  Future<void> _onLoadFriendshipStatus(
+      LoadFriendshipStatusEvent event,
+      Emitter<FriendshipState> emit,
+      ) async {
+    final result = await repository.getFriendshipStatus(event.userId);
+
+    result.fold(
+          (failure) {
+        emit(state.copyWith(
+          status: FriendshipStateStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (status) {
+        final updatedStatuses = Map<String, FriendshipStatusResponse>.from(
+          state.friendshipStatuses,
+        );
+        updatedStatuses[event.userId] = status;
+
+        emit(state.copyWith(
+          status: FriendshipStateStatus.success,
+          friendshipStatuses: updatedStatuses,
+        ));
+      },
+    );
+  }
+
+  // Очистить состояние
+  void _onClearState(
+      ClearFriendshipStateEvent event,
+      Emitter<FriendshipState> emit,
+      ) {
+    emit(FriendshipState.initial());
+  }
+
+  // Отправить запрос в друзья
+  Future<void> _onSendFriendRequest(
+      SendFriendRequestEvent event,
+      Emitter<FriendshipState> emit,
+      ) async {
+    final result = await repository.sendFriendRequest(event.userId);
+
+    result.fold(
+          (failure) {
+        emit(state.copyWith(
+          status: FriendshipStateStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (friendship) {
+        // ✅ ИСПРАВЛЕНО: Используем правильный тип
+        final updatedStatuses = Map<String, FriendshipStatusResponse>.from(
+          state.friendshipStatuses,
+        );
+
+        updatedStatuses[event.userId] = FriendshipStatusResponse(
+          status: FriendshipStatus.pending,
+          isFriend: false,
+          friendshipId: friendship.id ?? friendship.friendshipId,
+          isRequester: true,
+          createdAt: friendship.createdAt ?? DateTime.now(),
+        );
+
+        emit(state.copyWith(
+          status: FriendshipStateStatus.success,
+          friendshipStatuses: updatedStatuses,
+        ));
+      },
+    );
+  }
+
+// Удалить дружбу
+  Future<void> _onRemoveFriendship(
+      RemoveFriendshipEvent event,
+      Emitter<FriendshipState> emit,
+      ) async {
+    final result = await repository.removeFriendship(event.friendshipId);
+
+    result.fold(
+          (failure) {
+        emit(state.copyWith(
+          status: FriendshipStateStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (_) {
+        // ✅ ИСПРАВЛЕНО: Приоритет event.userId
+        String? targetUserId = event.userId;
+
+        // Если userId не передан, ищем в списках
+        if (targetUserId == null) {
+          // Ищем в исходящих запросах
+          for (final request in state.outgoingRequests) {
+            if (request.friendshipId == event.friendshipId) {
+              targetUserId = request.user.id;
+              break;
+            }
+          }
+
+          // Ищем в друзьях
+          if (targetUserId == null) {
+            for (final friend in state.friends) {
+              // Можно добавить поле friendshipId в модель или искать по другому
+              // Пока пропускаем, так как в списке друзей нет friendshipId
+            }
+          }
+
+          // ✅ НОВОЕ: Ищем в friendshipStatuses по friendshipId
+          if (targetUserId == null) {
+            for (final entry in state.friendshipStatuses.entries) {
+              if (entry.value.friendshipId == event.friendshipId) {
+                targetUserId = entry.key;
+                break;
+              }
+            }
+          }
+        }
+
+        // Обновляем списки
+        final updatedFriends = state.friends
+            .where((friend) => friend.id != targetUserId)
+            .toList();
+
+        final updatedOutgoing = state.outgoingRequests
+            .where((req) => req.friendshipId != event.friendshipId)
+            .toList();
+
+        // Обновляем статусы
+        final updatedStatuses = Map<String, FriendshipStatusResponse>.from(
+          state.friendshipStatuses,
+        );
+
+        if (targetUserId != null) {
+          updatedStatuses[targetUserId] = FriendshipStatusResponse(
+            status: FriendshipStatus.none,
+            isFriend: false,
+          );
+        }
+
+        emit(state.copyWith(
+          status: FriendshipStateStatus.success,
+          friends: updatedFriends,
+          outgoingRequests: updatedOutgoing,
+          friendshipStatuses: updatedStatuses,
+        ));
+      },
+    );
+  }
+
+// Принять запрос в друзья
+  Future<void> _onAcceptFriendRequest(
+      AcceptFriendRequestEvent event,
+      Emitter<FriendshipState> emit,
+      ) async {
+    final result = await repository.acceptFriendRequest(event.friendshipId);
+
+    result.fold(
+          (failure) {
+        emit(state.copyWith(
+          status: FriendshipStateStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (friendship) {
+        // ✅ ИСПРАВЛЕНО: Находим пользователя и обновляем статус
+        String? targetUserId;
+
+        for (final request in state.incomingRequests) {
+          if (request.friendshipId == event.friendshipId) {
+            targetUserId = request.user.id;
+            break;
+          }
+        }
+
+        // Удаляем из входящих запросов
+        final updatedIncoming = state.incomingRequests
+            .where((req) => req.friendshipId != event.friendshipId)
+            .toList();
+
+        // Обновляем статусы
+        final updatedStatuses = Map<String, FriendshipStatusResponse>.from(
+          state.friendshipStatuses,
+        );
+
+        if (targetUserId != null) {
+          updatedStatuses[targetUserId] = FriendshipStatusResponse(
+            status: FriendshipStatus.accepted,
+            isFriend: true,
+            friendshipId: event.friendshipId,
+            acceptedAt: DateTime.now(),
+          );
+        }
+
+        emit(state.copyWith(
+          status: FriendshipStateStatus.success,
+          incomingRequests: updatedIncoming,
+          friendshipStatuses: updatedStatuses,
+        ));
+
+        // Перезагружаем список друзей
+        add(LoadFriendsListEvent());
+      },
+    );
+  }
+
+// Отклонить запрос в друзья
+  Future<void> _onRejectFriendRequest(
+      RejectFriendRequestEvent event,
+      Emitter<FriendshipState> emit,
+      ) async {
+    final result = await repository.rejectFriendRequest(event.friendshipId);
+
+    result.fold(
+          (failure) {
+        emit(state.copyWith(
+          status: FriendshipStateStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (_) {
+        // ✅ ИСПРАВЛЕНО: Находим пользователя и обновляем статус
+        String? targetUserId;
+
+        for (final request in state.incomingRequests) {
+          if (request.friendshipId == event.friendshipId) {
+            targetUserId = request.user.id;
+            break;
+          }
+        }
+
+        // Удаляем из входящих запросов
+        final updatedIncoming = state.incomingRequests
+            .where((req) => req.friendshipId != event.friendshipId)
+            .toList();
+
+        // Обновляем статусы
+        final updatedStatuses = Map<String, FriendshipStatusResponse>.from(
+          state.friendshipStatuses,
+        );
+
+        if (targetUserId != null) {
+          updatedStatuses[targetUserId] = FriendshipStatusResponse(
+            status: FriendshipStatus.rejected,
+            isFriend: false,
+          );
+        }
+
+        emit(state.copyWith(
+          status: FriendshipStateStatus.success,
+          incomingRequests: updatedIncoming,
+          friendshipStatuses: updatedStatuses,
+        ));
+      },
+    );
+  }
+}import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+
+class FriendsCountButton extends StatelessWidget {
+  final int friendsCount;
+  final String? userId;
+  final bool isDark;
+
+  const FriendsCountButton({
+    Key? key,
+    required this.friendsCount,
+    this.userId,
+    this.isDark = false,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return InkWell(
+      onTap: () {
+        // Открываем список друзей
+        context.push('/friends');
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark
+              ? Colors.white.withOpacity(0.1)
+              : Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.people_outline,
+              size: 20,
+              color: isDark ? Colors.white : Colors.white,
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$friendsCount',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.white,
+                    height: 1.2,
+                  ),
+                ),
+                Text(
+                  l10n.friends,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: (isDark ? Colors.white : Colors.white).withOpacity(0.8),
+                    height: 1,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.chevron_right,
+              size: 16,
+              color: (isDark ? Colors.white : Colors.white).withOpacity(0.6),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:unitalk/core/ui/common/fullscreen_image_viewer.dart';
+import 'package:unitalk/core/ui/widgets/default_avatar.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:unitalk/features/auth/presentation/widget/card_info_row.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friends_count_button.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+
+class StudentIdCardWidget extends StatelessWidget {
+  final UserModel user;
+  final bool showFriendsCount; // ✅ НОВЫЙ параметр
+
+  const StudentIdCardWidget({
+    super.key,
+    required this.user,
+    this.showFriendsCount = true, // ✅ По умолчанию показываем
+  });
+
+  void _showImageFullscreen(BuildContext context, String imageUrl) {
+    FullscreenImageViewer.showAvatar(
+      context,
+      imageUrl,
+      userId: user.id,
+      heroTag: 'avatar_${user.id}',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final locale = Localizations.localeOf(context).languageCode;
+    final l10n = AppLocalizations.of(context)!;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [const Color(0xFF1a237e), const Color(0xFF0d47a1)]
+              : [const Color(0xFF1976d2), const Color(0xFF42a5f5)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).shadowColor.withValues(alpha: .3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Background Pattern
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.1,
+              child: CustomPaint(
+                painter: _CardPatternPainter(),
+              ),
+            ),
+          ),
+
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.studentIdCard.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 2,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            user.university?.getLocalizedName(locale) ?? '',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white.withOpacity(0.85),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    if (user.university?.logoUrl != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          width: 55,
+                          height: 55,
+                          decoration: const BoxDecoration(color: Colors.white),
+                          child: CachedNetworkImage(
+                            imageUrl: user.university!.logoUrl!,
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) => Icon(
+                              Icons.school,
+                              color: Theme.of(context).primaryColor,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Student Info
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Avatar with fullscreen tap
+                    GestureDetector(
+                      onTap: user.photoUrl != null
+                          ? () => _showImageFullscreen(context, user.photoUrl!)
+                          : null,
+                      child: Hero(
+                        tag: 'avatar_${user.id}',
+                        child: Container(
+                          width: 75,
+                          height: 95,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: user.photoUrl != null
+                                ? CachedNetworkImage(
+                              imageUrl: user.photoUrl!,
+                              fit: BoxFit.cover,
+                              errorWidget: (_, __, ___) =>  DefaultAvatar(),
+                            )
+                                :  DefaultAvatar(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${user.firstName ?? ''} ${user.lastName ?? ''}'
+                                .toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 2,
+                          ),
+                          const SizedBox(height: 6),
+                          CardInfoRow(
+                            label: l10n.idLabel,
+                            value: user.id?.substring(0, 8).toUpperCase() ?? '',
+                          ),
+                          const SizedBox(height: 3),
+                          CardInfoRow(
+                            label: l10n.faculty,
+                            value: user.faculty?.getLocalizedName(locale) ??
+                                l10n.notAvailable,
+                          ),
+                          const SizedBox(height: 3),
+                          CardInfoRow(
+                            label: l10n.sector,
+                            value: user.sector?.displayName ?? l10n.notAvailable,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                // ✅ НОВОЕ: Счетчик друзей
+                if (showFriendsCount && user.friendsCount != null) ...[
+                  const SizedBox(height: 16),
+                  FriendsCountButton(
+                    friendsCount: user.friendsCount!,
+                    userId: user.id,
+                    isDark: isDark,
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // Verified Badge
+          if (user.isVerified == true)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.verified, size: 12, color: Colors.white),
+                    const SizedBox(width: 4),
+                    Text(
+                      l10n.verified.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Painter for background pattern
+class _CardPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (int i = 0; i < 10; i++) {
+      canvas.drawCircle(
+        Offset(size.width * 0.8, size.height * 0.2 + i * 20),
+        30 + i * 5,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/core/theme/bloc/theme_bloc.dart';
+import 'package:unitalk/core/theme/bloc/theme_event.dart';
+import 'package:unitalk/core/theme/bloc/theme_state.dart';
+import 'package:unitalk/core/theme/domain/entity/app_theme_mode.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_event.dart';
+import 'package:unitalk/features/auth/presentation/edit_profile_page.dart';
+import 'package:unitalk/features/auth/presentation/widget/profile_drawer.dart';
+import 'package:unitalk/features/auth/presentation/widget/student_id_card_widget.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_state.dart';
+import 'package:unitalk/features/feed/domain/repository/posts_repository.dart';
+import 'package:unitalk/features/feed/presentation/widget/post_item.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_bloc.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_state.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_event.dart';
+import 'package:unitalk/features/university/data/models/university_model.dart';
+import 'package:unitalk/features/university/presentation/manager/university_bloc.dart';
+import 'package:unitalk/features/university/presentation/manager/university_event.dart';
+import 'package:unitalk/features/university/presentation/manager/university_state.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:unitalk/l10n/bloc/locale_cubit.dart';
+import 'package:intl/intl.dart';
+
+import 'widget/verification_status_widget.dart';
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProfilePageContent();
+  }
+}
+
+class _ProfilePageContent extends StatefulWidget {
+  @override
+  State<_ProfilePageContent> createState() => _ProfilePageContentState();
+}
+
+class _ProfilePageContentState extends State<_ProfilePageContent> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<PostBloc>().add(GetPostsEvent(authorId: context.read<AuthBloc>().state.user!.id));
+  }
+
+  Future<void> _onRefresh() async {
+    final userId = context.read<AuthBloc>().state.user?.id;
+    if (userId == null) return;
+
+    context.read<PostBloc>().add(GetPostsEvent(authorId: userId));
+    context.read<AuthBloc>().add(GetCurrentUserEvent());
+
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      endDrawer: ProfileDrawer(),
+      body: SafeArea(
+        child: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, authState) {
+            final user = authState.user;
+            print('sdfsfsd ${user?.verification?.status}');
+            print('sdfsfsd ${user?.isVerified}');
+
+            if (user == null) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            return RefreshIndicator(
+              onRefresh: _onRefresh,
+              color: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              child: CustomScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: 0,
+                    pinned: false,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    title: Text(l10n.profile),
+                    actions: [
+                      IconButton(
+                        icon: Icon(Icons.edit_outlined),
+                        tooltip: l10n.editProfile,
+                        onPressed: () {
+                          context.push('/edit-profile');
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.menu),
+                        onPressed: () => Scaffold.of(context).openEndDrawer(),
+                      ),
+                    ],
+                  ),
+                  SliverPadding(
+                    padding: EdgeInsets.all(20),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        // Student Card
+                        StudentIdCardWidget(user: user),
+                        SizedBox(height: 24),
+
+                        // Verification Status
+                        VerificationStatusWidget(user: user),
+                        SizedBox(height: 24),
+
+                        // Posts Section Header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              l10n.myPosts,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            BlocBuilder<PostBloc, PostState>(
+                              builder: (context, state) {
+                                return Text(
+                                  l10n.postsCount(state.posts.length),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color
+                                        ?.withOpacity(0.6),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ]),
+                    ),
+                  ),
+
+                  // Posts List
+                  BlocBuilder<PostBloc, PostState>(
+                    builder: (context, state) {
+                      if (state.status == PostStatus.loading && state.posts.isEmpty) {
+                        return SliverFillRemaining(
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      if (state.posts.isEmpty) {
+                        return SliverFillRemaining(
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.article_outlined,
+                                  size: 64,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color
+                                      ?.withOpacity(0.3),
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  l10n.noPostsYet,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color
+                                        ?.withOpacity(0.6),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                            final post = state.posts[index];
+                            return PostItem(post: post);
+                          },
+                          childCount: state.posts.length,
+                        ),
+                      );
+                    },
+                  ),
+
+                  SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/core/di/service_locator.dart';
+import 'package:unitalk/core/ui/common/report_dialog.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_bloc.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_event.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_state.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_state.dart';
+import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_event.dart';
+import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_state.dart';
+import 'package:unitalk/features/feed/presentation/widget/post_item.dart';
+import 'package:unitalk/features/auth/presentation/widget/student_id_card_widget.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_bloc.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_event.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friendship_button.dart';
+import 'package:unitalk/features/report/data/model/report_model.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+
+class OtherUserProfileScreen extends StatefulWidget {
+  final String userId;
+
+  const OtherUserProfileScreen({
+    Key? key,
+    required this.userId,
+  }) : super(key: key);
+
+  @override
+  State<OtherUserProfileScreen> createState() => _OtherUserProfileScreenState();
+}
+
+class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+
+    context.read<UserProfileBloc>().add(GetUserProfileEvent(widget.userId));
+    context.read<PostBloc>().add(GetPostsEvent(
+      authorId: widget.userId,
+      page: 1,
+      limit: 20,
+    ));
+    context.read<BlockBloc>().add(CheckBlockStatusEvent(widget.userId));
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onRefresh() async {
+    context.read<UserProfileBloc>().add(GetUserProfileEvent(widget.userId));
+    context.read<BlockBloc>().add(CheckBlockStatusEvent(widget.userId));
+    context.read<PostBloc>().add(GetPostsEvent(
+      authorId: widget.userId,
+      page: 1,
+      limit: 20,
+    ));
+
+    await context.read<UserProfileBloc>().stream.firstWhere(
+          (state) => !state.isLoading,
+    );
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      final postState = context.read<PostBloc>().state;
+
+      if (!postState.postsLastPage && !postState.isLoadingMore) {
+        context.read<PostBloc>().add(GetPostsEvent(
+          authorId: widget.userId,
+          page: postState.postsPage + 1,
+          limit: 20,
+        ));
+      }
+    }
+  }
+
+  // ✅ НОВОЕ: Показать меню модерации
+  void _showModerationMenu(BuildContext context, UserModel user) {
+    final l10n = AppLocalizations.of(context)!;
+    final blockStatus = user.blockStatus;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 20),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).dividerColor,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
+            // Заблокирован/Разблокировать
+            if (blockStatus?.isBlocked == true)
+              ListTile(
+                leading: const Icon(Icons.block, color: Colors.red),
+                title: Text(l10n.unblockUser),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showUnblockDialog(context, widget.userId, user);
+                },
+              )
+            else if (blockStatus?.isBlockedBy != true)
+              ListTile(
+                leading: const Icon(Icons.block, color: Colors.red),
+                title: Text(l10n.blockUser),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showBlockDialog(context, widget.userId, user);
+                },
+              ),
+
+            // Пожаловаться
+            if (blockStatus?.isBlockedBy != true)
+              ListTile(
+                leading: const Icon(Icons.flag_outlined),
+                title: Text(l10n.report),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  ReportDialog.show(
+                    context,
+                    targetType: ReportTargetType.user,
+                    targetId: widget.userId,
+                  );
+                },
+              ),
+
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showBlockDialog(BuildContext context, String userId, UserModel user) {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.blockUser),
+        content: Text(l10n.blockUserConfirmation(
+            '${user.firstName} ${user.lastName}')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.read<BlockBloc>().add(BlockUserEvent(userId));
+              Navigator.pop(dialogContext);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.userBlocked)),
+              );
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(l10n.block),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showUnblockDialog(
+      BuildContext context, String userId, UserModel user) {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.unblockUser),
+        content: Text(l10n.unblockUserConfirmation(
+            '${user.firstName} ${user.lastName}')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.read<BlockBloc>().add(UnblockUserEvent(userId));
+              Navigator.pop(dialogContext);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.userUnblocked)),
+              );
+            },
+            child: Text(l10n.unblock),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return BlocProvider(
+      create: (context) => sl<FriendshipBloc>()
+        ..add(LoadFriendshipStatusEvent(widget.userId)),
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: BlocBuilder<UserProfileBloc, UserProfileState>(
+          builder: (context, profileState) {
+            if (profileState.isLoading && profileState.user == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (profileState.errorMessage != null && profileState.user == null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.color
+                          ?.withOpacity(0.3),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.errorMessage(profileState.errorMessage ?? ''),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.color
+                            ?.withOpacity(0.6),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        context
+                            .read<UserProfileBloc>()
+                            .add(GetUserProfileEvent(widget.userId));
+                      },
+                      child: Text(l10n.tryAgain),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final user = profileState.user;
+            if (user == null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.person_off_outlined,
+                      size: 64,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.color
+                          ?.withOpacity(0.3),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.userNotFound,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.color
+                            ?.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return BlocBuilder<PostBloc, PostState>(
+              builder: (context, postState) {
+                return RefreshIndicator(
+                  onRefresh: _onRefresh,
+                  color: Theme.of(context).colorScheme.primary,
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  child: CustomScrollView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      // ✅ ОБНОВЛЕНО: App Bar с меню
+                      SliverAppBar(
+                        expandedHeight: 0,
+                        pinned: false,
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        title: Text(l10n.profile),
+                        leading: IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: () => context.pop(),
+                        ),
+                        actions: [
+                          // ✅ НОВОЕ: Меню с 3 точками
+                          BlocBuilder<AuthBloc, AuthState>(
+                            builder: (context, authState) {
+                              final isOwnProfile =
+                                  authState.user?.id == widget.userId;
+
+                              if (isOwnProfile) {
+                                return const SizedBox.shrink();
+                              }
+
+                              return IconButton(
+                                icon: const Icon(Icons.more_vert),
+                                onPressed: () =>
+                                    _showModerationMenu(context, user),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+
+                      // Profile Content
+                      SliverPadding(
+                        padding: const EdgeInsets.all(20),
+                        sliver: SliverList(
+                          delegate: SliverChildListDelegate([
+                            // Student Card with Friends Count
+                            StudentIdCardWidget(user: user),
+                            const SizedBox(height: 16),
+
+                            // ✅ НОВОЕ: Кнопка дружбы
+                            FriendshipButton(userId: widget.userId),
+                            const SizedBox(height: 24),
+
+                            // Posts Section Header
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  l10n.posts,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  l10n.postsCount(postState.posts.length),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color
+                                        ?.withOpacity(0.6),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ]),
+                        ),
+                      ),
+
+                      // Posts List
+                      if (postState.posts.isEmpty && !postState.isLoading)
+                        SliverFillRemaining(
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.article_outlined,
+                                  size: 64,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color
+                                      ?.withOpacity(0.3),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  l10n.userHasNoPosts,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color
+                                        ?.withOpacity(0.6),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                              final post = postState.posts[index];
+                              return PostItem(post: post);
+                            },
+                            childCount: postState.posts.length,
+                          ),
+                        ),
+
+                      // Loading More Indicator
+                      if (postState.isLoadingMore)
+                        const SliverToBoxAdapter(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        ),
+
+                      const SliverPadding(
+                          padding: EdgeInsets.only(bottom: 40)),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+}import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:unitalk/core/ui/common/empty_state_widget.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_bloc.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_event.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_state.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friend_list_tile.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+
+class FriendsListPage extends StatefulWidget {
+  const FriendsListPage({Key? key}) : super(key: key);
+
+  @override
+  State<FriendsListPage> createState() => _FriendsListPageState();
+}
+
+class _FriendsListPageState extends State<FriendsListPage> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    // Загружаем друзей при открытии страницы
+    context.read<FriendshipBloc>().add(LoadFriendsListEvent());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_isBottom) {
+      final state = context.read<FriendshipBloc>().state;
+      if (state.friendsHasMore && !state.isLoadingMore) {
+        context.read<FriendshipBloc>().add(LoadFriendsListEvent(loadMore: true));
+      }
+    }
+  }
+
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    return currentScroll >= (maxScroll * 0.85);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: theme.scaffoldBackgroundColor,
+        surfaceTintColor: theme.scaffoldBackgroundColor,
+        title: Text(
+          l10n.friends,
+          style: TextStyle(
+            color: theme.textTheme.titleLarge?.color,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      body: BlocBuilder<FriendshipBloc, FriendshipState>(
+        builder: (context, state) {
+          if (state.status == FriendshipStateStatus.loading && state.friends.isEmpty) {
+            return Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: theme.primaryColor,
+              ),
+            );
+          }
+
+          if (state.hasError) {
+            return EmptyStateWidget(
+              icon: Icons.error_outline,
+              title: state.errorMessage ?? l10n.anErrorOccurred,
+              subtitle: null,
+            );
+          }
+
+          if (state.friends.isEmpty) {
+            return EmptyStateWidget(
+              icon: Icons.people_outline,
+              title: l10n.noFriendsYet,
+              subtitle: l10n.startAddingFriends,
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              context.read<FriendshipBloc>().add(LoadFriendsListEvent());
+            },
+            child: ListView.separated(
+              controller: _scrollController,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: state.friends.length + (state.friendsHasMore ? 1 : 0),
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+                color: theme.dividerColor.withOpacity(0.1),
+                indent: 76,
+              ),
+              itemBuilder: (context, index) {
+                if (index >= state.friends.length) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: theme.primaryColor,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                final friend = state.friends[index];
+                return FriendListTile(user: friend);
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

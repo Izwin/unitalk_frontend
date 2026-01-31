@@ -1,4 +1,5 @@
 import 'package:flutter/gestures.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -325,17 +326,10 @@ class _CommentHeaderState extends State<CommentHeader> {
   }
 
   Widget _buildVerificationBadge(ColorScheme colors) {
-    return Container(
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        color: colors.primary,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        Icons.check,
-        size: 12,
-        color: colors.onPrimary,
-      ),
+    return Icon(
+      Icons.verified,
+      size: 16,
+      color: colors.primary,
     );
   }
 

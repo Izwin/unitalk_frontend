@@ -2613,6 +2613,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please upload a new screenshot following the guidelines below.'**
   String get resubmissionInfo;
+
+  /// No description provided for @friends.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get friends;
+
+  /// No description provided for @friendRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend Requests'**
+  String get friendRequests;
+
+  /// No description provided for @addFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Friend'**
+  String get addFriend;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @removeFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Friend'**
+  String get removeFriend;
+
+  /// No description provided for @cancelRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Request'**
+  String get cancelRequest;
+
+  /// No description provided for @accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get accept;
+
+  /// No description provided for @reject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get reject;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @removeFriendConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove this friend?'**
+  String get removeFriendConfirmation;
+
+  /// No description provided for @noFriendsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No friends yet'**
+  String get noFriendsYet;
+
+  /// No description provided for @startAddingFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'Start adding friends to connect with them'**
+  String get startAddingFriends;
+
+  /// No description provided for @noIncomingRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No incoming requests'**
+  String get noIncomingRequests;
+
+  /// No description provided for @noIncomingRequestsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have any pending friend requests'**
+  String get noIncomingRequestsSubtitle;
+
+  /// No description provided for @noOutgoingRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No sent requests'**
+  String get noOutgoingRequests;
+
+  /// No description provided for @noOutgoingRequestsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t sent any friend requests yet'**
+  String get noOutgoingRequestsSubtitle;
+
+  /// No description provided for @incoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming'**
+  String get incoming;
+
+  /// No description provided for @outgoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Outgoing'**
+  String get outgoing;
+
+  /// No description provided for @sentAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get sentAt;
+
+  /// No description provided for @friendsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No friends} =1{1 friend} other{{count} friends}}'**
+  String friendsCount(int count);
 }
 
 class _AppLocalizationsDelegate

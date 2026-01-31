@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:unitalk/core/di/service_locator.dart';
 import 'package:unitalk/core/ui/common/empty_state_widget.dart';
 import 'package:unitalk/core/ui/common/user_avatar.dart';
 import 'package:unitalk/core/ui/common/user_meta_info.dart';
 import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_bloc.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_event.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_state.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friendship_button.dart';
 import 'package:unitalk/features/search/presentation/bloc/user_search_bloc.dart';
 import 'package:unitalk/features/search/presentation/bloc/user_search_event.dart';
 import 'package:unitalk/features/search/presentation/bloc/user_search_state.dart';
@@ -83,7 +88,9 @@ class _UserSearchPageState extends State<UserSearchPage> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
+    return BlocProvider(
+  create: (context) => sl<FriendshipBloc>(),
+  child: Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
@@ -104,7 +111,8 @@ class _UserSearchPageState extends State<UserSearchPage> {
           Expanded(child: _buildBody(l10n)),
         ],
       ),
-    );
+    ),
+);
   }
 
   Widget _buildSearchBar(AppLocalizations l10n) {
@@ -311,14 +319,17 @@ class _UserSearchPageState extends State<UserSearchPage> {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.4),
-              size: 20,
+            // ✅ ДОБАВЬТЕ ЭТО:
+            BlocBuilder<FriendshipBloc, FriendshipState>(
+              builder: (context, state) {
+                return FriendshipButton(
+                  userId: user.id!,
+                  compact: true,
+                );
+              },
             ),
           ],
         ),
       ),
     );
-  }
-}
+  }}

@@ -511,7 +511,28 @@
   "translating": "Tərcümə olunur...",
   "translationFailed": "Tərcümə uğursuz oldu",
   "pinnedPost": "Sabitlənmiş göndəriş",
-  "resubmissionInfo": "Zəhmət olmasa aşağıdakı təlimatlara əməl edərək yeni ekran görüntüsü yükləyin."
+  "resubmissionInfo": "Zəhmət olmasa aşağıdakı təlimatlara əməl edərək yeni ekran görüntüsü yükləyin.",
 
-
+  "friends": "Друзья",
+  "friendRequests": "Запросы в друзья",
+  "addFriend": "Добавить в друзья",
+  "add": "Добавить",
+  "removeFriend": "Удалить из друзей",
+  "cancelRequest": "Отменить запрос",
+  "accept": "Принять",
+  "reject": "Отклонить",
+  "remove": "Удалить",
+  "removeFriendConfirmation": "Вы уверены, что хотите удалить этого друга?",
+  "noFriendsYet": "У вас пока нет друзей",
+  "startAddingFriends": "Начните добавлять друзей, чтобы общаться",
+  "noIncomingRequests": "Нет входящих запросов",
+  "noIncomingRequestsSubtitle": "У вас нет запросов в друзья",
+  "noOutgoingRequests": "Нет исходящих запросов",
+  "noOutgoingRequestsSubtitle": "Вы не отправляли запросы в друзья",
+  "incoming": "Входящие",
+  "outgoing": "Исходящие",
+  "sentAt": "Отправлено",
+  "friendsCount": "{count, plural, =0{Нет друзей} =1{1 друг} few{{count} друга} other{{count} друзей}}"
 }
+
+

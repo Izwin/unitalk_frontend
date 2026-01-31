@@ -1390,4 +1390,75 @@ class AppLocalizationsAz extends AppLocalizations {
   @override
   String get resubmissionInfo =>
       'Zəhmət olmasa aşağıdakı təlimatlara əməl edərək yeni ekran görüntüsü yükləyin.';
+
+  @override
+  String get friends => 'Друзья';
+
+  @override
+  String get friendRequests => 'Запросы в друзья';
+
+  @override
+  String get addFriend => 'Добавить в друзья';
+
+  @override
+  String get add => 'Добавить';
+
+  @override
+  String get removeFriend => 'Удалить из друзей';
+
+  @override
+  String get cancelRequest => 'Отменить запрос';
+
+  @override
+  String get accept => 'Принять';
+
+  @override
+  String get reject => 'Отклонить';
+
+  @override
+  String get remove => 'Удалить';
+
+  @override
+  String get removeFriendConfirmation =>
+      'Вы уверены, что хотите удалить этого друга?';
+
+  @override
+  String get noFriendsYet => 'У вас пока нет друзей';
+
+  @override
+  String get startAddingFriends => 'Начните добавлять друзей, чтобы общаться';
+
+  @override
+  String get noIncomingRequests => 'Нет входящих запросов';
+
+  @override
+  String get noIncomingRequestsSubtitle => 'У вас нет запросов в друзья';
+
+  @override
+  String get noOutgoingRequests => 'Нет исходящих запросов';
+
+  @override
+  String get noOutgoingRequestsSubtitle => 'Вы не отправляли запросы в друзья';
+
+  @override
+  String get incoming => 'Входящие';
+
+  @override
+  String get outgoing => 'Исходящие';
+
+  @override
+  String get sentAt => 'Отправлено';
+
+  @override
+  String friendsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count друзей',
+      few: '$count друга',
+      one: '1 друг',
+      zero: 'Нет друзей',
+    );
+    return '$_temp0';
+  }
 }

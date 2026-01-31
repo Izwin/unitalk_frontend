@@ -79,6 +79,8 @@ class UserModel {
   @JsonKey(name: 'verificationId')
   final VerificationModel? verification;
   final BlockStatusModel? blockStatus;
+  final int? friendsCount;
+  final int? pendingRequestsCount;
 
   // НОВОЕ: Язык пользователя с сервера
   final String? language;
@@ -95,6 +97,8 @@ class UserModel {
     this.isVerified,
     this.verification,
     this.blockStatus,
+    this.friendsCount,
+    this.pendingRequestsCount,
     this.language, // НОВОЕ
   });
 

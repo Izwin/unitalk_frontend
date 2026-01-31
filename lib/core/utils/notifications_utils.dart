@@ -1,6 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-extension NotificationsUtils on RemoteMessage{
+extension NotificationsUtils on RemoteMessage {
   String? getRouteFromNotification() {
     final data = this.data;
     final type = data['type'];
@@ -18,11 +18,14 @@ extension NotificationsUtils on RemoteMessage{
       case 'new_chat_message':
       case 'chat_mention':
         return '/chat';
+      case 'friend_request':
+        return '/friend-requests';
+
+      case 'friend_request_accepted':
+        return '/friends';
 
       default:
         return '/notifications';
     }
   }
-
 }
-

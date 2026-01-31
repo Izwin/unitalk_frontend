@@ -28,6 +28,8 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
   blockStatus: json['blockStatus'] == null
       ? null
       : BlockStatusModel.fromJson(json['blockStatus'] as Map<String, dynamic>),
+  friendsCount: (json['friendsCount'] as num?)?.toInt(),
+  pendingRequestsCount: (json['pendingRequestsCount'] as num?)?.toInt(),
   language: json['language'] as String?,
 );
 
@@ -43,6 +45,8 @@ Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
   'isVerified': instance.isVerified,
   'verificationId': instance.verification,
   'blockStatus': instance.blockStatus,
+  'friendsCount': instance.friendsCount,
+  'pendingRequestsCount': instance.pendingRequestsCount,
   'language': instance.language,
 };
 

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:unitalk/core/ui/common/empty_state_widget.dart';
 import 'package:unitalk/core/ui/common/error_state_widget.dart';
 import 'package:unitalk/core/ui/common/user_avatar.dart';
+import 'package:unitalk/core/ui/common/user_list_tile.dart';
 import 'package:unitalk/core/ui/common/user_meta_info.dart';
 import 'package:unitalk/features/feed/presentation/bloc/comment_likers/comment_likers_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/comment_likers/comment_likers_event.dart';
@@ -118,67 +119,7 @@ class _CommentLikersPageState extends State<CommentLikersPage> {
 
               return InkWell(
                 onTap: () => context.push('/user/${user.id}'),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      UserAvatar(
-                        photoUrl: user.photoUrl,
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                        size: 48,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim(),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: theme.colorScheme.onSurface,
-                                      letterSpacing: -0.2,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                if (user.isVerified == true) ...[
-                                  const SizedBox(width: 4),
-                                  Icon(
-                                    Icons.verified,
-                                    size: 16,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                ],
-                              ],
-                            ),
-                            if (user.faculty != null || user.sector != null) ...[
-                              const SizedBox(height: 4),
-                              UserMetaInfo(
-                                faculty: user.faculty?.getLocalizedName(locale),
-                                sector: user.sector,
-                                fontSize: 13,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.chevron_right,
-                        color: theme.colorScheme.onSurface.withOpacity(0.3),
-                        size: 20,
-                      ),
-                    ],
-                  ),
-                ),
+                child: UserListTile(user: user, locale: locale)
               );
             },
           );

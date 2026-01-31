@@ -1,0 +1,848 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:unitalk/core/di/service_locator.dart';
+import 'package:unitalk/core/ui/common/fullscreen_image_viewer.dart';
+import 'package:unitalk/core/ui/common/fullscreen_video_player.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/features/auth/presentation/edit_profile_page.dart';
+import 'package:unitalk/features/auth/presentation/page/about_page.dart';
+import 'package:unitalk/features/auth/presentation/page/auth_page.dart';
+import 'package:unitalk/features/auth/presentation/page/complete_profile_page.dart';
+import 'package:unitalk/features/auth/presentation/page/delete_account_page.dart';
+import 'package:unitalk/features/auth/presentation/page/privacy_policy_page.dart';
+import 'package:unitalk/features/auth/presentation/profile_page.dart';
+import 'package:unitalk/features/auth/presentation/verification_page.dart';
+import 'package:unitalk/features/chat/presentation/page/chat_participants_page.dart';
+import 'package:unitalk/features/chat/presentation/page/faculty_chat_screen.dart';
+import 'package:unitalk/features/feed/presentation/bloc/announcement/announcement_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/comment/comment_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/comment_likers/comment_likers_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post_likers/post_likers_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_bloc.dart';
+import 'package:unitalk/features/feed/presentation/page/comment_likers_page.dart';
+import 'package:unitalk/features/feed/presentation/page/create_post_page.dart';
+import 'package:unitalk/features/feed/presentation/page/feed_page.dart';
+import 'package:unitalk/features/feed/presentation/page/other_profile_screen.dart';
+import 'package:unitalk/features/feed/presentation/page/post_detail_page.dart';
+import 'package:unitalk/features/feed/presentation/page/post_likers_page.dart';
+import 'package:unitalk/features/friendship/presentation/pages/friend_requests_page.dart';
+import 'package:unitalk/features/friendship/presentation/pages/friends_list_page.dart';
+import 'package:unitalk/features/home/home_page.dart';
+import 'package:unitalk/features/notifications/presentation/page/notification_settings_page.dart';
+import 'package:unitalk/features/notifications/presentation/page/notifications_page.dart';
+import 'package:unitalk/features/report/presentation/page/blocked_users_page.dart';
+import 'package:unitalk/features/report/presentation/page/my_reports_page.dart';
+import 'package:unitalk/features/search/presentation/page/user_search_page.dart';
+import 'package:unitalk/features/support/presentation/page/create_support_message_page.dart';
+import 'package:unitalk/features/support/presentation/page/support_help_page.dart';
+import 'package:unitalk/features/support/presentation/page/support_message_details_page.dart';
+import 'package:unitalk/splash_page.dart';
+
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+      (dynamic _) => notifyListeners(),
+    );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
+final feedPageKey = GlobalKey<FeedPageState>();
+
+final GoRouter router = GoRouter(
+  initialLocation: '/splash',
+  refreshListenable: GoRouterRefreshStream(sl<AuthBloc>().stream),
+  navigatorKey: GlobalKey<NavigatorState>(),
+
+  routes: [
+    // === SPLASH & AUTH ===
+    GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
+    GoRoute(
+      path: '/auth',
+      builder: (context, state) => const IntroductionPage(),
+    ),
+    GoRoute(
+      path: '/introduction',
+      name: 'introduction',
+      builder: (context, state) => const IntroductionPage(),
+    ),
+    GoRoute(
+      path: '/profile-setup/name',
+      name: 'profile-setup-name',
+      builder: (context, state) => const CompleteProfilePage(),
+    ),
+    GoRoute(
+      path: '/profile-verification',
+      builder: (context, state) => const VerificationPage(),
+    ),
+
+    // === MAIN APP WITH BOTTOM NAV ===
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) {
+        return ScaffoldWithNavBar(navigationShell: navigationShell);
+      },
+      branches: [
+        // === FEED BRANCH ===
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/feed',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: BlocProvider(
+                  create: (context) => sl<AnnouncementBloc>(),
+                  child: BlocProvider(
+                    create: (context) => sl<PostBloc>(),
+                    child: FeedPage(key: feedPageKey),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // === SEARCH BRANCH ===
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/search',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: const UserSearchPage(),
+              ),
+            ),
+          ],
+        ),
+
+        // === CHAT BRANCH ===
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/chat',
+              pageBuilder: (context, state) =>
+                  NoTransitionPage(key: state.pageKey, child: const ChatPage()),
+            ),
+          ],
+        ),
+
+        // === PROFILE BRANCH ===
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/profile',
+              pageBuilder: (context, state) => NoTransitionPage(
+                key: state.pageKey,
+                child: BlocProvider(
+                  create: (context) => sl<PostBloc>(),
+                  child: const ProfilePage(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+
+    // === STANDALONE ROUTES (outside bottom nav) ===
+
+    // Notifications
+    GoRoute(
+      path: '/notifications',
+      builder: (context, state) => const NotificationsPage(),
+    ),
+    GoRoute(
+      path: '/notification-settings',
+      builder: (context, state) => const NotificationSettingsPage(),
+    ),
+
+    // Posts
+    GoRoute(
+      path: '/create-post',
+      builder: (context, state) => BlocProvider(
+        create: (context) => sl<PostBloc>(),
+        child: CreatePostPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/post/:id',
+      builder: (context, state) {
+        final postId = state.pathParameters['id']!;
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => sl<CommentBloc>()),
+            BlocProvider(create: (context) => sl<PostBloc>()),
+          ],
+          child: PostDetailPage(postId: postId),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/post/:id/likers',
+      builder: (context, state) {
+        final postId = state.pathParameters['id']!;
+        return BlocProvider(
+          create: (context) => sl<PostLikersBloc>(),
+          child: PostLikersPage(postId: postId),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/comment/:id/likers',
+      builder: (context, state) {
+        final commentId = state.pathParameters['id']!;
+        return BlocProvider(
+          create: (context) => sl<CommentLikersBloc>(),
+          child: CommentLikersPage(commentId: commentId),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: '/blocked-users',
+      builder: (context, state) => const BlockedUsersPage(),
+    ),
+    GoRoute(
+      path: '/my-reports',
+      builder: (context, state) => const MyReportsPage(),
+    ),
+
+    // Users
+    GoRoute(
+      path: '/user/:id',
+      builder: (context, state) {
+        final userId = state.pathParameters['id']!;
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => sl<UserProfileBloc>()),
+            BlocProvider(create: (context) => sl<PostBloc>()),
+          ],
+          child: OtherUserProfileScreen(userId: userId),
+        );
+      },
+    ),
+
+    // Profile
+    GoRoute(
+      path: '/edit-profile',
+      builder: (context, state) => const EditProfilePage(),
+    ),
+
+    GoRoute(
+      path: '/chat/participants',
+      builder: (context, state) => const ChatParticipantsPage(),
+    ),
+
+    // Support
+    GoRoute(
+      path: '/support',
+      builder: (context, state) => const HelpSupportPage(),
+    ),
+    GoRoute(
+      path: '/support/create',
+      builder: (context, state) => const CreateSupportMessagePage(),
+    ),
+    GoRoute(
+      path: '/support/:id',
+      builder: (context, state) {
+        final messageId = state.pathParameters['id']!;
+        return SupportMessageDetailsPage(messageId: messageId);
+      },
+    ),
+    GoRoute(
+      path: '/privacy-policy',
+      builder: (context, state) => PrivacyPolicyPage(),
+    ),
+    GoRoute(
+      path: '/terms-of-use',
+      builder: (context, state) => TermsOfUsePage(),
+    ),
+    GoRoute(path: '/about', builder: (context, state) => AboutPage()),
+    GoRoute(path: '/delete', builder: (context, state) => DeleteAccountPage()),
+
+    // Добавьте в список роутов:
+    GoRoute(
+      path: '/friends',
+      builder: (context, state) => const FriendsListPage(),
+    ),
+    GoRoute(
+      path: '/friend-requests',
+      builder: (context, state) => const FriendRequestsPage(),
+    ),
+    GoRoute(
+      path: '/video/:videoUrl',
+      name: 'fullscreen_video',
+      builder: (context, state) {
+        final videoUrl = Uri.decodeComponent(state.pathParameters['videoUrl']!);
+        final autoPlay = state.uri.queryParameters['autoPlay'] == 'true';
+        return FullscreenVideoPlayer(videoUrl: videoUrl, autoPlay: autoPlay);
+      },
+    ),
+    GoRoute(
+      path: '/image/:imageUrl',
+      name: 'fullscreen_image',
+      builder: (context, state) {
+        final imageUrl = Uri.decodeComponent(state.pathParameters['imageUrl']!);
+        return FullscreenImageViewer(imageUrl: imageUrl);
+      },
+    ),
+  ],
+
+  errorBuilder: (context, state) => Scaffold(
+    body: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, size: 64, color: Colors.red),
+          const SizedBox(height: 16),
+          Text(
+            'Navigation Error',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 8),
+          Text(state.error.toString()),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => context.go('/feed'),
+            child: const Text('Go to Feed'),
+          ),
+        ],
+      ),
+    ),
+  ),
+);
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:unitalk/core/api/api_client.dart';
+import 'package:unitalk/core/services/activity_log_service.dart';
+import 'package:unitalk/core/services/chat_socker_service.dart';
+import 'package:unitalk/core/services/post_syns_service.dart';
+import 'package:unitalk/core/theme/bloc/theme_bloc.dart';
+import 'package:unitalk/core/theme/data/repository/theme_repository_impl.dart';
+import 'package:unitalk/core/theme/domain/repository/theme_repository.dart';
+import 'package:unitalk/features/auth/data/datasource/auth_remote_data_source.dart';
+import 'package:unitalk/features/auth/data/datasource/user_remote_datasource.dart';
+import 'package:unitalk/features/auth/data/datasource/verefication_remote_datasource.dart';
+import 'package:unitalk/features/auth/data/repository/auth_repository_impl.dart';
+import 'package:unitalk/features/auth/data/repository/user_repository_impl.dart';
+import 'package:unitalk/features/auth/data/repository/verification_repository_impl.dart';
+import 'package:unitalk/features/auth/domain/repository/auth_repository.dart';
+import 'package:unitalk/features/auth/domain/repository/user_repository.dart';
+import 'package:unitalk/features/auth/domain/repository/verification_repository.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/block/data/datasource/block_remote_datasource.dart';
+import 'package:unitalk/features/block/data/repository/block_repository_impl.dart';
+import 'package:unitalk/features/block/domain/repository/block_repository.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_bloc.dart';
+import 'package:unitalk/features/chat/data/datasource/chat_remote_datasource.dart';
+import 'package:unitalk/features/chat/data/repository/chat_repository_impl.dart';
+import 'package:unitalk/features/chat/domain/repository/chat_repository.dart';
+import 'package:unitalk/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:unitalk/features/feed/data/datasource/announcement_remote_datasource.dart';
+import 'package:unitalk/features/feed/data/datasource/comment_remote_datasource.dart';
+import 'package:unitalk/features/feed/data/datasource/like_remote_datasource.dart';
+import 'package:unitalk/features/feed/data/datasource/post_remote_datasource.dart';
+import 'package:unitalk/features/feed/data/repository/announcement_repository_impl.dart';
+import 'package:unitalk/features/feed/data/repository/comment_repository_impl.dart';
+import 'package:unitalk/features/feed/data/repository/like_repository_impl.dart';
+import 'package:unitalk/features/feed/data/repository/post_repository_impl.dart';
+import 'package:unitalk/features/feed/domain/repository/announcement_repository.dart';
+import 'package:unitalk/features/feed/domain/repository/comment_repository.dart';
+import 'package:unitalk/features/feed/domain/repository/like_repository.dart';
+import 'package:unitalk/features/feed/domain/repository/posts_repository.dart';
+import 'package:unitalk/features/feed/presentation/bloc/announcement/announcement_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/comment/comment_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/comment_likers/comment_likers_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/like/like_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post_likers/post_likers_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/replies/replies_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_bloc.dart';
+import 'package:unitalk/features/friendship/data/datasource/friendship_remote_datasource.dart';
+import 'package:unitalk/features/friendship/domain/repository/friendship_repository.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_bloc.dart';
+import 'package:unitalk/features/notifications/data/notifcation_remote_datasource.dart';
+import 'package:unitalk/features/notifications/data/notifcation_repository_impl.dart';
+import 'package:unitalk/features/notifications/domain/notifcation_repository.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_bloc.dart';
+import 'package:unitalk/features/report/data/repository/report_repository_impl.dart';
+import 'package:unitalk/features/report/domain/repository/report_repository.dart';
+import 'package:unitalk/features/report/presentation/bloc/report_bloc.dart';
+import 'package:unitalk/features/search/data/datasource/user_search_remote_datasource.dart';
+import 'package:unitalk/features/search/data/repository/user_search_repository_impl.dart';
+import 'package:unitalk/features/search/domain/repository/user_search_repository.dart';
+import 'package:unitalk/features/search/presentation/bloc/user_search_bloc.dart';
+import 'package:unitalk/features/support/data/datasource/support_remote_datasource.dart';
+import 'package:unitalk/features/support/data/repository/support_repository_impl.dart';
+import 'package:unitalk/features/support/domain/repository/support_repository.dart';
+import 'package:unitalk/features/support/presentation/bloc/support_bloc.dart';
+import 'package:unitalk/features/university/data/data_sources/university_remote_datasource.dart';
+import 'package:unitalk/features/university/data/repositories/university_repository_impl.dart';
+import 'package:unitalk/features/university/domain/repositories/university_repository.dart';
+import 'package:unitalk/features/university/presentation/manager/university_bloc.dart';
+import 'package:unitalk/l10n/bloc/locale_cubit.dart';
+import 'package:unitalk/l10n/data/repository/local_repository_impl.dart';
+import 'package:unitalk/l10n/domain/repository/locale_repository.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get_it/get_it.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import '../../features/friendship/data/repository/friendship_repository_impl.dart';
+import '../../features/report/data/datasource/report_remote_datasource.dart' show ReportRemoteDataSource;
+
+final sl = GetIt.instance;
+
+Future<void> initDependencies() async {
+  // Firebase Services
+
+
+  sl.registerLazySingleton(() => FirebaseAuth.instance);
+  sl.registerLazySingleton(() => GoogleSignIn.instance);
+  sl.registerLazySingleton(() => FirebaseFirestore.instance);
+  sl.registerLazySingleton(() => FirebaseStorage.instance);
+
+
+  sl.registerLazySingleton(() => PostSyncService());
+  sl.registerLazySingleton<ActivityLoggerService>(
+        () => ActivityLoggerService( sl(instanceName: 'dioAuth')),
+  );
+
+  sl.registerLazySingleton(() => ChatSocketService(baseUrl: 'http://35.198.109.53'));
+
+  // Dio clients
+  sl.registerLazySingleton<Dio>(
+        () => DioClient.createDio(withAuthInterceptor: false),
+    instanceName: 'dioPublic',
+  );
+
+  sl.registerLazySingleton<Dio>(
+        () => DioClient.createDio(
+      withAuthInterceptor: true,
+      firebaseAuth: sl<FirebaseAuth>(),
+    ),
+    instanceName: 'dioAuth',
+  );
+
+  // DataSources - Auth (без токена)
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+        () => AuthRemoteDataSource(
+      firebaseAuth: sl(),
+      googleSignIn: sl(),
+      dio: sl(instanceName: 'dioPublic'),
+    ),
+  );
+
+  // DataSources - User (с токеном)
+  sl.registerLazySingleton<UserRemoteDataSource>(
+        () => UserRemoteDataSource(
+      dio: sl(instanceName: 'dioAuth'),
+    ),
+  );
+
+  sl.registerLazySingleton<UniversityRemoteDataSource>(
+        () => UniversityRemoteDataSource(
+      dio: sl(instanceName: 'dioAuth'),
+      firebaseAuth: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<ChatRemoteDataSource>(
+        () => ChatRemoteDataSource(
+     dio: sl(instanceName: 'dioAuth'))
+  );
+
+  sl.registerLazySingleton<PostRemoteDataSource>(
+        () => PostRemoteDataSource(dio:  sl(instanceName: 'dioAuth'),
+    ),
+  );
+  sl.registerLazySingleton<FriendshipRemoteDataSource>(
+        () => FriendshipRemoteDataSource(dio: sl(instanceName: 'dioAuth')),
+  );
+
+  // ДОБАВЬТЕ ПОСЛЕ других Repositories:
+
+  sl.registerLazySingleton<FriendshipRepository>(
+        () => FriendshipRepositoryImpl(sl()),
+  );
+
+  // ДОБАВЬТЕ ПОСЛЕ других Blocs:
+
+  sl.registerFactory(() => FriendshipBloc(repository: sl()));
+  sl.registerLazySingleton<LikeRemoteDataSource>(
+        () => LikeRemoteDataSource(dio:  sl(instanceName: 'dioAuth'),
+    ),
+  );
+
+  sl.registerLazySingleton<CommentRemoteDataSource>(
+        () => CommentRemoteDataSource(dio:  sl(instanceName: 'dioAuth'),
+    ),
+  );
+
+  sl.registerLazySingleton<VerificationRemoteDataSource>(
+        () => VerificationRemoteDataSource(dio:  sl(instanceName: 'dioAuth',)
+    ),
+  );
+
+  sl.registerLazySingleton<NotificationRemoteDataSource>(
+        () => NotificationRemoteDataSource(dio:  sl(instanceName: 'dioAuth',)
+    ),
+  );
+
+  sl.registerLazySingleton<UserSearchRemoteDataSource>(
+        () => UserSearchRemoteDataSource(dio:  sl(instanceName: 'dioAuth',)
+    ),
+  );
+
+  sl.registerLazySingleton<SupportRemoteDataSource>(
+        () => SupportRemoteDataSource(dio:  sl(instanceName: 'dioAuth',)
+    ),
+  );
+
+  sl.registerLazySingleton<AnnouncementRemoteDataSource>(
+        () => AnnouncementRemoteDataSource(dio:  sl(instanceName: 'dioAuth',)
+    ),
+  );
+  // Moderation - Block
+  sl.registerFactory(() => BlockRemoteDataSource(dio:  sl(instanceName: 'dioAuth',)));
+  sl.registerFactory<BlockRepository>(() => BlockRepositoryImpl(sl()));
+  sl.registerFactory(() => BlockBloc(blockRepository: sl()));
+
+// Moderation - Report
+  sl.registerFactory(() => ReportRemoteDataSource(dio:  sl(instanceName: 'dioAuth',)));
+  sl.registerFactory<ReportRepository>(() => ReportRepositoryImpl(sl()));
+  sl.registerFactory(() => ReportBloc(reportRepository: sl()));
+
+  // Repositories - Auth
+  sl.registerLazySingleton<AuthRepository>(
+        () => AuthRepositoryImpl(sl()),
+  );
+
+  // Repositories - User
+  sl.registerLazySingleton<UserRepository>(
+        () => UserRepositoryImpl(sl()),
+  );
+
+  // Repositories - Others
+  sl.registerLazySingleton<ThemeRepository>(
+        () => ThemeRepositoryImpl(),
+  );
+  sl.registerLazySingleton<ChatRepository>(
+        () => ChatRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton<LocaleRepository>(
+        () => LocaleRepositoryImpl(),
+  );
+
+  sl.registerLazySingleton<UniversityRepository>(
+        () => UniversityRepositoryImpl(sl()),
+  );
+
+  sl.registerLazySingleton<PostRepository>(
+        () => PostRepositoryImpl(sl()),
+  );
+
+
+  sl.registerLazySingleton<LikeRepository>(
+        () => LikeRepositoryImpl(sl())
+  );
+
+  sl.registerLazySingleton<CommentRepository>(
+          () => CommentRepositoryImpl(sl())
+  );
+  sl.registerLazySingleton<VerificationRepository>(
+          () => VerificationRepositoryImpl(sl())
+  );
+
+  sl.registerLazySingleton<NotificationRepository>(
+          () => NotificationRepositoryImpl(sl())
+  );
+
+
+  sl.registerLazySingleton<UserSearchRepository>(
+          () => UserSearchRepositoryImpl(sl())
+  );
+
+  sl.registerLazySingleton<SupportRepository>(
+          () => SupportRepositoryImpl(sl())
+  );
+
+
+  sl.registerLazySingleton<AnnouncementRepository>(
+          () => AnnouncementRepositoryImpl(sl())
+  );
+
+
+
+  // Blocs / Cubits
+  sl.registerSingleton( AuthBloc(
+    authRepository: sl(),
+    userRepository: sl(),
+    verificationRepository: sl()
+  ));
+  sl.registerFactory(() => ThemeBloc(sl()));
+  sl.registerFactory(() => LocaleCubit(sl(),sl()));
+  sl.registerFactory(() => UniversityBloc(sl()));
+  sl.registerFactory(() => SupportBloc(supportRepository: sl()));
+  sl.registerFactory(() => LikeBloc(likeRepository: sl()));
+  sl.registerFactory(() => PostLikersBloc(repository: sl()));
+  sl.registerFactory(() => CommentLikersBloc(repository: sl()));
+  sl.registerFactory<ChatBloc>(
+        () => ChatBloc( chatRepository: sl<ChatRepository>(),socketService: sl()),
+  );
+  sl.registerFactory<PostBloc>(
+        () => PostBloc(postRepository: sl(),likeRepository: sl(),postSyncService: sl()),
+  );
+
+  sl.registerFactory<CommentBloc>(
+        () => CommentBloc(commentRepository: sl(), postSyncService: sl(),commentLikeRepository: sl()),
+  );
+
+  sl.registerFactory<UserProfileBloc>(
+        () => UserProfileBloc(userRepository: sl()),
+  );
+
+  sl.registerFactory<NotificationBloc>(
+        () => NotificationBloc(notificationRepository: sl()),
+  );
+
+  sl.registerFactory<UserSearchBloc>(
+        () => UserSearchBloc(repository: sl()),
+  );
+
+  sl.registerFactory<RepliesBloc>(
+        () => RepliesBloc(commentRepository: sl(),postSyncService: sl(),commentLikeRepository: sl()),
+  );
+
+  sl.registerFactory<AnnouncementBloc>(
+        () => AnnouncementBloc(announcementRepository: sl()),
+  );
+
+}import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/core/theme/bloc/theme_bloc.dart';
+import 'package:unitalk/core/theme/bloc/theme_event.dart';
+import 'package:unitalk/core/theme/bloc/theme_state.dart';
+import 'package:unitalk/core/theme/domain/entity/app_theme_mode.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_event.dart';
+import 'package:unitalk/features/auth/presentation/edit_profile_page.dart';
+import 'package:unitalk/features/auth/presentation/widget/profile_drawer.dart';
+import 'package:unitalk/features/auth/presentation/widget/student_id_card_widget.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_state.dart';
+import 'package:unitalk/features/feed/domain/repository/posts_repository.dart';
+import 'package:unitalk/features/feed/presentation/widget/post_item.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_bloc.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_state.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_event.dart';
+import 'package:unitalk/features/university/data/models/university_model.dart';
+import 'package:unitalk/features/university/presentation/manager/university_bloc.dart';
+import 'package:unitalk/features/university/presentation/manager/university_event.dart';
+import 'package:unitalk/features/university/presentation/manager/university_state.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:unitalk/l10n/bloc/locale_cubit.dart';
+import 'package:intl/intl.dart';
+
+import 'widget/verification_status_widget.dart';
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProfilePageContent();
+  }
+}
+
+class _ProfilePageContent extends StatefulWidget {
+  @override
+  State<_ProfilePageContent> createState() => _ProfilePageContentState();
+}
+
+class _ProfilePageContentState extends State<_ProfilePageContent> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<PostBloc>().add(GetPostsEvent(authorId: context.read<AuthBloc>().state.user!.id));
+  }
+
+  Future<void> _onRefresh() async {
+    final userId = context.read<AuthBloc>().state.user?.id;
+    if (userId == null) return;
+
+    context.read<PostBloc>().add(GetPostsEvent(authorId: userId));
+    context.read<AuthBloc>().add(GetCurrentUserEvent());
+
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      endDrawer: ProfileDrawer(),
+      body: SafeArea(
+        child: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, authState) {
+            final user = authState.user;
+            print('sdfsfsd ${user?.verification?.status}');
+            print('sdfsfsd ${user?.isVerified}');
+
+            if (user == null) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            return RefreshIndicator(
+              onRefresh: _onRefresh,
+              color: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              child: CustomScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: 0,
+                    pinned: false,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    title: Text(l10n.profile),
+                    actions: [
+                      IconButton(
+                        icon: Icon(Icons.edit_outlined),
+                        tooltip: l10n.editProfile,
+                        onPressed: () {
+                          context.push('/edit-profile');
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.menu),
+                        onPressed: () => Scaffold.of(context).openEndDrawer(),
+                      ),
+                    ],
+                  ),
+                  SliverPadding(
+                    padding: EdgeInsets.all(20),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        // Student Card
+                        StudentIdCardWidget(user: user),
+                        SizedBox(height: 24),
+
+                        // Verification Status
+                        VerificationStatusWidget(user: user),
+                        SizedBox(height: 24),
+
+                        // Posts Section Header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              l10n.myPosts,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            BlocBuilder<PostBloc, PostState>(
+                              builder: (context, state) {
+                                return Text(
+                                  l10n.postsCount(state.posts.length),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color
+                                        ?.withOpacity(0.6),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ]),
+                    ),
+                  ),
+
+                  // Posts List
+                  BlocBuilder<PostBloc, PostState>(
+                    builder: (context, state) {
+                      if (state.status == PostStatus.loading && state.posts.isEmpty) {
+                        return SliverFillRemaining(
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      if (state.posts.isEmpty) {
+                        return SliverFillRemaining(
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.article_outlined,
+                                  size: 64,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color
+                                      ?.withOpacity(0.3),
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  l10n.noPostsYet,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color
+                                        ?.withOpacity(0.6),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                            final post = state.posts[index];
+                            return PostItem(post: post);
+                          },
+                          childCount: state.posts.length,
+                        ),
+                      );
+                    },
+                  ),
+
+                  SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}

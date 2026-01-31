@@ -20,6 +20,7 @@ import 'package:unitalk/features/auth/presentation/bloc/auth_event.dart';
 import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
 import 'package:unitalk/features/block/presentation/bloc/block_bloc.dart';
 import 'package:unitalk/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_bloc.dart';
 import 'package:unitalk/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:unitalk/features/notifications/presentation/bloc/notification_event.dart';
 import 'package:unitalk/features/report/presentation/bloc/report_bloc.dart';
@@ -276,6 +277,8 @@ class _MyAppState extends State<MyApp> {
         BlocProvider.value(value: _notificationBloc),
         BlocProvider(create: (_) => sl<BlockBloc>()),
         BlocProvider(create: (_) => sl<ReportBloc>()),
+        BlocProvider(create: (context) => sl<FriendshipBloc>()), // ← ДОБАВИТЬ
+
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, themeState) {

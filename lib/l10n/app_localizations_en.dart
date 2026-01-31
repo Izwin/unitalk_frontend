@@ -1384,4 +1384,76 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get resubmissionInfo =>
       'Please upload a new screenshot following the guidelines below.';
+
+  @override
+  String get friends => 'Friends';
+
+  @override
+  String get friendRequests => 'Friend Requests';
+
+  @override
+  String get addFriend => 'Add Friend';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get removeFriend => 'Remove Friend';
+
+  @override
+  String get cancelRequest => 'Cancel Request';
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get reject => 'Reject';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get removeFriendConfirmation =>
+      'Are you sure you want to remove this friend?';
+
+  @override
+  String get noFriendsYet => 'No friends yet';
+
+  @override
+  String get startAddingFriends => 'Start adding friends to connect with them';
+
+  @override
+  String get noIncomingRequests => 'No incoming requests';
+
+  @override
+  String get noIncomingRequestsSubtitle =>
+      'You don\'t have any pending friend requests';
+
+  @override
+  String get noOutgoingRequests => 'No sent requests';
+
+  @override
+  String get noOutgoingRequestsSubtitle =>
+      'You haven\'t sent any friend requests yet';
+
+  @override
+  String get incoming => 'Incoming';
+
+  @override
+  String get outgoing => 'Outgoing';
+
+  @override
+  String get sentAt => 'Sent';
+
+  @override
+  String friendsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count friends',
+      one: '1 friend',
+      zero: 'No friends',
+    );
+    return '$_temp0';
+  }
 }

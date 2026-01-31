@@ -305,17 +305,10 @@ class _PostItemState extends State<PostItem> {
                                       widget.post.author?.isVerified ==
                                           true) ...[
                                     const SizedBox(width: 4),
-                                    Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: BoxDecoration(
-                                        color: colors.primary,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        Icons.check,
-                                        size: 12,
-                                        color: colors.onPrimary,
-                                      ),
+                                    Icon(
+                                      Icons.verified,
+                                      size: 16,
+                                      color: Theme.of(context).primaryColor,
                                     ),
                                   ],
                                 ],

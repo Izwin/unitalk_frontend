@@ -428,8 +428,7 @@ class NotificationTile extends StatelessWidget {
     );
   }
 
-  void _navigateToNotificationTarget(BuildContext context,
-      NotificationModel notification,) {
+  void _navigateToNotificationTarget(BuildContext context, NotificationModel notification) {
     // Помечаем как прочитанное
     if (!notification.isRead) {
       context.read<NotificationBloc>().add(
@@ -455,6 +454,15 @@ class NotificationTile extends StatelessWidget {
       case 'new_chat_message':
       case 'chat_mention':
         context.go('/chat');
+        break;
+
+    // ✅ ДОБАВЛЕНО: навигация для друзей
+      case 'friend_request':
+        context.push('/friend-requests');
+        break;
+
+      case 'friend_request_accepted':
+        context.push('/friends');
         break;
 
       default:
