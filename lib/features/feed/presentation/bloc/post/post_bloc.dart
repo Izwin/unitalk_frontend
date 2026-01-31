@@ -47,7 +47,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     final result = await postRepository.createPost(
       content: event.content,
       isAnonymous: event.isAnonymous,
-      imageFile: event.imageFile,
+      mediaFile: event.mediaFile,
     );
 
     result.fold(

@@ -11,6 +11,7 @@ extension NotificationsUtils on RemoteMessage{
       case 'new_like':
       case 'comment_reply':
       case 'mention':
+      case 'new_comment_like':
         final postId = data['postId'];
         return postId != null ? '/post/$postId' : null;
 

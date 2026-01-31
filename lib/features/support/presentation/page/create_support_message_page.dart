@@ -39,9 +39,10 @@ class _CreateSupportMessagePageState extends State<CreateSupportMessagePage> {
   Future<void> _pickImage() async {
     final l10n = AppLocalizations.of(context)!;
 
-    final result = await ImageSourcePicker.show(
+    final result = await MediaSourcePicker.show(
       context,
       galleryText: l10n.gallery,
+      videoText: l10n.video,
       cameraText: l10n.camera,
       removeText: l10n.removePhoto,
       canRemove: _selectedImage != null,

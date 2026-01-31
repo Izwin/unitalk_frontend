@@ -7,6 +7,7 @@ import 'package:unitalk/core/di/service_locator.dart';
 import 'package:unitalk/core/ui/common/anonymous_toggle.dart';
 import 'package:unitalk/core/ui/common/empty_state_widget.dart';
 import 'package:unitalk/core/ui/common/image_source_picker.dart';
+import 'package:unitalk/core/ui/common/media_preview.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post/post_state.dart';
@@ -17,6 +18,7 @@ import 'package:unitalk/features/feed/presentation/bloc/replies/replies_bloc.dar
 import 'package:unitalk/features/feed/presentation/widget/comment_item.dart';
 import 'package:unitalk/features/feed/presentation/widget/post_item.dart';
 import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:video_player/video_player.dart';
 
 class PostDetailPage extends StatefulWidget {
   final String postId;
@@ -34,7 +36,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
   bool _isAnonymous = false;
   bool _isInitialized = false;
   bool _isRefreshing = false;
-  File? _selectedImage;
+  File? _selectedMedia;
+  bool _isVideo = false;
 
   @override
   void initState() {
@@ -133,51 +136,65 @@ class _PostDetailPageState extends State<PostDetailPage> {
     }
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickMedia() async {
     FocusScope.of(context).unfocus();
     final l10n = AppLocalizations.of(context)!;
 
-    final image = await ImageSourcePicker.show(
+    final media = await MediaSourcePicker.show(
       context,
+      videoText: l10n.video,
       galleryText: l10n.gallery,
       cameraText: l10n.camera,
       removeText: l10n.removePhoto,
-      canRemove: _selectedImage != null,
-      onRemove: () => setState(() => _selectedImage = null),
+      canRemove: _selectedMedia != null,
+      allowVideo: true,
+      onRemove: () => _removeMedia(),
     );
 
-    if (image != null) {
-      setState(() => _selectedImage = File(image.path));
+    if (media != null) {
+      final isVideo = media.path.toLowerCase().endsWith('.mp4') ||
+          media.path.toLowerCase().endsWith('.mov');
+
+      await _removeMedia(); // Очистить предыдущее
+
+      setState(() {
+        _selectedMedia = File(media.path);
+        _isVideo = isVideo;
+      });
+
     }
   }
 
-  void _removeImage() {
-    setState(() => _selectedImage = null);
+  Future<void> _removeMedia() async {
+    setState(() {
+      _selectedMedia = null;
+      _isVideo = false;
+    });
   }
 
   void _createComment() {
     final text = _commentController.text.trim();
 
-    if (text.isEmpty && _selectedImage == null) {
-      print('Cannot create comment: text and image are both empty');
+    if (text.isEmpty && _selectedMedia == null) {
+      print('Cannot create comment: text and media are both empty');
       return;
     }
 
-    print('Creating comment: isAnonymous=$_isAnonymous, hasImage=${_selectedImage != null}');
+    print('Creating comment: isAnonymous=$_isAnonymous, hasMedia=${_selectedMedia != null}, isVideo=$_isVideo');
 
     context.read<CommentBloc>().add(
       CreateCommentEvent(
         postId: widget.postId,
         content: text,
         isAnonymous: _isAnonymous,
-        imageFile: _selectedImage,
+        mediaFile: _selectedMedia,
       ),
     );
 
     _commentController.clear();
+    _removeMedia();
     setState(() {
       _isAnonymous = false;
-      _selectedImage = null;
     });
     _focusNode.unfocus();
   }
@@ -318,6 +335,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                           SliverList(
                             delegate: SliverChildBuilderDelegate((context, index) {
                               return BlocProvider(
+                                key: ValueKey(commentState.comments[index].id),
                                 create: (context) => sl<RepliesBloc>(),
                                 child: CommentItem(
                                   key: ValueKey(commentState.comments[index].id),
@@ -375,59 +393,16 @@ class _PostDetailPageState extends State<PostDetailPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Image Preview
-                if (_selectedImage != null) ...[
-                  Container(
-                    width: 140,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            _selectedImage!,
-                            width: 140,
-                            height: 140,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Positioned(
-                          top: 6,
-                          right: 6,
-                          child: Material(
-                            color: Colors.black87,
-                            shape: const CircleBorder(),
-                            child: InkWell(
-                              onTap: _removeImage,
-                              customBorder: const CircleBorder(),
-                              child: Container(
-                                width: 28,
-                                height: 28,
-                                alignment: Alignment.center,
-                                child: const Icon(
-                                  Icons.close,
-                                  size: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                // Media Preview
+                if (_selectedMedia != null) ...[
+                  MediaPreview(
+                    mediaFile: _selectedMedia!,
+                    isVideo: _isVideo,
+                    onRemove: _removeMedia,
                   ),
                   const SizedBox(height: 12),
                 ],
+
 
                 // Input Row
                 Row(
@@ -441,9 +416,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     const SizedBox(width: 12),
 
                     IconButton(
-                      onPressed: _pickImage,
+                      onPressed: _pickMedia,
                       icon: Icon(
-                        Icons.image_outlined,
+                        _isVideo ? Icons.videocam : Icons.image_outlined,
                         color: colors.onSurface.withOpacity(0.6),
                         size: 24,
                       ),
@@ -493,13 +468,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       child: GestureDetector(
-                        onTap: (_commentController.text.trim().isEmpty && _selectedImage == null)
+                        onTap: (_commentController.text.trim().isEmpty && _selectedMedia == null)
                             ? null
                             : _createComment,
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: (_commentController.text.trim().isEmpty && _selectedImage == null)
+                            color: (_commentController.text.trim().isEmpty && _selectedMedia == null)
                                 ? colors.surfaceContainerHighest.withOpacity(0.6)
                                 : colors.primary,
                             borderRadius: BorderRadius.circular(12),
@@ -507,7 +482,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                           child: Icon(
                             Icons.send_rounded,
                             size: 20,
-                            color: (_commentController.text.trim().isEmpty && _selectedImage == null)
+                            color: (_commentController.text.trim().isEmpty && _selectedMedia == null)
                                 ? colors.onSurface.withOpacity(0.3)
                                 : colors.onPrimary,
                           ),
@@ -523,6 +498,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       ),
     );
   }
+
 
   @override
   void dispose() {

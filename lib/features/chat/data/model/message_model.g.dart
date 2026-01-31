@@ -15,6 +15,9 @@ MessageModel _$MessageModelFromJson(Map<String, dynamic> json) => MessageModel(
   sector: json['sector'] as String,
   content: json['content'] as String,
   imageUrl: json['imageUrl'] as String?,
+  videoUrl: json['videoUrl'] as String?,
+  mediaType: json['mediaType'] as String? ?? 'none',
+  videoDuration: (json['videoDuration'] as num?)?.toInt(),
   replyToMessage: json['replyTo'] == null
       ? null
       : MessageModel.fromJson(json['replyTo'] as Map<String, dynamic>),
@@ -40,6 +43,9 @@ Map<String, dynamic> _$MessageModelToJson(MessageModel instance) =>
       'sector': instance.sector,
       'content': instance.content,
       'imageUrl': instance.imageUrl,
+      'videoUrl': instance.videoUrl,
+      'mediaType': instance.mediaType,
+      'videoDuration': instance.videoDuration,
       'replyTo': instance.replyToMessage,
       'isEdited': instance.isEdited,
       'editedAt': instance.editedAt?.toIso8601String(),

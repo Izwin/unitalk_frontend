@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:unitalk/core/ui/common/anonymous_toggle.dart';
 import 'package:unitalk/core/ui/common/image_source_picker.dart';
+import 'package:unitalk/core/ui/common/media_preview.dart';
 import 'package:unitalk/core/ui/common/user_avatar.dart';
 import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
@@ -12,6 +13,7 @@ import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post/post_state.dart';
 import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:video_player/video_player.dart';
 
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({Key? key}) : super(key: key);
@@ -23,7 +25,8 @@ class CreatePostPage extends StatefulWidget {
 class _CreatePostPageState extends State<CreatePostPage> {
   final _contentController = TextEditingController();
   final _focusNode = FocusNode();
-  File? _selectedImage;
+  File? _selectedMedia;
+  bool _isVideo = false;
   bool _isAnonymous = false;
   bool _isSubmitting = false;
 
@@ -46,33 +49,47 @@ class _CreatePostPageState extends State<CreatePostPage> {
     FocusScope.of(context).unfocus();
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickMedia() async {
     _dismissKeyboard();
     final l10n = AppLocalizations.of(context)!;
 
-    final image = await ImageSourcePicker.show(
+    final media = await MediaSourcePicker.show(
       context,
       galleryText: l10n.gallery,
       cameraText: l10n.camera,
+      videoText: l10n.video,
       removeText: l10n.removePhoto,
-      canRemove: _selectedImage != null,
-      onRemove: () => setState(() => _selectedImage = null),
+      canRemove: _selectedMedia != null,
+      allowVideo: true,
+      onRemove: () => _removeMedia(),
     );
 
-    if (image != null) {
-      setState(() => _selectedImage = File(image.path));
+    if (media != null) {
+      final isVideo = media.path.toLowerCase().endsWith('.mp4') ||
+          media.path.toLowerCase().endsWith('.mov');
+
+      await _removeMedia(); // Очистить предыдущее
+
+      setState(() {
+        _selectedMedia = File(media.path);
+        _isVideo = isVideo;
+      });
+
     }
   }
 
-  void _removeImage() {
-    setState(() => _selectedImage = null);
+  Future<void> _removeMedia() async {
+    setState(() {
+      _selectedMedia = null;
+      _isVideo = false;
+    });
   }
 
   Future<void> _submitPost() async {
     _dismissKeyboard();
     final l10n = AppLocalizations.of(context)!;
 
-    if (_contentController.text.trim().isEmpty && _selectedImage == null) {
+    if (_contentController.text.trim().isEmpty && _selectedMedia == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.pleaseAddContent),
@@ -89,7 +106,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       CreatePostEvent(
         content: _contentController.text.trim(),
         isAnonymous: _isAnonymous,
-        imageFile: _selectedImage,
+        mediaFile: _selectedMedia,
       ),
     );
   }
@@ -109,7 +126,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
             SnackBar(
               content: Text(l10n.postCreatedSuccessfully),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+              shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
             ),
           );
         } else if (state.status == PostStatus.failure) {
@@ -119,7 +137,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
               content: Text(state.errorMessage ?? l10n.failedToCreatePost),
               backgroundColor: theme.colorScheme.error,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+              shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
             ),
           );
         }
@@ -166,7 +185,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     height: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                      valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.white70),
                     ),
                   )
                       : Text(
@@ -189,7 +209,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ),
               Expanded(
                 child: SingleChildScrollView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  keyboardDismissBehavior:
+                  ScrollViewKeyboardDismissBehavior.onDrag,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -199,9 +220,12 @@ class _CreatePostPageState extends State<CreatePostPage> {
                         child: Row(
                           children: [
                             UserAvatar(
-                              photoUrl: _isAnonymous ? null : user?.photoUrl,
-                              firstName: _isAnonymous ? null : user?.firstName,
-                              lastName: _isAnonymous ? null : user?.lastName,
+                              photoUrl:
+                              _isAnonymous ? null : user?.photoUrl,
+                              firstName:
+                              _isAnonymous ? null : user?.firstName,
+                              lastName:
+                              _isAnonymous ? null : user?.lastName,
                               size: 44,
                             ),
                             SizedBox(width: 14),
@@ -210,20 +234,27 @@ class _CreatePostPageState extends State<CreatePostPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    _isAnonymous ? l10n.anonymous : (user?.firstName ?? l10n.user),
-                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                    _isAnonymous
+                                        ? l10n.anonymous
+                                        : (user?.firstName ?? l10n.user),
+                                    style:
+                                    theme.textTheme.bodyLarge?.copyWith(
                                       fontWeight: FontWeight.w600,
                                       letterSpacing: 0,
                                     ),
                                   ),
-                                  if (user?.university != null && !_isAnonymous)
+                                  if (user?.university != null &&
+                                      !_isAnonymous)
                                     Padding(
                                       padding: EdgeInsets.only(top: 2),
                                       child: Text(
                                         user!.university!.getLocalizedName(
-                                            Localizations.localeOf(context).languageCode),
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: theme.colorScheme.onSurface.withOpacity(0.5),
+                                            Localizations.localeOf(context)
+                                                .languageCode),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                          color: theme.colorScheme.onSurface
+                                              .withOpacity(0.5),
                                           letterSpacing: 0.1,
                                         ),
                                       ),
@@ -251,7 +282,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                           decoration: InputDecoration(
                             hintText: l10n.whatsOnYourMind,
                             hintStyle: TextStyle(
-                              color: theme.colorScheme.onSurface.withOpacity(0.3),
+                              color: theme.colorScheme.onSurface
+                                  .withOpacity(0.3),
                               letterSpacing: 0.1,
                             ),
                             border: InputBorder.none,
@@ -263,58 +295,30 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
                       // Character Count
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        padding:
+                        EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                         child: Text(
-                          l10n.characterCount(_contentController.text.length, 500),
+                          l10n.characterCount(
+                              _contentController.text.length, 500),
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.4),
+                            color:
+                            theme.colorScheme.onSurface.withOpacity(0.4),
                             letterSpacing: 0.2,
                           ),
                         ),
                       ),
 
-                      // Image Preview
-                      if (_selectedImage != null)
+                      // Media Preview
+                      if (_selectedMedia != null)
                         Padding(
-                          padding: EdgeInsets.fromLTRB(20, 16, 20, 16),
-                          child: Stack(
-                            children: [
-                              Container(
-                                width: double.infinity,
-                                clipBehavior: Clip.antiAlias,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(0),
-                                ),
-                                child: Image.file(
-                                  _selectedImage!,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              Positioned(
-                                top: 12,
-                                right: 12,
-                                child: Material(
-                                  color: Colors.black87,
-                                  shape: CircleBorder(),
-                                  child: InkWell(
-                                    onTap: _removeImage,
-                                    customBorder: CircleBorder(),
-                                    child: Container(
-                                      width: 36,
-                                      height: 36,
-                                      alignment: Alignment.center,
-                                      child: Icon(
-                                        Icons.close,
-                                        size: 18,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          child: MediaPreview(
+                            mediaFile: _selectedMedia!,
+                            isVideo: _isVideo,
+                            onRemove: _removeMedia,
                           ),
                         ),
+
 
                       SizedBox(height: 24),
 
@@ -335,26 +339,32 @@ class _CreatePostPageState extends State<CreatePostPage> {
                             Text(
                               l10n.actions,
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                                color: theme.colorScheme.onSurface
+                                    .withOpacity(0.5),
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 1.2,
                               ),
                             ),
                             SizedBox(height: 16),
                             _buildActionTile(
-                              icon: Icons.image,
-                              title: l10n.addImage,
-                              onTap: _pickImage,
+                              icon: _isVideo ? Icons.videocam : Icons.image,
+                              title: l10n.addMedia,
+                              onTap: _pickMedia,
                               theme: theme,
                             ),
                             Container(
                               height: 1,
                               margin: EdgeInsets.symmetric(vertical: 0),
-                              color: theme.colorScheme.onSurface.withOpacity(0.08),
+                              color: theme.colorScheme.onSurface
+                                  .withOpacity(0.08),
                             ),
                             _buildActionTile(
-                              icon: _isAnonymous ? Icons.person_off : Icons.person,
-                              title: _isAnonymous ? l10n.anonymousMode : l10n.publicMode,
+                              icon: _isAnonymous
+                                  ? Icons.person_off
+                                  : Icons.person,
+                              title: _isAnonymous
+                                  ? l10n.anonymousMode
+                                  : l10n.publicMode,
                               subtitle: _isAnonymous
                                   ? l10n.yourIdentityIsHidden
                                   : l10n.yourNameIsVisible,
@@ -425,7 +435,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                       child: Text(
                         subtitle,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.5),
+                          color:
+                          theme.colorScheme.onSurface.withOpacity(0.5),
                           letterSpacing: 0.1,
                         ),
                       ),

@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'package:unitalk/core/ui/common/confirm_delete_dialog.dart';
 import 'package:unitalk/core/ui/common/empty_state_widget.dart';
 import 'package:unitalk/core/ui/common/error_state_widget.dart';
@@ -289,6 +290,10 @@ class NotificationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    // Настройка локализации для timeago
+    timeago.setLocaleMessages('ru', timeago.RuMessages());
+    timeago.setLocaleMessages('az', timeago.AzMessages());
+
     // Determine display info
     String displayName = 'Anonymous';
     String? avatarUrl;
@@ -373,7 +378,12 @@ class NotificationTile extends StatelessWidget {
                         ),
                       ],
                       Text(
-                        _formatTime(notification.createdAt),
+                        timeago.format(
+                          notification.createdAt,
+                          locale: Localizations
+                              .localeOf(context)
+                              .languageCode,
+                        ),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurface.withOpacity(0.5),
                           letterSpacing: 0.1,
@@ -418,27 +428,8 @@ class NotificationTile extends StatelessWidget {
     );
   }
 
-  String _formatTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inDays > 7) {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
-    }
-  }
-
-  void _navigateToNotificationTarget(
-    BuildContext context,
-    NotificationModel notification,
-  ) {
+  void _navigateToNotificationTarget(BuildContext context,
+      NotificationModel notification,) {
     // Помечаем как прочитанное
     if (!notification.isRead) {
       context.read<NotificationBloc>().add(
@@ -450,6 +441,7 @@ class NotificationTile extends StatelessWidget {
     switch (notification.type) {
       case 'new_post':
       case 'new_comment':
+      case 'new_comment_like':
       case 'new_like':
       case 'comment_reply':
       case 'mention':

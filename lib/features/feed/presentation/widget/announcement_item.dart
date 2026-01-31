@@ -156,7 +156,6 @@ class AnnouncementItem extends StatelessWidget {
 
                 const SizedBox(height: 8),
 
-                // Описание
                 Text(
                   announcement.content,
                   style: TextStyle(
@@ -166,8 +165,6 @@ class AnnouncementItem extends StatelessWidget {
                     fontWeight: FontWeight.w400,
                     letterSpacing: -0.1,
                   ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
                 ),
 
                 // Изображение (если есть)

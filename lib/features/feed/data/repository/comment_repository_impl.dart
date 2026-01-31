@@ -18,8 +18,17 @@ class CommentRepositoryImpl implements CommentRepository {
     String? parentCommentId,
     String? replyToCommentId,
     required bool isAnonymous,
-    File? imageFile,
+    File? mediaFile,
   }) async {
+    final comment = await remoteDataSource.createComment(
+      postId: postId,
+      content: content,
+      parentCommentId: parentCommentId,
+      replyToCommentId: replyToCommentId,
+      isAnonymous: isAnonymous,
+      mediaFile: mediaFile,
+    );
+    return Right(comment);
     try {
       final comment = await remoteDataSource.createComment(
         postId: postId,
@@ -27,7 +36,7 @@ class CommentRepositoryImpl implements CommentRepository {
         parentCommentId: parentCommentId,
         replyToCommentId: replyToCommentId,
         isAnonymous: isAnonymous,
-        imageFile: imageFile,
+        mediaFile: mediaFile,
       );
       return Right(comment);
     } catch (e) {

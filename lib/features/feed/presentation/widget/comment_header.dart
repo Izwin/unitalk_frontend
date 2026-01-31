@@ -1,9 +1,12 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:unitalk/core/ui/common/confirm_delete_dialog.dart';
+import 'package:unitalk/core/ui/common/fullscreen_image_viewer.dart';
+import 'package:unitalk/core/ui/common/fullscreen_video_player.dart';
 import 'package:unitalk/core/ui/common/user_avatar.dart';
 import 'package:unitalk/core/ui/common/user_meta_info.dart';
 import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
@@ -11,8 +14,10 @@ import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
 import 'package:unitalk/features/feed/data/model/comment_model.dart';
 import 'package:unitalk/features/report/presentation/content_moderation_menu.dart';
 import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:video_player/video_player.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class CommentHeader extends StatelessWidget {
+class CommentHeader extends StatefulWidget {
   final CommentModel comment;
   final VoidCallback onDelete;
 
@@ -22,8 +27,85 @@ class CommentHeader extends StatelessWidget {
     required this.onDelete,
   });
 
+  @override
+  State<CommentHeader> createState() => _CommentHeaderState();
+}
+
+class _CommentHeaderState extends State<CommentHeader> {
+  VideoPlayerController? _videoController;
+  bool _isVideoInitialized = false;
+  bool _videoInitializationStarted = false;
+
+  static final RegExp _urlRegex = RegExp(
+    r'https?://[^\s]+',
+    caseSensitive: false,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.comment.videoUrl != null) {
+      _initializeVideo();
+    }
+  }
+
+  @override
+  void didUpdateWidget(CommentHeader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.comment.videoUrl != widget.comment.videoUrl &&
+        widget.comment.videoUrl != null) {
+      _videoController?.dispose();
+      _isVideoInitialized = false;
+      _videoInitializationStarted = false;
+      _initializeVideo();
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
+  }
+
+  void _initializeVideo() {
+    if (_videoInitializationStarted) return;
+    _videoInitializationStarted = true;
+
+    try {
+      _videoController = VideoPlayerController.networkUrl(
+        Uri.parse(widget.comment.videoUrl!),
+        videoPlayerOptions: VideoPlayerOptions(
+          allowBackgroundPlayback: false,
+          mixWithOthers: true,
+        ),
+      );
+
+      _videoController!.initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _isVideoInitialized = true;
+          });
+        }
+      }).catchError((error) {
+        if (mounted) {
+          print('Video initialization error: $error');
+          setState(() {
+            _videoInitializationStarted = false;
+          });
+        }
+      });
+    } catch (e) {
+      print('Error creating video controller: $e');
+      if (mounted) {
+        setState(() {
+          _videoInitializationStarted = false;
+        });
+      }
+    }
+  }
+
   bool _isOwner(String? currentUserId) {
-    return currentUserId != null && currentUserId == comment.author?.id;
+    return currentUserId != null && currentUserId == widget.comment.author?.id;
   }
 
   void _showDeleteDialog(BuildContext context) {
@@ -32,21 +114,13 @@ class CommentHeader extends StatelessWidget {
       context,
       title: l10n.deleteComment,
       content: l10n.deleteCommentConfirmation,
-      onConfirm: onDelete,
+      onConfirm: widget.onDelete,
     );
   }
 
   void _navigateToProfile(BuildContext context) {
-    if (comment.isAnonymous || comment.author?.id == null) return;
-    context.push('/user/${comment.author!.id}');
-  }
-
-  void _showImageFullscreen(BuildContext context, String imageUrl) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => _FullscreenImageViewer(imageUrl: imageUrl),
-      ),
-    );
+    if (widget.comment.isAnonymous || widget.comment.author?.id == null) return;
+    context.push('/user/${widget.comment.author!.id}');
   }
 
   @override
@@ -55,6 +129,7 @@ class CommentHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     timeago.setLocaleMessages('ru', timeago.RuMessages());
     timeago.setLocaleMessages('az', timeago.AzMessages());
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -64,9 +139,9 @@ class CommentHeader extends StatelessWidget {
             GestureDetector(
               onTap: () => _navigateToProfile(context),
               child: UserAvatar(
-                photoUrl: comment.author?.photoUrl,
-                firstName: comment.author?.firstName,
-                lastName: comment.author?.lastName,
+                photoUrl: widget.comment.author?.photoUrl,
+                firstName: widget.comment.author?.firstName,
+                lastName: widget.comment.author?.lastName,
                 size: 40,
               ),
             ),
@@ -81,10 +156,10 @@ class CommentHeader extends StatelessWidget {
                     _buildNameRow(context, colors, l10n),
                     const SizedBox(height: 4),
                     UserMetaInfo(
-                      faculty: comment.author?.faculty?.getLocalizedName(
+                      faculty: widget.comment.author?.faculty?.getLocalizedName(
                         Localizations.localeOf(context).languageCode,
                       ),
-                      sector: comment.author?.sector,
+                      sector: widget.comment.author?.sector,
                     ),
                   ],
                 ),
@@ -94,45 +169,37 @@ class CommentHeader extends StatelessWidget {
           ],
         ),
 
-        // Контент комментария
-        if (comment.content.trim().isNotEmpty) ...[
+        // Comment content with clickable links
+        if (widget.comment.content.trim().isNotEmpty) ...[
           const SizedBox(height: 16),
-          Text(
-            comment.content,
-            style: TextStyle(
-              fontSize: 15,
-              height: 1.5,
-              color: colors.onSurface,
-              fontWeight: FontWeight.w400,
-              letterSpacing: -0.1,
-            ),
-          ),
+          _buildContentWithLinks(context, colors),
         ],
 
-        // Изображение комментария
-        if (comment.imageUrl != null) ...[
+        // Image
+        if (widget.comment.imageUrl != null &&
+            widget.comment.imageUrl!.isNotEmpty) ...[
           const SizedBox(height: 12),
           GestureDetector(
-            onTap: () => _showImageFullscreen(context, comment.imageUrl!),
+            onTap: () =>
+                FullscreenImageViewer.show(context, widget.comment.imageUrl!),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: CachedNetworkImage(
-                imageUrl: comment.imageUrl!,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                placeholder: (_, __) => Container(
-                  height: 200,
+                imageUrl: widget.comment.imageUrl!,
+                fit: BoxFit.contain,
+                placeholder: (context, url) => Container(
+                  width: double.infinity,
+                  height: 150,
                   color: colors.surfaceContainerHighest.withOpacity(0.3),
                   child: Center(
-                    child: Icon(
-                      Icons.image_outlined,
-                      size: 48,
-                      color: colors.onSurface.withOpacity(0.2),
+                    child: CircularProgressIndicator(
+                      color: colors.primary,
                     ),
                   ),
                 ),
-                errorWidget: (_, __, ___) => Container(
-                  height: 200,
+                errorWidget: (context, url, error) => Container(
+                  width: double.infinity,
+                  height: 150,
                   color: colors.surfaceContainerHighest.withOpacity(0.3),
                   child: Center(
                     child: Icon(
@@ -146,11 +213,73 @@ class CommentHeader extends StatelessWidget {
             ),
           ),
         ],
+
+        // Video
+        if (widget.comment.videoUrl != null &&
+            widget.comment.videoUrl!.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () =>
+                FullscreenVideoPlayer.show(context, widget.comment.videoUrl!),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: _isVideoInitialized &&
+                  _videoController != null &&
+                  _videoController!.value.isInitialized
+                  ? AspectRatio(
+                aspectRatio: _videoController!.value.aspectRatio,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    VideoPlayer(_videoController!),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.3),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow,
+                          size: 48,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+                  : Container(
+                width: double.infinity,
+                height: 150,
+                color: colors.surfaceContainerHighest.withOpacity(0.3),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: colors.primary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  Widget _buildNameRow(BuildContext context, ColorScheme colors, AppLocalizations l10n) {
+  Widget _buildNameRow(
+      BuildContext context, ColorScheme colors, AppLocalizations l10n) {
     return Row(
       children: [
         Flexible(
@@ -159,9 +288,9 @@ class CommentHeader extends StatelessWidget {
             children: [
               Flexible(
                 child: Text(
-                  comment.isAnonymous
+                  widget.comment.isAnonymous
                       ? l10n.anonymous
-                      : '${comment.author?.firstName} ${comment.author?.lastName}',
+                      : '${widget.comment.author?.firstName} ${widget.comment.author?.lastName}',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
@@ -171,7 +300,8 @@ class CommentHeader extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (!comment.isAnonymous && comment.author?.isVerified == true) ...[
+              if (!widget.comment.isAnonymous &&
+                  widget.comment.author?.isVerified == true) ...[
                 const SizedBox(width: 4),
                 _buildVerificationBadge(colors),
               ],
@@ -182,7 +312,8 @@ class CommentHeader extends StatelessWidget {
         _buildDot(colors),
         const SizedBox(width: 8),
         Text(
-          timeago.format(comment.createdAt,locale: Localizations.localeOf(context).languageCode),
+          timeago.format(widget.comment.createdAt,
+              locale: Localizations.localeOf(context).languageCode),
           style: TextStyle(
             fontSize: 13,
             color: colors.onSurface.withOpacity(0.5),
@@ -232,7 +363,7 @@ class CommentHeader extends StatelessWidget {
           ),
           onPressed: () => ContentModerationMenu.showCommentMenu(
             context: context,
-            commentId: comment.id,
+            commentId: widget.comment.id,
             isOwner: isOwner,
             onDelete: isOwner ? () => _showDeleteDialog(context) : null,
           ),
@@ -240,57 +371,79 @@ class CommentHeader extends StatelessWidget {
       },
     );
   }
-}
 
-// Fullscreen Image Viewer
-class _FullscreenImageViewer extends StatefulWidget {
-  final String imageUrl;
+  Widget _buildContentWithLinks(BuildContext context, ColorScheme colors) {
+    final text = widget.comment.content;
+    final matches = _urlRegex.allMatches(text).toList();
 
-  const _FullscreenImageViewer({required this.imageUrl});
-
-  @override
-  State<_FullscreenImageViewer> createState() => _FullscreenImageViewerState();
-}
-
-class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
-  final TransformationController _transformationController = TransformationController();
-
-  @override
-  void dispose() {
-    _transformationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: IconThemeData(color: Colors.white),
-        elevation: 0,
-      ),
-      body: Center(
-        child: InteractiveViewer(
-          transformationController: _transformationController,
-          minScale: 0.5,
-          maxScale: 4.0,
-          child: CachedNetworkImage(
-            imageUrl: widget.imageUrl,
-            fit: BoxFit.contain,
-            placeholder: (_, __) => Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
-            errorWidget: (_, __, ___) => Center(
-              child: Icon(
-                Icons.error_outline,
-                color: Colors.white,
-                size: 48,
-              ),
-            ),
-          ),
+    if (matches.isEmpty) {
+      return Text(
+        text,
+        style: TextStyle(
+          fontSize: 15,
+          height: 1.5,
+          color: colors.onSurface,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.1,
         ),
-      ),
+      );
+    }
+
+    final spans = <TextSpan>[];
+    int lastEnd = 0;
+
+    for (final match in matches) {
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(
+          text: text.substring(lastEnd, match.start),
+          style: TextStyle(
+            fontSize: 15,
+            height: 1.5,
+            color: colors.onSurface,
+            fontWeight: FontWeight.w400,
+            letterSpacing: -0.1,
+          ),
+        ));
+      }
+
+      final url = match.group(0)!;
+      spans.add(TextSpan(
+        text: url,
+        style: TextStyle(
+          fontSize: 15,
+          height: 1.5,
+          color: colors.primary,
+          fontWeight: FontWeight.w500,
+          letterSpacing: -0.1,
+          decoration: TextDecoration.underline,
+        ),
+        recognizer: TapGestureRecognizer()
+          ..onTap = () async {
+            if (await canLaunchUrl(Uri.parse(url))) {
+              await launchUrl(Uri.parse(url),
+                  mode: LaunchMode.externalApplication);
+            }
+          },
+      ));
+
+      lastEnd = match.end;
+    }
+
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastEnd),
+        style: TextStyle(
+          fontSize: 15,
+          height: 1.5,
+          color: colors.onSurface,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.1,
+        ),
+      ));
+    }
+
+    return RichText(
+      text: TextSpan(children: spans),
     );
   }
 }

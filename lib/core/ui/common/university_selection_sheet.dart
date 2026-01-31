@@ -54,15 +54,20 @@ class UniversitySelectionSheetState extends State<UniversitySelectionSheet> {
     if (universities.isEmpty) return;
 
     final query = _searchController.text.toLowerCase().trim();
-    final locale = context.read<LocaleCubit>().state.languageCode;
 
     setState(() {
       if (query.isEmpty) {
         _filteredUniversities = List.from(universities);
       } else {
         _filteredUniversities = universities.where((university) {
-          final name = university.getLocalizedName(locale).toLowerCase();
-          return name.contains(query);
+          // Поиск по всем доступным локализациям
+          final nameAz = (university.name['az'] ?? '').toLowerCase();
+          final nameRu = (university.name['ru'] ?? '').toLowerCase();
+          final nameEn = (university.name['en'] ?? '').toLowerCase();
+
+          return nameAz.contains(query) ||
+              nameRu.contains(query) ||
+              nameEn.contains(query);
         }).toList();
       }
     });

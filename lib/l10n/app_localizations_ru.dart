@@ -1360,4 +1360,38 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get learnMore => 'Подробнее';
+
+  @override
+  String get video => 'Видео';
+
+  @override
+  String get addMedia => 'Добавить медиа';
+
+  @override
+  String get typeToConfirm => 'Введите для подтверждения';
+
+  @override
+  String get loadingImage => 'Загрузка изображения...';
+
+  @override
+  String get imageLoadFailed => 'Не удалось загрузить изображение';
+
+  @override
+  String get translate => 'Перевести';
+
+  @override
+  String get showOriginal => 'Показать оригинал';
+
+  @override
+  String get translating => 'Перевод...';
+
+  @override
+  String get translationFailed => 'Ошибка перевода';
+
+  @override
+  String get pinnedPost => 'Закрепленный пост';
+
+  @override
+  String get resubmissionInfo =>
+      'Пожалуйста, загрузите новый скриншот, следуя инструкциям ниже.';
 }

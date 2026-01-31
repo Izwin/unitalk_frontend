@@ -3,8 +3,14 @@ import 'package:flutter/material.dart';
 class CardInfoRow extends StatelessWidget {
   final String label;
   final String value;
+  final bool multiline;
 
-  const CardInfoRow({super.key, required this.label, required this.value});
+  const CardInfoRow({
+    super.key,
+    required this.label,
+    required this.value,
+    this.multiline = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -12,23 +18,23 @@ class CardInfoRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$label:',
+          '$label: ',
           style: TextStyle(
             fontSize: 11,
             color: Colors.white.withOpacity(0.7),
+            fontWeight: FontWeight.w500,
           ),
         ),
-        SizedBox(width: 6),
         Expanded(
           child: Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w600,
               color: Colors.white,
+              fontWeight: FontWeight.w600,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            overflow: TextOverflow.fade,
+            softWrap: multiline,
           ),
         ),
       ],

@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:unitalk/core/ui/common/common_text_field.dart';
 import 'package:unitalk/core/ui/common/radio_selector_card.dart';
 import 'package:unitalk/features/auth/data/model/user_model.dart';
 import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:unitalk/l10n/bloc/locale_cubit.dart';
 
 class CompleteProfilePageOne extends StatefulWidget {
   final String? initialFirstName;
@@ -117,6 +119,29 @@ class _CompleteProfilePageOneState extends State<CompleteProfilePageOne> {
     return (firstName, lastName);
   }
 
+  /// Определяет язык для сектора
+  Locale _getLocaleForSector(Sector sector) {
+    switch (sector) {
+      case Sector.english:
+        return const Locale('en');
+      case Sector.russian:
+        return const Locale('ru');
+      case Sector.azerbaijani:
+        return const Locale('az');
+    }
+  }
+
+  /// Автоматическая смена языка при выборе сектора
+  void _onSectorSelected(Sector sector) {
+    setState(() => _selectedSector = sector);
+
+    // Меняем язык в соответствии с сектором
+    final newLocale = _getLocaleForSector(sector);
+    context.read<LocaleCubit>().changeLocale(newLocale);
+
+    _notifyParent();
+  }
+
   @override
   void dispose() {
     _firstNameController.dispose();
@@ -202,10 +227,7 @@ class _CompleteProfilePageOneState extends State<CompleteProfilePageOne> {
             child: RadioSelectorItem(
               title: '${sector.flagEmoji}  ${sector.displayName}',
               isSelected: _selectedSector == sector,
-              onTap: () {
-                setState(() => _selectedSector = sector);
-                _notifyParent();
-              },
+              onTap: () => _onSectorSelected(sector),
             ),
           )),
         ],

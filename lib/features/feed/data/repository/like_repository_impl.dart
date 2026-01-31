@@ -37,4 +37,28 @@ class LikeRepositoryImpl implements LikeRepository {
       return Left(ServerFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, List<UserModel>>> getCommentLikers({required String commentId, int page = 1, int limit = 20}) async {
+    try {
+      final data = await remoteDataSource.getCommentLikers(
+        comment: commentId,
+        page: page,
+        limit: limit,
+      );
+      return Right(data);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LikeResponseModel>> toggleCommentLike(String commentId) async {
+    try {
+      final likesCount = await remoteDataSource.toggleCommentLike(commentId);
+      return Right(likesCount);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
 }

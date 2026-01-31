@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// Универсальное модальное окно со списком для выбора
 class BottomSheetListPicker<T> extends StatefulWidget {
   final String title;
   final List<T> items;
@@ -14,6 +13,8 @@ class BottomSheetListPicker<T> extends StatefulWidget {
   final bool showSearch;
   final String searchHint;
   final String emptyMessage;
+  // Добавляем опциональный кастомный фильтр
+  final bool Function(T item, String query)? customFilter;
 
   const BottomSheetListPicker({
     Key? key,
@@ -27,6 +28,7 @@ class BottomSheetListPicker<T> extends StatefulWidget {
     this.showSearch = true,
     required this.searchHint,
     required this.emptyMessage,
+    this.customFilter, // Новый параметр
   }) : super(key: key);
 
   @override
@@ -59,6 +61,11 @@ class _BottomSheetListPickerState<T> extends State<BottomSheetListPicker<T>> {
         _filteredItems = widget.items;
       } else {
         _filteredItems = widget.items.where((item) {
+          // Если есть кастомный фильтр, используем его
+          if (widget.customFilter != null) {
+            return widget.customFilter!(item, query);
+          }
+          // Иначе используем стандартный поиск по заголовку
           return widget.itemTitle(item).toLowerCase().contains(query);
         }).toList();
       }

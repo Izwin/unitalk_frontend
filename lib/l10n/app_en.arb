@@ -1732,5 +1732,18 @@
   "event": "Event",
   "information": "Information",
   "featured": "Featured",
-  "learnMore": "Learn More"
+  "learnMore": "Learn More",
+  "video": "Video",
+  "addMedia": "Add media",
+  "typeToConfirm": "Type to confirm",
+  "loadingImage": "Loading image...",
+  "imageLoadFailed": "Failed to load image",
+  "translate": "Translate",
+  "showOriginal": "Show original",
+  "translating": "Translating...",
+  "translationFailed": "Translation failed",
+  "pinnedPost": "Pinned post",
+  "resubmissionInfo": "Please upload a new screenshot following the guidelines below."
+
+
 }

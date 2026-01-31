@@ -14,13 +14,13 @@ class PostRepositoryImpl implements PostRepository {
   Future<Either<Failure, PostModel>> createPost({
     required String content,
     required bool isAnonymous,
-    File? imageFile,
+    File? mediaFile, // Изменено с imageFile на mediaFile
   }) async {
     try {
       final post = await remoteDataSource.createPost(
         content: content,
         isAnonymous: isAnonymous,
-        imageFile: imageFile,
+        mediaFile: mediaFile,
       );
       return Right(post);
     } catch (e) {
@@ -38,24 +38,13 @@ class PostRepositoryImpl implements PostRepository {
     int page = 1,
     int limit = 20,
   }) async {
-    final data = await remoteDataSource.getPosts(
-      universityId: universityId,
-      authorId: authorId,
-      sortBy: sortBy,
-      sector: sector,
-      facultyId: facultyId,
-      page: page,
-      limit: limit,
-    );
-    final posts = (data['posts'] as List)
-        .map((p) => PostModel.fromJson(p as Map<String, dynamic>))
-        .toList();
-    return Right(posts);
     try {
       final data = await remoteDataSource.getPosts(
         universityId: universityId,
         authorId: authorId,
         sortBy: sortBy,
+        sector: sector,
+        facultyId: facultyId,
         page: page,
         limit: limit,
       );

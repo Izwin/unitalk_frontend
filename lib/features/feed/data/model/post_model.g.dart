@@ -13,6 +13,11 @@ PostModel _$PostModelFromJson(Map<String, dynamic> json) => PostModel(
       : UserModel.fromJson(json['authorId'] as Map<String, dynamic>),
   content: json['content'] as String,
   imageUrl: json['imageUrl'] as String?,
+  videoUrl: json['videoUrl'] as String?,
+  mediaType:
+      $enumDecodeNullable(_$MediaTypeEnumMap, json['mediaType']) ??
+      MediaType.none,
+  videoDuration: (json['videoDuration'] as num?)?.toInt(),
   isAnonymous: json['isAnonymous'] as bool,
   likesCount: (json['likesCount'] as num).toInt(),
   topLikers: (json['topLikers'] as List<dynamic>?)
@@ -22,6 +27,10 @@ PostModel _$PostModelFromJson(Map<String, dynamic> json) => PostModel(
   isLikedByCurrentUser: json['isLikedByCurrentUser'] as bool,
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
+  isPinned: json['isPinned'] as bool? ?? false,
+  pinnedAt: json['pinnedAt'] == null
+      ? null
+      : DateTime.parse(json['pinnedAt'] as String),
 );
 
 Map<String, dynamic> _$PostModelToJson(PostModel instance) => <String, dynamic>{
@@ -29,6 +38,9 @@ Map<String, dynamic> _$PostModelToJson(PostModel instance) => <String, dynamic>{
   'authorId': instance.author,
   'content': instance.content,
   'imageUrl': instance.imageUrl,
+  'videoUrl': instance.videoUrl,
+  'mediaType': _$MediaTypeEnumMap[instance.mediaType]!,
+  'videoDuration': instance.videoDuration,
   'topLikers': instance.topLikers,
   'isAnonymous': instance.isAnonymous,
   'likesCount': instance.likesCount,
@@ -36,4 +48,12 @@ Map<String, dynamic> _$PostModelToJson(PostModel instance) => <String, dynamic>{
   'isLikedByCurrentUser': instance.isLikedByCurrentUser,
   'createdAt': instance.createdAt.toIso8601String(),
   'updatedAt': instance.updatedAt.toIso8601String(),
+  'isPinned': instance.isPinned,
+  'pinnedAt': instance.pinnedAt?.toIso8601String(),
+};
+
+const _$MediaTypeEnumMap = {
+  MediaType.none: 'none',
+  MediaType.image: 'image',
+  MediaType.video: 'video',
 };

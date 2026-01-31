@@ -17,17 +17,6 @@ class ChatRepositoryImpl implements ChatRepository {
     int limit = 50,
     DateTime? before,
   }) async {
-    final data = await remoteDataSource.getMessages(
-      page: page,
-      limit: limit,
-      before: before,
-    );
-
-    final messages = (data['messages'] as List)
-        .map((m) => MessageModel.fromJson(m as Map<String, dynamic>))
-        .toList();
-
-    return Right(messages);
     try {
       final data = await remoteDataSource.getMessages(
         page: page,
@@ -49,12 +38,14 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<Either<Failure, MessageModel>> sendMessage({
     required String content,
     File? imageFile,
+    File? videoFile,
     String? replyTo,
   }) async {
     try {
       final message = await remoteDataSource.sendMessage(
         content: content,
         imageFile: imageFile,
+        videoFile: videoFile,
         replyTo: replyTo,
       );
       return Right(message);
@@ -109,7 +100,6 @@ class ChatRepositoryImpl implements ChatRepository {
         limit: limit,
         offset: offset,
       );
-
 
       return Right(data);
     } catch (e) {

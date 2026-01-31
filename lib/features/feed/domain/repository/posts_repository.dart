@@ -7,7 +7,7 @@ abstract class PostRepository {
   Future<Either<Failure, PostModel>> createPost({
     required String content,
     required bool isAnonymous,
-    File? imageFile,
+    File? mediaFile, // Изменено с imageFile на mediaFile
   });
 
   Future<Either<Failure, List<PostModel>>> getPosts({

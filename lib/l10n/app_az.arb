@@ -126,6 +126,7 @@
   "takePhoto": "Foto çək",
   "removePhoto": "Fotonu sil",
   "addImage": "Şəkil əlavə et",
+  "addMedia": "Media əlavə et",
   "attachImage": "Şəkil əlavə et",
   "changeImage": "Şəkli dəyiş",
   "errorPickingImage": "Şəkil seçilərkən xəta: {error}",
@@ -498,5 +499,19 @@
   "event": "Tədbir",
   "information": "Məlumat",
   "featured": "Seçilmiş",
-  "learnMore": "Ətraflı"
+  "learnMore": "Ətraflı",
+  "video": "Video",
+
+  "typeToConfirm": "Təsdiq etmək üçün yazın",
+
+  "loadingImage": "Şəkil yüklənir...",
+  "imageLoadFailed": "Şəkil yüklənə bilmədi",
+  "translate": "Tərcümə et",
+  "showOriginal": "Orijinalı göstər",
+  "translating": "Tərcümə olunur...",
+  "translationFailed": "Tərcümə uğursuz oldu",
+  "pinnedPost": "Sabitlənmiş göndəriş",
+  "resubmissionInfo": "Zəhmət olmasa aşağıdakı təlimatlara əməl edərək yeni ekran görüntüsü yükləyin."
+
+
 }

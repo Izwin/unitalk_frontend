@@ -96,239 +96,237 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: BlocBuilder<UserProfileBloc, UserProfileState>(
-          builder: (context, profileState) {
-            if (profileState.isLoading && profileState.user == null) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      body: BlocBuilder<UserProfileBloc, UserProfileState>(
+        builder: (context, profileState) {
+          if (profileState.isLoading && profileState.user == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            if (profileState.errorMessage != null && profileState.user == null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
+          if (profileState.errorMessage != null && profileState.user == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.color
+                        ?.withOpacity(0.3),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.errorMessage(profileState.errorMessage ?? ''),
+                    style: TextStyle(
+                      fontSize: 16,
                       color: Theme.of(context)
                           .textTheme
                           .bodySmall
                           ?.color
-                          ?.withOpacity(0.3),
+                          ?.withOpacity(0.6),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      l10n.errorMessage(profileState.errorMessage ?? ''),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.color
-                            ?.withOpacity(0.6),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        context
-                            .read<UserProfileBloc>()
-                            .add(GetUserProfileEvent(widget.userId));
-                      },
-                      child: Text(l10n.tryAgain),
-                    ),
-                  ],
-                ),
-              );
-            }
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context
+                          .read<UserProfileBloc>()
+                          .add(GetUserProfileEvent(widget.userId));
+                    },
+                    child: Text(l10n.tryAgain),
+                  ),
+                ],
+              ),
+            );
+          }
 
-            final user = profileState.user;
-            if (user == null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.person_off_outlined,
-                      size: 64,
+          final user = profileState.user;
+          if (user == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.person_off_outlined,
+                    size: 64,
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.color
+                        ?.withOpacity(0.3),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.userNotFound,
+                    style: TextStyle(
+                      fontSize: 16,
                       color: Theme.of(context)
                           .textTheme
                           .bodySmall
                           ?.color
-                          ?.withOpacity(0.3),
+                          ?.withOpacity(0.6),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      l10n.userNotFound,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.color
-                            ?.withOpacity(0.6),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return BlocBuilder<PostBloc, PostState>(
+            builder: (context, postState) {
+              return RefreshIndicator(
+                onRefresh: _onRefresh,
+                color: Theme.of(context).colorScheme.primary,
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    // App Bar
+                    SliverAppBar(
+                      expandedHeight: 0,
+                      pinned: false,
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      title: Text(l10n.profile),
+                      leading: IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => context.pop(),
                       ),
                     ),
-                  ],
-                ),
-              );
-            }
 
-            return BlocBuilder<PostBloc, PostState>(
-              builder: (context, postState) {
-                return RefreshIndicator(
-                  onRefresh: _onRefresh,
-                  color: Theme.of(context).colorScheme.primary,
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      // App Bar
-                      SliverAppBar(
-                        expandedHeight: 0,
-                        pinned: false,
-                        backgroundColor: Colors.transparent,
-                        elevation: 0,
-                        title: Text(l10n.profile),
-                        leading: IconButton(
-                          icon: const Icon(Icons.arrow_back),
-                          onPressed: () => context.pop(),
-                        ),
-                      ),
+                    // Profile Content
+                    SliverPadding(
+                      padding: const EdgeInsets.all(20),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          // Student Card
+                          StudentIdCardWidget(user: user),
+                          const SizedBox(height: 24),
 
-                      // Profile Content
-                      SliverPadding(
-                        padding: const EdgeInsets.all(20),
-                        sliver: SliverList(
-                          delegate: SliverChildListDelegate([
-                            // Student Card
-                            StudentIdCardWidget(user: user),
-                            const SizedBox(height: 24),
+                          // Moderation Actions
+                          BlocBuilder<AuthBloc, AuthState>(
+                            builder: (context, authState) {
+                              final currentUserId = authState.user?.id;
+                              final isOwnProfile = currentUserId == widget.userId;
 
-                            // Moderation Actions
-                            BlocBuilder<AuthBloc, AuthState>(
-                              builder: (context, authState) {
-                                final currentUserId = authState.user?.id;
-                                final isOwnProfile = currentUserId == widget.userId;
+                              if (isOwnProfile) {
+                                return const SizedBox.shrink();
+                              }
 
-                                if (isOwnProfile) {
-                                  return const SizedBox.shrink();
-                                }
+                              return BlocConsumer<BlockBloc, BlockState>(
+                                listener: (context, blockState) {
+                                  context.read<UserProfileBloc>().add(
+                                      GetUserProfileEvent(widget.userId));
+                                },
+                                builder: (context, blockState) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    child: UserModerationActions(
+                                      userId: widget.userId,
+                                      blockStatus: user.blockStatus,
+                                      userName: '${user.firstName} ${user.lastName}',
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 24),
 
-                                return BlocConsumer<BlockBloc, BlockState>(
-                                  listener: (context, blockState) {
-                                    context.read<UserProfileBloc>().add(
-                                        GetUserProfileEvent(widget.userId));
-                                  },
-                                  builder: (context, blockState) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                                      child: UserModerationActions(
-                                        userId: widget.userId,
-                                        blockStatus: user.blockStatus,
-                                        userName: '${user.firstName} ${user.lastName}',
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 24),
-
-                            // Posts Section Header
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  l10n.posts,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          // Posts Section Header
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                l10n.posts,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                Text(
-                                  l10n.postsCount(postState.posts.length),
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.color
-                                        ?.withOpacity(0.6),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ]),
-                        ),
-                      ),
-
-                      // Posts List
-                      if (postState.posts.isEmpty && !postState.isLoading)
-                        SliverFillRemaining(
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.article_outlined,
-                                  size: 64,
+                              ),
+                              Text(
+                                l10n.postsCount(postState.posts.length),
+                                style: TextStyle(
+                                  fontSize: 14,
                                   color: Theme.of(context)
                                       .textTheme
                                       .bodySmall
                                       ?.color
-                                      ?.withOpacity(0.3),
+                                      ?.withOpacity(0.6),
                                 ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  l10n.userHasNoPosts,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.color
-                                        ?.withOpacity(0.6),
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        )
-                      else
-                        SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                                (context, index) {
-                              final post = postState.posts[index];
-                              return PostItem(post: post);
-                            },
-                            childCount: postState.posts.length,
+                        ]),
+                      ),
+                    ),
+
+                    // Posts List
+                    if (postState.posts.isEmpty && !postState.isLoading)
+                      SliverFillRemaining(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.article_outlined,
+                                size: 64,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.color
+                                    ?.withOpacity(0.3),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                l10n.userHasNoPosts,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color
+                                      ?.withOpacity(0.6),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                      )
+                    else
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                            final post = postState.posts[index];
+                            return PostItem(post: post);
+                          },
+                          childCount: postState.posts.length,
+                        ),
+                      ),
 
-                      // Loading More Indicator
-                      if (postState.isLoadingMore)
-                        const SliverToBoxAdapter(
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Center(
-                              child: CircularProgressIndicator(),
-                            ),
+                    // Loading More Indicator
+                    if (postState.isLoadingMore)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(
+                            child: CircularProgressIndicator(),
                           ),
                         ),
+                      ),
 
-                      // Bottom Padding
-                      const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
-        ),
+                    // Bottom Padding
+                    const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+                  ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

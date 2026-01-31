@@ -30,7 +30,7 @@ class CreateReplyEvent extends RepliesEvent {
   final String? replyToCommentId;
   final String content;
   final bool isAnonymous;
-  final File? imageFile;
+  final File? mediaFile;
 
   CreateReplyEvent({
     required this.postId,
@@ -38,7 +38,7 @@ class CreateReplyEvent extends RepliesEvent {
     this.replyToCommentId,
     required this.content,
     required this.isAnonymous,
-    this.imageFile,
+    this.mediaFile,
   });
 }
 
@@ -53,4 +53,9 @@ class DeleteReplyEvent extends RepliesEvent {
 
   @override
   List<Object?> get props => [postId, replyId];
+}
+class ToggleReplyLikeEvent extends RepliesEvent {
+  final String replyId;
+
+  const ToggleReplyLikeEvent(this.replyId);
 }

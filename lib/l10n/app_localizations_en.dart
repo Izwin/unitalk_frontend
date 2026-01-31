@@ -1350,4 +1350,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get learnMore => 'Learn More';
+
+  @override
+  String get video => 'Video';
+
+  @override
+  String get addMedia => 'Add media';
+
+  @override
+  String get typeToConfirm => 'Type to confirm';
+
+  @override
+  String get loadingImage => 'Loading image...';
+
+  @override
+  String get imageLoadFailed => 'Failed to load image';
+
+  @override
+  String get translate => 'Translate';
+
+  @override
+  String get showOriginal => 'Show original';
+
+  @override
+  String get translating => 'Translating...';
+
+  @override
+  String get translationFailed => 'Translation failed';
+
+  @override
+  String get pinnedPost => 'Pinned post';
+
+  @override
+  String get resubmissionInfo =>
+      'Please upload a new screenshot following the guidelines below.';
 }

@@ -50,7 +50,14 @@ class FacultyModel {
       'translations': translations,
     };
   }
+  bool matchesQuery(String query) {
+    if (query.isEmpty) return true;
 
+    final lowerQuery = query.toLowerCase();
+    return name.values.any((translation) =>
+        translation.toLowerCase().contains(lowerQuery)
+    );
+  }
   FacultyModel copyWith({
     String? id,
     String? universityId,
@@ -62,4 +69,6 @@ class FacultyModel {
       name: name ?? this.name,
     );
   }
+
+
 }

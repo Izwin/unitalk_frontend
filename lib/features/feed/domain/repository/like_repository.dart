@@ -11,4 +11,14 @@ abstract class LikeRepository {
     int page = 1,
     int limit = 20,
   });
+
+  Future<Either<Failure, LikeResponseModel>> toggleCommentLike(
+    String commentId,
+  );
+
+  Future<Either<Failure, List<UserModel>>> getCommentLikers({
+    required String commentId,
+    int page = 1,
+    int limit = 20,
+  });
 }

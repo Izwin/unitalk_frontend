@@ -1356,4 +1356,38 @@ class AppLocalizationsAz extends AppLocalizations {
 
   @override
   String get learnMore => 'Ətraflı';
+
+  @override
+  String get video => 'Video';
+
+  @override
+  String get addMedia => 'Media əlavə et';
+
+  @override
+  String get typeToConfirm => 'Təsdiq etmək üçün yazın';
+
+  @override
+  String get loadingImage => 'Şəkil yüklənir...';
+
+  @override
+  String get imageLoadFailed => 'Şəkil yüklənə bilmədi';
+
+  @override
+  String get translate => 'Tərcümə et';
+
+  @override
+  String get showOriginal => 'Orijinalı göstər';
+
+  @override
+  String get translating => 'Tərcümə olunur...';
+
+  @override
+  String get translationFailed => 'Tərcümə uğursuz oldu';
+
+  @override
+  String get pinnedPost => 'Sabitlənmiş göndəriş';
+
+  @override
+  String get resubmissionInfo =>
+      'Zəhmət olmasa aşağıdakı təlimatlara əməl edərək yeni ekran görüntüsü yükləyin.';
 }

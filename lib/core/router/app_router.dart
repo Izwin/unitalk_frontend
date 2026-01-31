@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:unitalk/core/di/service_locator.dart';
+import 'package:unitalk/core/ui/common/fullscreen_image_viewer.dart';
+import 'package:unitalk/core/ui/common/fullscreen_video_player.dart';
 import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +11,7 @@ import 'package:unitalk/features/auth/presentation/edit_profile_page.dart';
 import 'package:unitalk/features/auth/presentation/page/about_page.dart';
 import 'package:unitalk/features/auth/presentation/page/auth_page.dart';
 import 'package:unitalk/features/auth/presentation/page/complete_profile_page.dart';
+import 'package:unitalk/features/auth/presentation/page/delete_account_page.dart';
 import 'package:unitalk/features/auth/presentation/page/privacy_policy_page.dart';
 import 'package:unitalk/features/auth/presentation/profile_page.dart';
 import 'package:unitalk/features/auth/presentation/verification_page.dart';
@@ -16,9 +19,11 @@ import 'package:unitalk/features/chat/presentation/page/chat_participants_page.d
 import 'package:unitalk/features/chat/presentation/page/faculty_chat_screen.dart';
 import 'package:unitalk/features/feed/presentation/bloc/announcement/announcement_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/comment/comment_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/comment_likers/comment_likers_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post_likers/post_likers_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_bloc.dart';
+import 'package:unitalk/features/feed/presentation/page/comment_likers_page.dart';
 import 'package:unitalk/features/feed/presentation/page/create_post_page.dart';
 import 'package:unitalk/features/feed/presentation/page/feed_page.dart';
 import 'package:unitalk/features/feed/presentation/page/other_profile_screen.dart';
@@ -39,7 +44,7 @@ class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
     notifyListeners();
     _subscription = stream.asBroadcastStream().listen(
-          (dynamic _) => notifyListeners(),
+      (dynamic _) => notifyListeners(),
     );
   }
 
@@ -52,6 +57,8 @@ class GoRouterRefreshStream extends ChangeNotifier {
   }
 }
 
+final feedPageKey = GlobalKey<FeedPageState>();
+
 final GoRouter router = GoRouter(
   initialLocation: '/splash',
   refreshListenable: GoRouterRefreshStream(sl<AuthBloc>().stream),
@@ -59,10 +66,7 @@ final GoRouter router = GoRouter(
 
   routes: [
     // === SPLASH & AUTH ===
-    GoRoute(
-      path: '/splash',
-      builder: (context, state) => const SplashPage(),
-    ),
+    GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
     GoRoute(
       path: '/auth',
       builder: (context, state) => const IntroductionPage(),
@@ -85,9 +89,7 @@ final GoRouter router = GoRouter(
     // === MAIN APP WITH BOTTOM NAV ===
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return ScaffoldWithNavBar(
-          navigationShell: navigationShell,
-        );
+        return ScaffoldWithNavBar(navigationShell: navigationShell);
       },
       branches: [
         // === FEED BRANCH ===
@@ -98,12 +100,12 @@ final GoRouter router = GoRouter(
               pageBuilder: (context, state) => NoTransitionPage(
                 key: state.pageKey,
                 child: BlocProvider(
-  create: (context) => sl<AnnouncementBloc>(),
-  child: BlocProvider(
-                  create: (context) => sl<PostBloc>(),
-                  child: const FeedPage(),
+                  create: (context) => sl<AnnouncementBloc>(),
+                  child: BlocProvider(
+                    create: (context) => sl<PostBloc>(),
+                    child: FeedPage(key: feedPageKey,),
+                  ),
                 ),
-),
               ),
             ),
           ],
@@ -127,10 +129,8 @@ final GoRouter router = GoRouter(
           routes: [
             GoRoute(
               path: '/chat',
-              pageBuilder: (context, state) => NoTransitionPage(
-                key: state.pageKey,
-                child: const ChatPage(),
-              ),
+              pageBuilder: (context, state) =>
+                  NoTransitionPage(key: state.pageKey, child: const ChatPage()),
             ),
           ],
         ),
@@ -197,6 +197,17 @@ final GoRouter router = GoRouter(
       },
     ),
     GoRoute(
+      path: '/comment/:id/likers',
+      builder: (context, state) {
+        final commentId = state.pathParameters['id']!;
+        return BlocProvider(
+          create: (context) => sl<CommentLikersBloc>(),
+          child: CommentLikersPage(commentId: commentId),
+        );
+      },
+    ),
+
+    GoRoute(
       path: '/blocked-users',
       builder: (context, state) => const BlockedUsersPage(),
     ),
@@ -255,9 +266,24 @@ final GoRouter router = GoRouter(
       path: '/terms-of-use',
       builder: (context, state) => TermsOfUsePage(),
     ),
+    GoRoute(path: '/about', builder: (context, state) => AboutPage()),
+    GoRoute(path: '/delete', builder: (context, state) => DeleteAccountPage()),
     GoRoute(
-      path: '/about',
-      builder: (context, state) => AboutPage(),
+      path: '/video/:videoUrl',
+      name: 'fullscreen_video',
+      builder: (context, state) {
+        final videoUrl = Uri.decodeComponent(state.pathParameters['videoUrl']!);
+        final autoPlay = state.uri.queryParameters['autoPlay'] == 'true';
+        return FullscreenVideoPlayer(videoUrl: videoUrl, autoPlay: autoPlay);
+      },
+    ),
+    GoRoute(
+      path: '/image/:imageUrl',
+      name: 'fullscreen_image',
+      builder: (context, state) {
+        final imageUrl = Uri.decodeComponent(state.pathParameters['imageUrl']!);
+        return FullscreenImageViewer(imageUrl: imageUrl);
+      },
     ),
   ],
 

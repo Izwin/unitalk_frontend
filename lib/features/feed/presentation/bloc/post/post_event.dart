@@ -22,17 +22,15 @@ class RefreshFeedEvent extends PostEvent {
   const RefreshFeedEvent();
 }
 
-
-// Существующие события
 class CreatePostEvent extends PostEvent {
   final String content;
   final bool isAnonymous;
-  final File? imageFile;
+  final File? mediaFile; // Изменено с imageFile на mediaFile
 
   const CreatePostEvent({
     required this.content,
     required this.isAnonymous,
-    this.imageFile,
+    this.mediaFile,
   });
 }
 

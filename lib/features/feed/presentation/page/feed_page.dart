@@ -36,10 +36,10 @@ class FeedPage extends StatefulWidget {
   const FeedPage({Key? key}) : super(key: key);
 
   @override
-  State<FeedPage> createState() => _FeedPageState();
+  State<FeedPage> createState() => FeedPageState();
 }
 
-class _FeedPageState extends State<FeedPage> {
+class FeedPageState extends State<FeedPage> {
   final _scrollController = ScrollController();
   UniversityModel? _selectedUniversity;
   bool _isLoadingMore = false;
@@ -197,6 +197,16 @@ class _FeedPageState extends State<FeedPage> {
     return merged;
   }
 
+
+  void scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

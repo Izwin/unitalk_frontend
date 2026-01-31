@@ -1,12 +1,11 @@
 import 'dart:io';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
 import 'package:unitalk/features/chat/data/model/message_model.dart';
 
 abstract class ChatEvent {}
 
 class LoadParticipantsEvent extends ChatEvent {}
 
-
-// Load initial messages
 class LoadMessagesEvent extends ChatEvent {
   final int page;
   final int limit;
@@ -19,23 +18,23 @@ class LoadMessagesEvent extends ChatEvent {
   });
 }
 
-// Load more messages (pagination)
 class LoadMoreMessagesEvent extends ChatEvent {}
 
-// Send message
+// ОБНОВЛЕНО: Добавлен videoFile
 class SendMessageEvent extends ChatEvent {
   final String content;
   final File? imageFile;
+  final File? videoFile;
   final String? replyTo;
 
   SendMessageEvent({
     required this.content,
     this.imageFile,
+    this.videoFile,
     this.replyTo,
   });
 }
 
-// Edit message
 class EditMessageEvent extends ChatEvent {
   final String messageId;
   final String content;
@@ -46,14 +45,12 @@ class EditMessageEvent extends ChatEvent {
   });
 }
 
-// Delete message
 class DeleteMessageEvent extends ChatEvent {
   final String messageId;
 
   DeleteMessageEvent({required this.messageId});
 }
 
-// Socket events
 class ConnectSocketEvent extends ChatEvent {
   final String token;
 
@@ -80,7 +77,6 @@ class MessageDeletedReceivedEvent extends ChatEvent {
   MessageDeletedReceivedEvent({required this.messageId});
 }
 
-// Typing indicators
 class StartTypingEvent extends ChatEvent {}
 
 class StopTypingEvent extends ChatEvent {}
@@ -103,7 +99,6 @@ class UserStoppedTypingReceivedEvent extends ChatEvent {
   UserStoppedTypingReceivedEvent({required this.userId});
 }
 
-// Online users
 class GetOnlineUsersEvent extends ChatEvent {}
 
 class OnlineUsersReceivedEvent extends ChatEvent {
@@ -124,7 +119,6 @@ class UserLeftReceivedEvent extends ChatEvent {
   UserLeftReceivedEvent({required this.userId});
 }
 
-// Read receipts
 class MarkMessagesAsReadEvent extends ChatEvent {
   final String lastReadMessageId;
 
@@ -143,10 +137,8 @@ class MessagesReadReceivedEvent extends ChatEvent {
   });
 }
 
-// Load chat info
 class LoadChatInfoEvent extends ChatEvent {}
 
-// Connection status
 class ConnectionStatusChangedEvent extends ChatEvent {
   final bool isConnected;
 

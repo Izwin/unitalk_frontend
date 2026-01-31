@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:unitalk/core/ui/common/anonymous_toggle.dart';
+import 'package:unitalk/core/ui/common/media_preview.dart';
 import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:video_player/video_player.dart';
 
 class ReplyInputSection extends StatelessWidget {
   final TextEditingController controller;
@@ -9,9 +11,10 @@ class ReplyInputSection extends StatelessWidget {
   final bool isAnonymous;
   final ValueChanged<bool> onAnonymousToggle;
   final VoidCallback onSend;
-  final VoidCallback onPickImage;
-  final File? selectedImage;
-  final VoidCallback? onRemoveImage;
+  final VoidCallback onPickMedia;
+  final File? selectedMedia;
+  final bool isVideo;
+  final VoidCallback? onRemoveMedia;
 
   const ReplyInputSection({
     super.key,
@@ -20,70 +23,27 @@ class ReplyInputSection extends StatelessWidget {
     required this.isAnonymous,
     required this.onAnonymousToggle,
     required this.onSend,
-    required this.onPickImage,
-    this.selectedImage,
-    this.onRemoveImage,
+    required this.onPickMedia,
+    this.selectedMedia,
+    this.isVideo = false,
+    this.onRemoveMedia,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
-    final canSend = controller.text.trim().isNotEmpty || selectedImage != null;
+    final canSend = controller.text.trim().isNotEmpty || selectedMedia != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Image Preview
-        if (selectedImage != null) ...[
-          Container(
-            width: 140,
-            height: 140,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.file(
-                    selectedImage!,
-                    width: 140,
-                    height: 140,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: Material(
-                    color: Colors.black87,
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      onTap: onRemoveImage,
-                      customBorder: const CircleBorder(),
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.close,
-                          size: 16,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        // Media Preview
+        if (selectedMedia != null) ...[
+          MediaPreview(
+            mediaFile: selectedMedia!,
+            isVideo: isVideo,
+            onRemove: onRemoveMedia ?? () {},
           ),
           const SizedBox(height: 12),
         ],
@@ -110,9 +70,9 @@ class ReplyInputSection extends StatelessWidget {
               const SizedBox(width: 12),
 
               IconButton(
-                onPressed: onPickImage,
+                onPressed: onPickMedia,
                 icon: Icon(
-                  Icons.image_outlined,
+                  isVideo ? Icons.videocam : Icons.image_outlined,
                   color: colors.onSurface.withOpacity(0.6),
                   size: 22,
                 ),

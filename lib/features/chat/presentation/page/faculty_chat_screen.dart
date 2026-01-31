@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:unitalk/core/ui/common/empty_state_widget.dart';
 import 'package:unitalk/core/ui/common/error_state_widget.dart';
 import 'package:unitalk/core/ui/common/image_source_picker.dart';
+import 'package:unitalk/core/ui/common/media_preview.dart';
 import 'package:unitalk/core/ui/common/message_bubble.dart';
 import 'package:unitalk/core/ui/common/message_input.dart';
 import 'package:unitalk/core/ui/common/typing_indicator.dart';
@@ -19,6 +20,7 @@ import 'package:unitalk/features/report/presentation/content_moderation_menu.dar
 import 'dart:io';
 
 import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:video_player/video_player.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({Key? key}) : super(key: key);
@@ -31,11 +33,13 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  XFile? _selectedImage;
+  XFile? _selectedMedia;
+  bool _isVideo = false;
   MessageModel? _replyingTo;
   bool _isTyping = false;
   bool _shouldAutoScroll = true;
-  bool _isScrolling = false;
+  bool _isUserScrolling = false; // Флаг для отслеживания ручной прокрутки
+  int _previousMessageCount = 0; // Для отслеживания новых сообщений
 
   @override
   void initState() {
@@ -159,7 +163,12 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _onScroll() {
-    if (_isScrolling) return;
+    if (!_scrollController.hasClients) return;
+
+    // Отмечаем, что пользователь скроллит
+    if (!_isUserScrolling) {
+      _isUserScrolling = true;
+    }
 
     FocusScope.of(context).unfocus();
 
@@ -188,27 +197,24 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  void _scrollToBottom({bool force = false}) {
-    if (_scrollController.hasClients && mounted) {
-      // Автоскролл только если разрешен или принудительный
-      if (_shouldAutoScroll || force) {
-        _isScrolling = true;
+  void _scrollToBottom({bool animate = true}) {
+    if (!_scrollController.hasClients || !mounted) return;
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_scrollController.hasClients && mounted) {
-            _scrollController.animateTo(
-              0,
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutCubic,
-            ).then((_) {
-              _isScrolling = false;
-            });
-          } else {
-            _isScrolling = false;
-          }
-        });
+    _isUserScrolling = false; // Сбрасываем флаг ручной прокрутки
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients && mounted) {
+        if (animate) {
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+          );
+        } else {
+          _scrollController.jumpTo(0);
+        }
       }
-    }
+    });
   }
 
   void _handleTyping(String text) {
@@ -221,37 +227,58 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickMedia() async {
     final l10n = AppLocalizations.of(context)!;
 
-    final image = await ImageSourcePicker.show(
+    final media = await MediaSourcePicker.show(
       context,
       galleryText: l10n.gallery,
+      allowVideo: true,
       cameraText: l10n.camera,
       removeText: l10n.removePhoto,
-      canRemove: _selectedImage != null,
-      onRemove: () => setState(() => _selectedImage = null),
+      videoText: l10n.video,
+      canRemove: _selectedMedia != null,
+      onRemove: () => _removeMedia(),
     );
 
-    if (image != null && mounted) {
-      setState(() => _selectedImage = image);
+    if (media != null && mounted) {
+      final isVideo = media.path.toLowerCase().endsWith('.mp4') ||
+          media.path.toLowerCase().endsWith('.mov');
+
+      await _removeMedia();
+
+      setState(() {
+        _selectedMedia = media;
+        _isVideo = isVideo;
+      });
     }
+  }
+
+  Future<void> _removeMedia() async {
+    setState(() {
+      _selectedMedia = null;
+      _isVideo = false;
+    });
   }
 
   void _sendMessage() {
     final content = _messageController.text.trim();
 
-    if (content.isEmpty && _selectedImage == null) return;
+    if (content.isEmpty && _selectedMedia == null) return;
+
+    final mediaFile = _selectedMedia != null ? File(_selectedMedia!.path) : null;
 
     context.read<ChatBloc>().add(SendMessageEvent(
       content: content.isNotEmpty ? content : '',
-      imageFile: _selectedImage != null ? File(_selectedImage!.path) : null,
+      imageFile: !_isVideo ? mediaFile : null,
+      videoFile: _isVideo ? mediaFile : null,
       replyTo: _replyingTo?.id,
     ));
 
     _messageController.clear();
     setState(() {
-      _selectedImage = null;
+      _selectedMedia = null;
+      _isVideo = false;
       _replyingTo = null;
     });
 
@@ -260,11 +287,11 @@ class _ChatPageState extends State<ChatPage> {
       context.read<ChatBloc>().add(StopTypingEvent());
     }
 
-    // Принудительный скролл после отправки своего сообщения
+    // При отправке всегда включаем автоскролл и скроллим вниз
     setState(() {
       _shouldAutoScroll = true;
     });
-    _scrollToBottom(force: true);
+    _scrollToBottom(animate: true);
   }
 
   void _showMessageOptions(MessageModel message) {
@@ -288,7 +315,6 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       _replyingTo = message;
     });
-    // Фокусируем поле ввода
     FocusScope.of(context).requestFocus();
   }
 
@@ -536,9 +562,28 @@ class _ChatPageState extends State<ChatPage> {
                         onTap: () => FocusScope.of(context).unfocus(),
                         child: BlocConsumer<ChatBloc, ChatState>(
                           listener: (context, state) {
-                            // Автоскролл только если разрешен
-                            if (state.status == ChatStatus.success && _shouldAutoScroll && !_isScrolling) {
-                              _scrollToBottom();
+                            // Проверяем, появились ли новые сообщения
+                            final hasNewMessages = state.messages.length > _previousMessageCount;
+                            _previousMessageCount = state.messages.length;
+
+                            // Автоскролл только если:
+                            // 1. Разрешен автоскролл (_shouldAutoScroll)
+                            // 2. Пользователь не скроллит вручную (!_isUserScrolling)
+                            // 3. Появились новые сообщения
+                            if (state.status == ChatStatus.success &&
+                                _shouldAutoScroll &&
+                                !_isUserScrolling &&
+                                hasNewMessages) {
+                              _scrollToBottom(animate: false); // Без анимации для плавности
+                            }
+
+                            // Сбрасываем флаг после небольшой задержки
+                            if (_isUserScrolling) {
+                              Future.delayed(const Duration(milliseconds: 100), () {
+                                if (mounted) {
+                                  _isUserScrolling = false;
+                                }
+                              });
                             }
                           },
                           builder: (context, state) {
@@ -565,58 +610,77 @@ class _ChatPageState extends State<ChatPage> {
                               );
                             }
 
-                            return ListView.builder(
-                              controller: _scrollController,
-                              reverse: true,
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                              itemCount: state.messages.length +
-                                  (state.typingUsers.isNotEmpty ? 1 : 0) +
-                                  (state.status == ChatStatus.loadingMore ? 1 : 0),
-                              itemBuilder: (context, index) {
-                                // Индикатор загрузки в конце списка (вверху экрана)
-                                if (state.status == ChatStatus.loadingMore &&
-                                    index == state.messages.length + (state.typingUsers.isNotEmpty ? 1 : 0)) {
-                                  return const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(16),
-                                      child: SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                            return NotificationListener<ScrollNotification>(
+                              onNotification: (notification) {
+                                // Отслеживаем начало ручной прокрутки
+                                if (notification is ScrollStartNotification) {
+                                  if (notification.dragDetails != null) {
+                                    _isUserScrolling = true;
+                                  }
+                                }
+                                // Отслеживаем конец прокрутки
+                                else if (notification is ScrollEndNotification) {
+                                  Future.delayed(const Duration(milliseconds: 100), () {
+                                    if (mounted) {
+                                      _isUserScrolling = false;
+                                    }
+                                  });
+                                }
+                                return false;
+                              },
+                              child: ListView.builder(
+                                controller: _scrollController,
+                                reverse: true,
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                itemCount: state.messages.length +
+                                    (state.typingUsers.isNotEmpty ? 1 : 0) +
+                                    (state.status == ChatStatus.loadingMore ? 1 : 0),
+                                itemBuilder: (context, index) {
+                                  // Индикатор загрузки в конце списка (вверху экрана)
+                                  if (state.status == ChatStatus.loadingMore &&
+                                      index == state.messages.length + (state.typingUsers.isNotEmpty ? 1 : 0)) {
+                                    return const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(16),
+                                        child: SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(strokeWidth: 2.5),
+                                        ),
                                       ),
+                                    );
+                                  }
+
+                                  if (state.typingUsers.isNotEmpty && index == 0) {
+                                    return const Padding(
+                                      padding: EdgeInsets.only(bottom: 8),
+                                      child: TypingIndicator(typingUsers: []),
+                                    );
+                                  }
+
+                                  final messageIndex = state.typingUsers.isNotEmpty ? index - 1 : index;
+                                  final message = state.messages[messageIndex];
+                                  final isCurrentUser = message.user?.id == authState.user?.id;
+
+                                  // Показываем аватарку только для последнего сообщения в серии
+                                  final showAvatar = messageIndex == 0 ||
+                                      state.messages[messageIndex - 1].user?.id != message.user?.id;
+
+                                  return GestureDetector(
+                                    onLongPress: () => _showMessageOptions(message),
+                                    child: MessageBubble(
+                                      message: message,
+                                      isCurrentUser: isCurrentUser,
+                                      showAvatar: showAvatar,
+                                      currentUser: authState.user,
                                     ),
                                   );
-                                }
-
-                                if (state.typingUsers.isNotEmpty && index == 0) {
-                                  return const Padding(
-                                    padding: EdgeInsets.only(bottom: 8),
-                                    child: TypingIndicator(typingUsers: []),
-                                  );
-                                }
-
-                                final messageIndex = state.typingUsers.isNotEmpty ? index - 1 : index;
-                                final message = state.messages[messageIndex];
-                                final isCurrentUser = message.user?.id == authState.user?.id;
-
-                                // Показываем аватарку только для последнего сообщения в серии
-                                final showAvatar = messageIndex == 0 ||
-                                    state.messages[messageIndex - 1].user?.id != message.user?.id;
-
-                                return GestureDetector(
-                                  onLongPress: () => _showMessageOptions(message),
-                                  child: MessageBubble(
-                                    message: message,
-                                    isCurrentUser: isCurrentUser,
-                                    showAvatar: showAvatar,
-                                    currentUser: authState.user,
-                                  ),
-                                );
-                              },
+                                },
+                              ),
                             );
                           },
                         ),
@@ -632,7 +696,7 @@ class _ChatPageState extends State<ChatPage> {
                               setState(() {
                                 _shouldAutoScroll = true;
                               });
-                              _scrollToBottom(force: true);
+                              _scrollToBottom(animate: true);
                             },
                             backgroundColor: Theme.of(context).colorScheme.primary,
                             child: const Icon(Icons.arrow_downward, size: 20),
@@ -733,41 +797,13 @@ class _ChatPageState extends State<ChatPage> {
                       ],
                     ),
                   ),
-
-                if (_selectedImage != null)
-                  Container(
-                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
-                          child: Image.file(
-                            File(_selectedImage!.path),
-                            height: 80,
-                            width: 80,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Positioned(
-                          top: 6,
-                          right: 6,
-                          child: GestureDetector(
-                            onTap: () => setState(() => _selectedImage = null),
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Colors.black54,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                if (_selectedMedia != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: MediaPreview(
+                      mediaFile: File(_selectedMedia!.path),
+                      isVideo: _isVideo,
+                      onRemove: _removeMedia,
                     ),
                   ),
 
@@ -786,7 +822,7 @@ class _ChatPageState extends State<ChatPage> {
                     hintText: l10n.messageHint,
                     onSend: _sendMessage,
                     onTypingChanged: _handleTyping,
-                    onAttachmentTap: _pickImage,
+                    onAttachmentTap: _pickMedia,
                   ),
                 ),
               ],

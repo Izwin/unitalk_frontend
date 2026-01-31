@@ -10,7 +10,7 @@ abstract class CommentRepository {
     String? parentCommentId,
     String? replyToCommentId,
     required bool isAnonymous,
-    File? imageFile,
+    File? mediaFile,
   });
 
   Future<Either<Failure, List<CommentModel>>> getPostComments({

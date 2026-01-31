@@ -18,6 +18,7 @@ class VerificationPage extends StatefulWidget {
 class _VerificationPageState extends State<VerificationPage> {
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
+  bool _isResubmitting = false; // Track resubmission state
 
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(
@@ -65,6 +66,20 @@ class _VerificationPageState extends State<VerificationPage> {
     context.read<AuthBloc>().add(UploadStudentCardEvent(_selectedImage!));
   }
 
+  void _startResubmission() {
+    setState(() {
+      _isResubmitting = true;
+      _selectedImage = null;
+    });
+  }
+
+  void _cancelResubmission() {
+    setState(() {
+      _isResubmitting = false;
+      _selectedImage = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -107,6 +122,11 @@ class _VerificationPageState extends State<VerificationPage> {
                 backgroundColor: Colors.green,
               ),
             );
+            // Reset resubmission state
+            setState(() {
+              _isResubmitting = false;
+              _selectedImage = null;
+            });
             context.pop();
           }
         },
@@ -122,8 +142,24 @@ class _VerificationPageState extends State<VerificationPage> {
             return _buildApprovedStatus(isDark, l10n);
           }
 
+          // Show upload form if rejected and user clicked "Try Again"
           if (verification != null && verification.isRejected) {
-            return _buildRejectedStatus(verification.rejectionReason, isDark, l10n);
+            if (_isResubmitting) {
+              return _buildUploadForm(
+                context,
+                isLoading,
+                isDark,
+                l10n,
+                isResubmission: true,
+                onCancel: _cancelResubmission,
+              );
+            } else {
+              return _buildRejectedStatus(
+                verification.rejectionReason,
+                isDark,
+                l10n,
+              );
+            }
           }
 
           return _buildUploadForm(context, isLoading, isDark, l10n);
@@ -132,12 +168,48 @@ class _VerificationPageState extends State<VerificationPage> {
     );
   }
 
-  Widget _buildUploadForm(BuildContext context, bool isLoading, bool isDark, AppLocalizations l10n) {
+  Widget _buildUploadForm(
+      BuildContext context,
+      bool isLoading,
+      bool isDark,
+      AppLocalizations l10n, {
+        bool isResubmission = false,
+        VoidCallback? onCancel,
+      }) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (isResubmission) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.blue.withOpacity(0.15) : Colors.blue[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: isDark ? Colors.blue[300] : Colors.blue[700],
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.resubmissionInfo ?? 'Please upload a new screenshot following the guidelines below.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.blue[200] : Colors.blue[900],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+
           Text(
             l10n.myGovDocumentUpload,
             style: TextStyle(
@@ -161,14 +233,10 @@ class _VerificationPageState extends State<VerificationPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.blue.withOpacity(0.15)
-                  : Colors.blue[50],
+              color: isDark ? Colors.blue.withOpacity(0.15) : Colors.blue[50],
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isDark
-                    ? Colors.blue.withOpacity(0.3)
-                    : Colors.blue[200]!,
+                color: isDark ? Colors.blue.withOpacity(0.3) : Colors.blue[200]!,
               ),
             ),
             child: Column(
@@ -210,9 +278,7 @@ class _VerificationPageState extends State<VerificationPage> {
             width: double.infinity,
             height: 240,
             decoration: BoxDecoration(
-              color: isDark
-                  ? Theme.of(context).cardColor
-                  : Colors.grey[50],
+              color: isDark ? Theme.of(context).cardColor : Colors.grey[50],
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isDark
@@ -234,14 +300,22 @@ class _VerificationPageState extends State<VerificationPage> {
                 Icon(
                   Icons.phone_android,
                   size: 64,
-                  color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.3),
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.color
+                      ?.withOpacity(0.3),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   l10n.noScreenshotSelected,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5),
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.color
+                        ?.withOpacity(0.5),
                   ),
                 ),
               ],
@@ -300,7 +374,7 @@ class _VerificationPageState extends State<VerificationPage> {
               )
                   : Text(
                 l10n.uploadAndSend,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
@@ -308,15 +382,44 @@ class _VerificationPageState extends State<VerificationPage> {
               ),
             ),
           ),
+
+          // Cancel button for resubmission
+          if (isResubmission && onCancel != null) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton(
+                onPressed: isLoading ? null : onCancel,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).textTheme.bodyLarge?.color,
+                  side: BorderSide(
+                    color: isDark
+                        ? Theme.of(context).dividerColor
+                        : Colors.grey[300]!,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  l10n.cancel ?? 'Cancel',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+
           const SizedBox(height: 16),
 
           // Warning Box
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.orange.withOpacity(0.15)
-                  : Colors.orange[50],
+              color: isDark ? Colors.orange.withOpacity(0.15) : Colors.orange[50],
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -348,9 +451,7 @@ class _VerificationPageState extends State<VerificationPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.green.withOpacity(0.15)
-                  : Colors.green[50],
+              color: isDark ? Colors.green.withOpacity(0.15) : Colors.green[50],
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -456,9 +557,7 @@ class _VerificationPageState extends State<VerificationPage> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.orange.withOpacity(0.15)
-                    : Colors.orange[50],
+                color: isDark ? Colors.orange.withOpacity(0.15) : Colors.orange[50],
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -482,7 +581,11 @@ class _VerificationPageState extends State<VerificationPage> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+                color: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.color
+                    ?.withOpacity(0.7),
                 height: 1.5,
               ),
             ),
@@ -503,9 +606,7 @@ class _VerificationPageState extends State<VerificationPage> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.green.withOpacity(0.15)
-                    : Colors.green[50],
+                color: isDark ? Colors.green.withOpacity(0.15) : Colors.green[50],
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -529,7 +630,11 @@ class _VerificationPageState extends State<VerificationPage> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+                color: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.color
+                    ?.withOpacity(0.7),
                 height: 1.5,
               ),
             ),
@@ -548,9 +653,7 @@ class _VerificationPageState extends State<VerificationPage> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.red.withOpacity(0.15)
-                  : Colors.red[50],
+              color: isDark ? Colors.red.withOpacity(0.15) : Colors.red[50],
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -573,9 +676,7 @@ class _VerificationPageState extends State<VerificationPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.red.withOpacity(0.15)
-                    : Colors.red[50],
+                color: isDark ? Colors.red.withOpacity(0.15) : Colors.red[50],
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -608,7 +709,11 @@ class _VerificationPageState extends State<VerificationPage> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+              color: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.color
+                  ?.withOpacity(0.7),
               height: 1.5,
             ),
           ),
@@ -617,11 +722,7 @@ class _VerificationPageState extends State<VerificationPage> {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _selectedImage = null;
-                });
-              },
+              onPressed: _startResubmission,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
                 shape: RoundedRectangleBorder(
@@ -631,7 +732,7 @@ class _VerificationPageState extends State<VerificationPage> {
               ),
               child: Text(
                 l10n.tryAgain,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Colors.white,

@@ -42,8 +42,8 @@ class ProfileDrawer extends StatelessWidget {
                   _buildTile(context, Icons.flag_outlined, l10n.myReports, '/my-reports'),
                   _buildTile(context, Icons.info_outline, l10n.about, '/about'),
                   Divider(height: 32, thickness: 1, indent: 16, endIndent: 16),
-                  _buildTile(context, Icons.delete_outline, l10n.deleteAccount, null,
-                      color: theme.colorScheme.error, onTap: () => _showDeleteDialog(context)),
+                  _buildTile(context, Icons.delete_outline, l10n.deleteAccount,  '/delete',
+                      color: theme.colorScheme.error,),
                   _buildTile(context, Icons.logout, l10n.logout, null,
                       onTap: () => _showLogoutDialog(context)),
                 ],
@@ -188,66 +188,88 @@ class ProfileDrawer extends StatelessWidget {
   void _showDeleteDialog(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final controller = TextEditingController();
+    final confirmWord = l10n.delete.toLowerCase();
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        icon: Icon(Icons.warning_amber_rounded, color: theme.colorScheme.error, size: 32),
-        title: Text(l10n.deleteAccount),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.deleteAccountWarning, style: TextStyle(fontWeight: FontWeight.w500)),
-            SizedBox(height: 12),
-            Text(l10n.deleteAccountDescription,
-                style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurfaceVariant)),
-            SizedBox(height: 16),
-            Text(l10n.willBeDeleted, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-            SizedBox(height: 8),
-            ...[
-              (Icons.post_add, l10n.allPosts),
-              (Icons.comment, l10n.allComments),
-              (Icons.message, l10n.allMessages),
-              (Icons.person, l10n.profileData),
-            ].map((e) => Padding(
-              padding: EdgeInsets.only(bottom: 4),
-              child: Row(children: [
-                Icon(e.$1, size: 16, color: theme.colorScheme.onSurfaceVariant),
-                SizedBox(width: 8),
-                Text(e.$2, style: TextStyle(fontSize: 13)),
-              ]),
-            )),
-            SizedBox(height: 12),
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.errorContainer.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(children: [
-                Icon(Icons.info_outline, size: 18, color: theme.colorScheme.error),
-                SizedBox(width: 8),
-                Expanded(child: Text(l10n.thisActionCannotBeUndone,
-                    style: TextStyle(fontSize: 13, color: theme.colorScheme.error))),
-              ]),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) {
+          final isValid = controller.text.toLowerCase() == confirmWord;
+
+          return AlertDialog(
+            icon: Icon(Icons.warning_amber_rounded, color: theme.colorScheme.error, size: 32),
+            title: Text(l10n.deleteAccount),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.deleteAccountWarning, style: TextStyle(fontWeight: FontWeight.w500)),
+                SizedBox(height: 12),
+                Text(l10n.deleteAccountDescription, style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurfaceVariant)),
+                SizedBox(height: 16),
+                Text(l10n.willBeDeleted, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                SizedBox(height: 8),
+                ...[
+                  (Icons.post_add, l10n.allPosts),
+                  (Icons.comment, l10n.allComments),
+                  (Icons.message, l10n.allMessages),
+                  (Icons.person, l10n.profileData),
+                ].map((e) => Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: Row(children: [
+                    Icon(e.$1, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                    SizedBox(width: 8),
+                    Text(e.$2, style: TextStyle(fontSize: 13)),
+                  ]),
+                )),
+                SizedBox(height: 12),
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.errorContainer.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(children: [
+                    Icon(Icons.info_outline, size: 18, color: theme.colorScheme.error),
+                    SizedBox(width: 8),
+                    Expanded(child: Text(l10n.thisActionCannotBeUndone, style: TextStyle(fontSize: 13, color: theme.colorScheme.error))),
+                  ]),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  '${l10n.typeToConfirm} "${l10n.delete}"',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                ),
+                SizedBox(height: 8),
+                TextField(
+                  controller: controller,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: l10n.delete,
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  ),
+                  autofocus: true,
+                ),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => ctx.pop(), child: Text(l10n.cancel)),
-          TextButton(
-            onPressed: () {
-              ctx.pop();
-              ctx.read<AuthBloc>().add(DeleteProfileEvent());
-            },
-            style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
-            child: Text(l10n.delete),
-          ),
-        ],
+            actions: [
+              TextButton(onPressed: () => ctx.pop(), child: Text(l10n.cancel)),
+              TextButton(
+                onPressed: isValid ? () {
+                  ctx.pop();
+                  ctx.read<AuthBloc>().add(DeleteProfileEvent());
+                } : null,
+                style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
+                child: Text(l10n.delete),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
-
   void _showLogoutDialog(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     showDialog(

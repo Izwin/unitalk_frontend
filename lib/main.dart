@@ -83,9 +83,19 @@ class _MyAppState extends State<MyApp> {
       alert: true,
       badge: true,
       sound: true,
+      provisional: false,
     );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional) {
+
+      await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+        alert: false,
+        badge: false,
+        sound: false,
+
+      );
+
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null && _authBloc.state.status == AuthStatus.authenticated) {
         _notificationBloc.add(SaveFcmTokenEvent(token));
@@ -93,10 +103,10 @@ class _MyAppState extends State<MyApp> {
 
       _tokenRefreshSubscription = FirebaseMessaging.instance.onTokenRefresh
           .listen((newToken) {
-            if (_authBloc.state.status == AuthStatus.authenticated) {
-              _notificationBloc.add(SaveFcmTokenEvent(newToken));
-            }
-          });
+        if (_authBloc.state.status == AuthStatus.authenticated) {
+          _notificationBloc.add(SaveFcmTokenEvent(newToken));
+        }
+      });
     }
   }
 
@@ -133,20 +143,28 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  void _showLocalNotification(RemoteMessage message) {
-    flutterLocalNotificationsPlugin.show(
-      message.hashCode,
-      message.notification!.title,
-      message.notification!.body,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          message.data['type'] == 'new_chat_message' ? 'chat' : 'default',
-          message.data['type'] == 'new_chat_message' ? 'Chat' : 'Default',
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-        iOS: const DarwinNotificationDetails(),
+  void _showLocalNotification(RemoteMessage message) async {
+    final notificationDetails = NotificationDetails(
+      android: AndroidNotificationDetails(
+        message.data['type'] == 'new_chat_message' ? 'chat' : 'default',
+        message.data['type'] == 'new_chat_message' ? 'Chat' : 'Default',
+        importance: Importance.high,
+        priority: Priority.high,
       ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        sound: 'default',
+        badgeNumber: 1,
+      ),
+    );
+
+    await flutterLocalNotificationsPlugin.show(
+      message.hashCode,
+      message.notification?.title ?? 'New notification',
+      message.notification?.body ?? '',
+      notificationDetails,
       payload: message.data['notificationId'],
     );
   }
@@ -167,6 +185,7 @@ class _MyAppState extends State<MyApp> {
       case 'new_comment':
       case 'new_like':
       case 'comment_reply':
+      case 'new_comment_like':
       case 'mention':
         if (data['postId'] != null) {
           return '/post/${data['postId']}';

@@ -89,10 +89,15 @@ class MediaSourcePicker {
 
     if (result != null) {
       if (result.isVideo) {
-        return await picker.pickVideo(
+        print('asdasd started');
+        var a =  await picker.pickVideo(
           source: result.source,
-          maxDuration: const Duration(minutes: 2), // Максимум 2 минуты
+
+          maxDuration: const Duration(minutes: 1), // Максимум 2 минуты
         );
+        print('asdasd ended');
+
+        return a;
       } else {
         return await picker.pickImage(
           source: result.source,

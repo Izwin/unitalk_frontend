@@ -2547,6 +2547,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Learn More'**
   String get learnMore;
+
+  /// No description provided for @video.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get video;
+
+  /// No description provided for @addMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Add media'**
+  String get addMedia;
+
+  /// No description provided for @typeToConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to confirm'**
+  String get typeToConfirm;
+
+  /// No description provided for @loadingImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading image...'**
+  String get loadingImage;
+
+  /// No description provided for @imageLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load image'**
+  String get imageLoadFailed;
+
+  /// No description provided for @translate.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate'**
+  String get translate;
+
+  /// No description provided for @showOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Show original'**
+  String get showOriginal;
+
+  /// No description provided for @translating.
+  ///
+  /// In en, this message translates to:
+  /// **'Translating...'**
+  String get translating;
+
+  /// No description provided for @translationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation failed'**
+  String get translationFailed;
+
+  /// No description provided for @pinnedPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned post'**
+  String get pinnedPost;
+
+  /// No description provided for @resubmissionInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Please upload a new screenshot following the guidelines below.'**
+  String get resubmissionInfo;
 }
 
 class _AppLocalizationsDelegate

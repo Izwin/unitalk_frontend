@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:unitalk/features/auth/data/model/user_model.dart';
-
-
 import '../model/message_model.dart';
 
 class ChatRemoteDataSource {
@@ -27,19 +25,25 @@ class ChatRemoteDataSource {
     return response.data as Map<String, dynamic>;
   }
 
-  // Send message
+  // ОБНОВЛЕНО: Send message с поддержкой видео
   Future<MessageModel> sendMessage({
     required String content,
     File? imageFile,
+    File? videoFile,
     String? replyTo,
   }) async {
     FormData formData = FormData.fromMap({
       'content': content,
       if (replyTo != null) 'replyTo': replyTo,
       if (imageFile != null)
-        'image': await MultipartFile.fromFile(
+        'media': await MultipartFile.fromFile(
           imageFile.path,
           filename: 'message_image.jpg',
+        ),
+      if (videoFile != null)
+        'media': await MultipartFile.fromFile(
+          videoFile.path,
+          filename: 'message_video.mp4',
         ),
     });
 
@@ -75,7 +79,6 @@ class ChatRemoteDataSource {
     return ChatInfoModel.fromJson(response.data);
   }
 
-
   Future<List<UserModel>> getParticipants({
     int limit = 50,
     int offset = 0,
@@ -87,6 +90,8 @@ class ChatRemoteDataSource {
         'offset': offset,
       },
     );
-    return (response.data['participants'] as List).map((e) => UserModel.fromJson(e)).toList();
+    return (response.data['participants'] as List)
+        .map((e) => UserModel.fromJson(e))
+        .toList();
   }
 }

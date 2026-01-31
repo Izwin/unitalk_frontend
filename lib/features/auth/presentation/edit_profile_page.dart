@@ -8,6 +8,7 @@ import 'package:unitalk/core/ui/common/common_text_field.dart';
 import 'package:unitalk/core/ui/common/confirmation_dialog.dart';
 import 'package:unitalk/core/ui/common/image_source_picker.dart';
 import 'package:unitalk/core/ui/common/selector_card.dart';
+import 'package:unitalk/core/ui/common/university_selection_sheet.dart';
 import 'package:unitalk/core/ui/common/user_avatar.dart';
 import 'package:unitalk/features/auth/data/model/user_model.dart';
 import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
@@ -85,6 +86,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final image = await MediaSourcePicker.show(
       context,
       galleryText: l10n.chooseFromGallery,
+      videoText: l10n.video,
       cameraText: l10n.takePhoto,
       removeText: l10n.removePhoto,
       canRemove: _selectedImage != null || user?.photoUrl != null,
@@ -104,25 +106,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  Future<void> _showUniversityPicker(BuildContext context) async {
-    final l10n = AppLocalizations.of(context)!;
-    context.read<UniversityBloc>().add(LoadUniversitiesEvent());
-    final locale = context.read<LocaleCubit>().state.languageCode;
+// В EditProfilePage замените метод _showUniversityPicker на этот:
 
+  Future<void> _showUniversityPicker(BuildContext context) async {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => BlocBuilder<UniversityBloc, UniversityState>(
-        builder: (_, state) {
-          return BottomSheetListPicker<UniversityModel>(
-            title: l10n.selectUniversity,
-            items: state.universities,
-            selectedItem: _selectedUniversity,
-            itemTitle: (uni) => uni.getLocalizedName(locale),
-            itemImageUrl: (uni) => uni.logoUrl,
-            defaultIcon: Icons.school,
-            onItemSelected: (university) {
+      builder: (modalContext) => BlocProvider.value(
+        value: context.read<UniversityBloc>(),
+        child: BlocProvider.value(
+          value: context.read<LocaleCubit>(),
+          child: UniversitySelectionSheet(
+            currentUniversity: _selectedUniversity,
+            onUniversitySelected: (university) {
               final user = context.read<AuthBloc>().state.user!;
               final willLoseVerification = user.isVerified == true &&
                   user.university?.id != university.id;
@@ -137,19 +134,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 context.read<UniversityBloc>().add(
                   LoadFacultiesEvent(university.id),
                 );
+                Navigator.pop(modalContext); // Закрываем bottom sheet
               }
 
               if (willLoseVerification) {
-                _showVerificationWarning(selectUniversity,context);
+                Navigator.pop(modalContext); // Сначала закрываем sheet
+                _showVerificationWarning(selectUniversity, context);
               } else {
-                context.pop();
                 selectUniversity();
               }
             },
-            searchHint: l10n.searchUniversities,
-            emptyMessage: l10n.noUniversitiesFound,
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -170,6 +166,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             selectedItem: _selectedFaculty,
             itemTitle: (faculty) => faculty.getLocalizedName(locale),
             defaultIcon: Icons.account_balance,
+            customFilter: (faculty, query) => faculty.matchesQuery(query),
             onItemSelected: (faculty) {
               final user = context.read<AuthBloc>().state.user!;
               final willLoseVerification = user.isVerified == true &&
@@ -184,10 +181,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
               }
 
               if (willLoseVerification) {
-                _showVerificationWarning(selectFaculty,context);
+                _showVerificationWarning(selectFaculty, context);
               } else {
                 context.pop();
-
                 selectFaculty();
               }
             },
@@ -198,7 +194,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       ),
     );
   }
-
   Future<void> _showSectorPicker() async {
     final l10n = AppLocalizations.of(context)!;
 

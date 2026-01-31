@@ -11,9 +11,11 @@ abstract class ChatRepository {
     DateTime? before,
   });
 
+  // ОБНОВЛЕНО: Добавлен параметр videoFile
   Future<Either<Failure, MessageModel>> sendMessage({
     required String content,
     File? imageFile,
+    File? videoFile,
     String? replyTo,
   });
 

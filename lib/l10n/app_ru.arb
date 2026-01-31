@@ -499,5 +499,18 @@
   "event": "Событие",
   "information": "Информация",
   "featured": "Важное",
-  "learnMore": "Подробнее"
+  "learnMore": "Подробнее",
+  "video": "Видео",
+  "addMedia": "Добавить медиа",
+  "typeToConfirm": "Введите для подтверждения",
+  "loadingImage": "Загрузка изображения...",
+  "imageLoadFailed": "Не удалось загрузить изображение",
+  "translate": "Перевести",
+  "showOriginal": "Показать оригинал",
+  "translating": "Перевод...",
+  "translationFailed": "Ошибка перевода",
+  "pinnedPost": "Закрепленный пост",
+  "resubmissionInfo": "Пожалуйста, загрузите новый скриншот, следуя инструкциям ниже."
+
+
 }

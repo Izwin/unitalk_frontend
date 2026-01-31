@@ -13,7 +13,7 @@ class CommentRemoteDataSource {
     String? parentCommentId,
     String? replyToCommentId,
     required bool isAnonymous,
-    File? imageFile,
+    File? mediaFile, // Изменено с imageFile на mediaFile
   }) async {
     FormData formData = FormData.fromMap({
       'postId': postId,
@@ -21,10 +21,10 @@ class CommentRemoteDataSource {
       'isAnonymous': isAnonymous,
       if (parentCommentId != null) 'parentCommentId': parentCommentId,
       if (replyToCommentId != null) 'replyToCommentId': replyToCommentId,
-      if (imageFile != null)
-        'image': await MultipartFile.fromFile(
-          imageFile.path,
-          filename: 'comment_image.jpg',
+      if (mediaFile != null)
+        'media': await MultipartFile.fromFile(
+          mediaFile.path,
+          filename: _getMediaFileName(mediaFile),
         ),
     });
 
@@ -34,6 +34,14 @@ class CommentRemoteDataSource {
     );
 
     return CommentModel.fromJson(response.data);
+  }
+
+  String _getMediaFileName(File file) {
+    final path = file.path.toLowerCase();
+    if (path.endsWith('.mp4') || path.endsWith('.mov') || path.endsWith('.avi')) {
+      return 'comment_video.mp4';
+    }
+    return 'comment_image.jpg';
   }
 
   Future<Map<String, dynamic>> getPostComments({

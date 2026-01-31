@@ -46,20 +46,17 @@ class _CompleteProfilePageThreeState extends State<CompleteProfilePageThree> {
     if (state.faculties.isEmpty) return;
 
     final query = _facultySearchController.text.toLowerCase();
-    final locale = context.read<LocaleCubit>().state.languageCode;
 
     setState(() {
       if (query.isEmpty) {
         _filteredFaculties = state.faculties;
       } else {
         _filteredFaculties = state.faculties.where((faculty) {
-          final name = faculty.getLocalizedName(locale).toLowerCase();
-          return name.contains(query);
+          return faculty.matchesQuery(query);
         }).toList();
       }
     });
   }
-
   void _selectFaculty(FacultyModel faculty) {
     setState(() => _selectedFaculty = faculty);
     widget.onFacultySelected(faculty);

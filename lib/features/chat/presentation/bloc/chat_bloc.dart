@@ -223,6 +223,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     final result = await chatRepository.sendMessage(
       content: event.content,
       imageFile: event.imageFile,
+      videoFile: event.videoFile,
       replyTo: event.replyTo,
     );
 

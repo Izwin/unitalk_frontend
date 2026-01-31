@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:unitalk/core/ui/common/fullscreen_image_viewer.dart';
 import 'package:unitalk/core/ui/widgets/default_avatar.dart';
 import 'package:unitalk/features/auth/data/model/user_model.dart';
 import 'package:unitalk/features/auth/presentation/widget/card_info_row.dart';
@@ -11,10 +12,11 @@ class StudentIdCardWidget extends StatelessWidget {
   const StudentIdCardWidget({super.key, required this.user});
 
   void _showImageFullscreen(BuildContext context, String imageUrl) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => _FullscreenImageViewer(imageUrl: imageUrl),
-      ),
+    FullscreenImageViewer.showAvatar(
+      context,
+      imageUrl,
+      userId: user.id,
+      heroTag: 'avatar_${user.id}',
     );
   }
 
@@ -25,7 +27,6 @@ class StudentIdCardWidget extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return Container(
-      height: 220,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -65,40 +66,38 @@ class StudentIdCardWidget extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.studentIdCard.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 2,
-                            color: Colors.white.withOpacity(0.9),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.studentIdCard.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 2,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        SizedBox(
-                          width: 180,
-                          child: Text(
+                          const SizedBox(height: 4),
+                          Text(
                             user.university?.getLocalizedName(locale) ?? '',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                               color: Colors.white.withOpacity(0.85),
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    SizedBox(width: 20,),
                     if (user.university?.logoUrl != null)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Container(
-                          width: 45,
-                          height: 45,
+                          width: 55,
+                          height: 55,
                           decoration: const BoxDecoration(color: Colors.white),
                           child: CachedNetworkImage(
                             imageUrl: user.university!.logoUrl!,
@@ -113,8 +112,7 @@ class StudentIdCardWidget extends StatelessWidget {
                       ),
                   ],
                 ),
-
-                const Spacer(),
+                SizedBox(height: 20,),
 
                 // Student Info
                 Row(
@@ -125,23 +123,26 @@ class StudentIdCardWidget extends StatelessWidget {
                       onTap: user.photoUrl != null
                           ? () => _showImageFullscreen(context, user.photoUrl!)
                           : null,
-                      child: Container(
-                        width: 75,
-                        height: 95,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: user.photoUrl != null
-                              ? CachedNetworkImage(
-                            imageUrl: user.photoUrl!,
-                            fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) =>  DefaultAvatar(),
-                          )
-                              :  DefaultAvatar(),
+                      child: Hero(
+                        tag: 'avatar_${user.id}',
+                        child: Container(
+                          width: 75,
+                          height: 95,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: user.photoUrl != null
+                                ? CachedNetworkImage(
+                              imageUrl: user.photoUrl!,
+                              fit: BoxFit.cover,
+                              errorWidget: (_, __, ___) =>  DefaultAvatar(),
+                            )
+                                :  DefaultAvatar(),
+                          ),
                         ),
                       ),
                     ),
@@ -244,53 +245,4 @@ class _CardPatternPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// Fullscreen image viewer (reused from PostItem)
-class _FullscreenImageViewer extends StatefulWidget {
-  final String imageUrl;
-
-  const _FullscreenImageViewer({required this.imageUrl});
-
-  @override
-  State<_FullscreenImageViewer> createState() => _FullscreenImageViewerState();
-}
-
-class _FullscreenImageViewerState extends State<_FullscreenImageViewer> {
-  final TransformationController _controller = TransformationController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
-        elevation: 0,
-      ),
-      body: Center(
-        child: InteractiveViewer(
-          transformationController: _controller,
-          minScale: 0.5,
-          maxScale: 4.0,
-          child: CachedNetworkImage(
-            imageUrl: widget.imageUrl,
-            fit: BoxFit.contain,
-            placeholder: (_, __) => const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
-            errorWidget: (_, __, ___) => const Center(
-              child: Icon(Icons.error_outline, color: Colors.white, size: 48),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }

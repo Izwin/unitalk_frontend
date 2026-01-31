@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:unitalk/core/router/app_router.dart';
 import 'package:unitalk/l10n/app_localizations.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
@@ -17,10 +18,15 @@ class ScaffoldWithNavBar extends StatelessWidget {
       bottomNavigationBar: _MinimalNavBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) {
-          navigationShell.goBranch(
-            index,
-            initialLocation: index == navigationShell.currentIndex,
-          );
+          if (index == 0 && navigationShell.currentIndex == 0) {
+            // Используем GlobalKey для доступа к FeedPage
+            feedPageKey.currentState?.scrollToTop();
+          } else {
+            navigationShell.goBranch(
+              index,
+              initialLocation: index == navigationShell.currentIndex,
+            );
+          }
         },
       ),
     );

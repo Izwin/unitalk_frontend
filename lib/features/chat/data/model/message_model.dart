@@ -1,7 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:unitalk/features/auth/data/model/user_model.dart';
 
-
 part 'message_model.g.dart';
 
 @JsonSerializable()
@@ -16,6 +15,14 @@ class MessageModel {
   final String sector;
   final String content;
   final String? imageUrl;
+
+  // НОВОЕ: Поля для видео
+  final String? videoUrl;
+
+  @JsonKey(defaultValue: 'none')
+  final String mediaType; // 'none', 'image', 'video'
+
+  final int? videoDuration; // в секундах
 
   @JsonKey(name: 'replyTo')
   final MessageModel? replyToMessage;
@@ -38,6 +45,9 @@ class MessageModel {
     required this.sector,
     required this.content,
     this.imageUrl,
+    this.videoUrl,
+    this.mediaType = 'none',
+    this.videoDuration,
     this.replyToMessage,
     this.isEdited = false,
     this.editedAt,
@@ -61,6 +71,9 @@ class MessageModel {
     String? sector,
     String? content,
     String? imageUrl,
+    String? videoUrl,
+    String? mediaType,
+    int? videoDuration,
     MessageModel? replyToMessage,
     bool? isEdited,
     DateTime? editedAt,
@@ -78,6 +91,9 @@ class MessageModel {
       sector: sector ?? this.sector,
       content: content ?? this.content,
       imageUrl: imageUrl ?? this.imageUrl,
+      videoUrl: videoUrl ?? this.videoUrl,
+      mediaType: mediaType ?? this.mediaType,
+      videoDuration: videoDuration ?? this.videoDuration,
       replyToMessage: replyToMessage ?? this.replyToMessage,
       isEdited: isEdited ?? this.isEdited,
       editedAt: editedAt ?? this.editedAt,
@@ -89,6 +105,11 @@ class MessageModel {
       canEdit: canEdit ?? this.canEdit,
     );
   }
+
+  // Утилитные геттеры
+  bool get hasImage => mediaType == 'image' && imageUrl != null;
+  bool get hasVideo => mediaType == 'video' && videoUrl != null;
+  bool get hasMedia => hasImage || hasVideo;
 }
 
 @JsonSerializable()

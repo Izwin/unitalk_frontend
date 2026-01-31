@@ -10,7 +10,7 @@ class CreateCommentEvent extends CommentEvent {
   final bool isAnonymous;
   final String? parentCommentId;
   final String? replyToCommentId;
-  final File? imageFile;
+  final File? mediaFile;
 
   CreateCommentEvent({
     required this.postId,
@@ -18,7 +18,7 @@ class CreateCommentEvent extends CommentEvent {
     required this.isAnonymous,
     this.parentCommentId,
     this.replyToCommentId,
-    this.imageFile,
+    this.mediaFile,
   });
 }
 
@@ -53,4 +53,10 @@ class DeleteCommentEvent extends CommentEvent {
 
   const DeleteCommentEvent(this.commentId);
 
+}
+
+class ToggleCommentLikeEvent extends CommentEvent {
+  final String commentId;
+
+  ToggleCommentLikeEvent(this.commentId);
 }

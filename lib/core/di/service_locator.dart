@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:unitalk/core/api/api_client.dart';
+import 'package:unitalk/core/services/activity_log_service.dart';
 import 'package:unitalk/core/services/chat_socker_service.dart';
 import 'package:unitalk/core/services/post_syns_service.dart';
 import 'package:unitalk/core/theme/bloc/theme_bloc.dart';
@@ -39,6 +40,7 @@ import 'package:unitalk/features/feed/domain/repository/like_repository.dart';
 import 'package:unitalk/features/feed/domain/repository/posts_repository.dart';
 import 'package:unitalk/features/feed/presentation/bloc/announcement/announcement_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/comment/comment_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/comment_likers/comment_likers_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/like/like_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post_likers/post_likers_bloc.dart';
@@ -77,6 +79,7 @@ final sl = GetIt.instance;
 Future<void> initDependencies() async {
   // Firebase Services
 
+
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => GoogleSignIn.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
@@ -84,6 +87,9 @@ Future<void> initDependencies() async {
 
 
   sl.registerLazySingleton(() => PostSyncService());
+  sl.registerLazySingleton<ActivityLoggerService>(
+        () => ActivityLoggerService( sl(instanceName: 'dioAuth')),
+  );
 
   sl.registerLazySingleton(() => ChatSocketService(baseUrl: 'http://35.198.109.53'));
 
@@ -249,8 +255,10 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => ThemeBloc(sl()));
   sl.registerFactory(() => LocaleCubit(sl(),sl()));
   sl.registerFactory(() => UniversityBloc(sl()));
+  sl.registerFactory(() => SupportBloc(supportRepository: sl()));
   sl.registerFactory(() => LikeBloc(likeRepository: sl()));
   sl.registerFactory(() => PostLikersBloc(repository: sl()));
+  sl.registerFactory(() => CommentLikersBloc(repository: sl()));
   sl.registerFactory<ChatBloc>(
         () => ChatBloc( chatRepository: sl<ChatRepository>(),socketService: sl()),
   );
@@ -259,7 +267,7 @@ Future<void> initDependencies() async {
   );
 
   sl.registerFactory<CommentBloc>(
-        () => CommentBloc(commentRepository: sl(), postSyncService: sl()),
+        () => CommentBloc(commentRepository: sl(), postSyncService: sl(),commentLikeRepository: sl()),
   );
 
   sl.registerFactory<UserProfileBloc>(
@@ -275,7 +283,7 @@ Future<void> initDependencies() async {
   );
 
   sl.registerFactory<RepliesBloc>(
-        () => RepliesBloc(commentRepository: sl(),postSyncService: sl()),
+        () => RepliesBloc(commentRepository: sl(),postSyncService: sl(),commentLikeRepository: sl()),
   );
 
   sl.registerFactory<AnnouncementBloc>(

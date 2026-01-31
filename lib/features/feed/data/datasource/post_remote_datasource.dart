@@ -10,15 +10,15 @@ class PostRemoteDataSource {
   Future<PostModel> createPost({
     required String content,
     required bool isAnonymous,
-    File? imageFile,
+    File? mediaFile, // Изменено с imageFile на mediaFile
   }) async {
     FormData formData = FormData.fromMap({
       'content': content,
       'isAnonymous': isAnonymous,
-      if (imageFile != null)
-        'image': await MultipartFile.fromFile(
-          imageFile.path,
-          filename: 'post_image.jpg',
+      if (mediaFile != null)
+        'media': await MultipartFile.fromFile(
+          mediaFile.path,
+          filename: _getMediaFileName(mediaFile),
         ),
     });
 
@@ -30,6 +30,15 @@ class PostRemoteDataSource {
     return PostModel.fromJson(response.data);
   }
 
+  // Вспомогательный метод для определения имени файла
+  String _getMediaFileName(File file) {
+    final path = file.path.toLowerCase();
+    if (path.endsWith('.mp4') || path.endsWith('.mov')) {
+      return 'post_video.mp4';
+    }
+    return 'post_image.jpg';
+  }
+
   Future<Map<String, dynamic>> getPosts({
     String? universityId,
     String? authorId,
@@ -39,7 +48,6 @@ class PostRemoteDataSource {
     int page = 1,
     int limit = 20,
   }) async {
-
     final response = await dio.get(
       '/posts',
       queryParameters: {
