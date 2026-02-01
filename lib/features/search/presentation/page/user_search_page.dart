@@ -319,16 +319,8 @@ class _UserSearchPageState extends State<UserSearchPage> {
                 ],
               ),
             ),
-            // ✅ ДОБАВЬТЕ ЭТО:
-            BlocBuilder<FriendshipBloc, FriendshipState>(
-              builder: (context, state) {
-                return FriendshipButton(
-                  userId: user.id!,
-                  compact: true,
-                );
-              },
-            ),
-          ],
+           ],
+
         ),
       ),
     );

@@ -329,15 +329,15 @@ class FriendshipBloc extends Bloc<FriendshipEvent, FriendshipState> {
 
   // ✅ ИЗМЕНИТЬ методы _onAcceptFriendRequest и _onRejectFriendRequest
 
-  // Принять запрос в друзья
-  Future _onAcceptFriendRequest(
-    AcceptFriendRequestEvent event,
-    Emitter emit,
-  ) async {
+// Принять запрос в друзья
+  Future<void> _onAcceptFriendRequest(
+      AcceptFriendRequestEvent event,
+      Emitter<FriendshipState> emit,
+      ) async {
     final result = await repository.acceptFriendRequest(event.friendshipId);
 
     result.fold(
-      (failure) {
+          (failure) {
         emit(
           state.copyWith(
             status: FriendshipStateStatus.failure,
@@ -345,9 +345,10 @@ class FriendshipBloc extends Bloc<FriendshipEvent, FriendshipState> {
           ),
         );
       },
-      (friendship) {
+          (friendship) {
         String? targetUserId;
 
+        // Ищем в incomingRequests (работает на странице входящих)
         for (final request in state.incomingRequests) {
           if (request.friendshipId == event.friendshipId) {
             targetUserId = request.user.id;
@@ -355,11 +356,24 @@ class FriendshipBloc extends Bloc<FriendshipEvent, FriendshipState> {
           }
         }
 
+        // Fallback: ищем в friendshipStatuses по friendshipId
+        // (работает на профиле пользователя, где incomingRequests не загружены)
+        if (targetUserId == null) {
+          for (final entry in state.friendshipStatuses.entries) {
+            if (entry.value.friendshipId == event.friendshipId) {
+              targetUserId = entry.key;
+              break;
+            }
+          }
+        }
+
         final updatedIncoming = state.incomingRequests
             .where((req) => req.friendshipId != event.friendshipId)
             .toList();
 
-        final updatedStatuses = Map<String,FriendshipStatusResponse>.from(state.friendshipStatuses);
+        final updatedStatuses = Map<String, FriendshipStatusResponse>.from(
+          state.friendshipStatuses,
+        );
 
         if (targetUserId != null) {
           updatedStatuses[targetUserId] = FriendshipStatusResponse(
@@ -378,24 +392,23 @@ class FriendshipBloc extends Bloc<FriendshipEvent, FriendshipState> {
           ),
         );
 
-        if (targetUserId != null) {
-          add(LoadFriendshipStatusEvent(targetUserId));
-        }
-
-        add(LoadFriendsListEvent());
+        // ❌ Убрали add(LoadFriendshipStatusEvent) — он перезаписывал
+        //    только что установленный 'accepted' статус пустым ответом с сервера
+        // ❌ Убрали add(LoadFriendsListEvent) — полная перезагрузка списка
+        //    не нужна, кнопка уже обновлена локально
       },
     );
   }
 
   // Отклонить запрос в друзья
-  Future _onRejectFriendRequest(
-    RejectFriendRequestEvent event,
-    Emitter emit,
-  ) async {
+  Future<void> _onRejectFriendRequest(
+      RejectFriendRequestEvent event,
+      Emitter<FriendshipState> emit,
+      ) async {
     final result = await repository.rejectFriendRequest(event.friendshipId);
 
     result.fold(
-      (failure) {
+          (failure) {
         emit(
           state.copyWith(
             status: FriendshipStateStatus.failure,
@@ -403,9 +416,10 @@ class FriendshipBloc extends Bloc<FriendshipEvent, FriendshipState> {
           ),
         );
       },
-      (_) {
+          (_) {
         String? targetUserId;
 
+        // Ищем в incomingRequests
         for (final request in state.incomingRequests) {
           if (request.friendshipId == event.friendshipId) {
             targetUserId = request.user.id;
@@ -413,15 +427,27 @@ class FriendshipBloc extends Bloc<FriendshipEvent, FriendshipState> {
           }
         }
 
+        // Fallback: ищем в friendshipStatuses по friendshipId
+        if (targetUserId == null) {
+          for (final entry in state.friendshipStatuses.entries) {
+            if (entry.value.friendshipId == event.friendshipId) {
+              targetUserId = entry.key;
+              break;
+            }
+          }
+        }
+
         final updatedIncoming = state.incomingRequests
             .where((req) => req.friendshipId != event.friendshipId)
             .toList();
 
-        final updatedStatuses =  Map<String,FriendshipStatusResponse>.from(state.friendshipStatuses);
+        final updatedStatuses = Map<String, FriendshipStatusResponse>.from(
+          state.friendshipStatuses,
+        );
 
         if (targetUserId != null) {
           updatedStatuses[targetUserId] = FriendshipStatusResponse(
-            status: FriendshipStatus.rejected,
+            status: FriendshipStatus.none, // после отклонения — none, не rejected
             isFriend: false,
           );
         }
@@ -434,10 +460,7 @@ class FriendshipBloc extends Bloc<FriendshipEvent, FriendshipState> {
           ),
         );
 
-        // ✅ ДОБАВИТЬ: Перезагрузить статус дружбы
-        if (targetUserId != null) {
-          add(LoadFriendshipStatusEvent(targetUserId));
-        }
+        // ❌ Убрали add(LoadFriendshipStatusEvent) — та же причина
       },
     );
   }

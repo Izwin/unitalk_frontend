@@ -105,7 +105,6 @@ class FriendshipButton extends StatelessWidget {
     );
   }
 
-  // ─── Строит кнопку по стилю ──────────────────────────────────
   Widget _buildButton({
     required BuildContext context,
     required String label,
