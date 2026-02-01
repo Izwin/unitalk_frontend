@@ -1465,4 +1465,49 @@ class AppLocalizationsRu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get postNotificationFilter => 'Фильтр уведомлений о постах';
+
+  @override
+  String get allUniversities => 'Все университеты';
+
+  @override
+  String get allUniversitiesDescription =>
+      'Получать уведомления от всех университетов';
+
+  @override
+  String get selectedUniversities => 'Выбранные университеты';
+
+  @override
+  String get selectedUniversitiesDescription =>
+      'Выберите конкретные университеты';
+
+  @override
+  String universitiesSelected(Object count) {
+    return 'Выбрано университетов: $count';
+  }
+
+  @override
+  String get friendsOnly => 'Только друзья';
+
+  @override
+  String get friendsOnlyDescription =>
+      'Только от людей, на которых вы подписаны';
+
+  @override
+  String get selectUniversities => 'Выбор университетов';
+
+  @override
+  String get errorLoadingUniversities => 'Ошибка загрузки университетов';
+
+  @override
+  String get done => 'Готово';
+
+  @override
+  String get myUniversity => 'Моем университет';
+
+  @override
+  String get myUniversityDescription =>
+      'Только от студентов моего университета';
 }

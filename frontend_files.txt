@@ -1,0 +1,1358 @@
+import 'package:json_annotation/json_annotation.dart';
+part 'notification_settings_model.g.dart';
+@JsonSerializable()
+class NotificationSettingsModel {
+  @JsonKey(name: '_id')
+  final String id;
+  final String userId;
+  final bool enabled;
+  final String? fcmToken;
+  final bool newPosts;
+  final bool newComments;
+  final bool newLikes;
+  final bool commentReplies;
+  final bool mentions;
+  final bool chatMessages;
+  final bool chatMentions;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  NotificationSettingsModel({
+    required this.id,
+    required this.userId,
+    required this.enabled,
+    this.fcmToken,
+    required this.newPosts,
+    required this.newComments,
+    required this.newLikes,
+    required this.commentReplies,
+    required this.mentions,
+    required this.chatMessages,
+    required this.chatMentions,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory NotificationSettingsModel.fromJson(Map<String, dynamic> json) =>
+      _$NotificationSettingsModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$NotificationSettingsModelToJson(this);
+
+  NotificationSettingsModel copyWith({
+    String? id,
+    String? userId,
+    bool? enabled,
+    String? fcmToken,
+    bool? newPosts,
+    bool? newComments,
+    bool? newLikes,
+    bool? commentReplies,
+    bool? mentions,
+    bool? chatMessages,
+    bool? chatMentions,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return NotificationSettingsModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      enabled: enabled ?? this.enabled,
+      fcmToken: fcmToken ?? this.fcmToken,
+      newPosts: newPosts ?? this.newPosts,
+      newComments: newComments ?? this.newComments,
+      newLikes: newLikes ?? this.newLikes,
+      commentReplies: commentReplies ?? this.commentReplies,
+      mentions: mentions ?? this.mentions,
+      chatMessages: chatMessages ?? this.chatMessages,
+      chatMentions: chatMentions ?? this.chatMentions,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'notification_settings_model.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+NotificationSettingsModel _$NotificationSettingsModelFromJson(
+  Map<String, dynamic> json,
+) => NotificationSettingsModel(
+  id: json['_id'] as String,
+  userId: json['userId'] as String,
+  enabled: json['enabled'] as bool,
+  fcmToken: json['fcmToken'] as String?,
+  newPosts: json['newPosts'] as bool,
+  newComments: json['newComments'] as bool,
+  newLikes: json['newLikes'] as bool,
+  commentReplies: json['commentReplies'] as bool,
+  mentions: json['mentions'] as bool,
+  chatMessages: json['chatMessages'] as bool,
+  chatMentions: json['chatMentions'] as bool,
+  createdAt: DateTime.parse(json['createdAt'] as String),
+  updatedAt: DateTime.parse(json['updatedAt'] as String),
+);
+
+Map<String, dynamic> _$NotificationSettingsModelToJson(
+  NotificationSettingsModel instance,
+) => <String, dynamic>{
+  '_id': instance.id,
+  'userId': instance.userId,
+  'enabled': instance.enabled,
+  'fcmToken': instance.fcmToken,
+  'newPosts': instance.newPosts,
+  'newComments': instance.newComments,
+  'newLikes': instance.newLikes,
+  'commentReplies': instance.commentReplies,
+  'mentions': instance.mentions,
+  'chatMessages': instance.chatMessages,
+  'chatMentions': instance.chatMentions,
+  'createdAt': instance.createdAt.toIso8601String(),
+  'updatedAt': instance.updatedAt.toIso8601String(),
+};
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:unitalk/core/ui/common/error_state_widget.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_bloc.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_event.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_state.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+
+class NotificationSettingsPage extends StatelessWidget {
+  const NotificationSettingsPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        elevation: 0,
+        centerTitle: false,
+        title: Text(
+          l10n.notificationSettings,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          Container(
+            height: 1,
+            color: theme.colorScheme.onSurface.withOpacity(0.08),
+          ),
+          Expanded(
+            child: BlocBuilder<NotificationBloc, NotificationState>(
+              builder: (context, state) {
+                if (state.status == NotificationStatus.loading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (state.settings == null) {
+                  return ErrorStateWidget(
+                    message: l10n.errorLoadingSettings,
+                    onRetry: () {
+                      context
+                          .read<NotificationBloc>()
+                          .add(GetNotificationSettingsEvent());
+                    },
+                    retryButtonText: l10n.retry,
+                  );
+                }
+
+                final settings = state.settings!;
+
+                return ListView(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  children: [
+                    // Master switch
+                    Container(
+                      margin: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: settings.enabled
+                            ? theme.colorScheme.primary.withOpacity(0.08)
+                            : theme.colorScheme.onSurface.withOpacity(0.04),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: settings.enabled
+                              ? theme.colorScheme.primary.withOpacity(0.2)
+                              : theme.colorScheme.onSurface.withOpacity(0.08),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: settings.enabled
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurface.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              settings.enabled
+                                  ? Icons.notifications_active
+                                  : Icons.notifications_off_outlined,
+                              color: settings.enabled
+                                  ? Colors.white
+                                  : theme.colorScheme.onSurface.withOpacity(0.4),
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  l10n.enableNotifications,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  l10n.enableNotificationsDescription,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                    letterSpacing: 0.1,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Switch(
+                            value: settings.enabled,
+                            onChanged: (value) {
+                              context
+                                  .read<NotificationBloc>()
+                                  .add(UpdateNotificationSettingsEvent(enabled: value));
+                            },
+                            activeColor: theme.colorScheme.primary,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Posts section
+                    _buildSectionHeader(context, l10n.posts, Icons.post_add_rounded),
+                    _buildSettingsGroup(
+                      context,
+                      settings,
+                      [
+                        _SettingData(
+                          title: l10n.newPosts,
+                          subtitle: l10n.newPostsDescription,
+                          value: settings.newPosts,
+                          onChanged: (value) {
+                            context
+                                .read<NotificationBloc>()
+                                .add(UpdateNotificationSettingsEvent(newPosts: value));
+                          },
+                        ),
+                        _SettingData(
+                          title: l10n.newComments,
+                          subtitle: l10n.newCommentsDescription,
+                          value: settings.newComments,
+                          onChanged: (value) {
+                            context
+                                .read<NotificationBloc>()
+                                .add(UpdateNotificationSettingsEvent(newComments: value));
+                          },
+                        ),
+                        _SettingData(
+                          title: l10n.newLikes,
+                          subtitle: l10n.newLikesDescription,
+                          value: settings.newLikes,
+                          onChanged: (value) {
+                            context
+                                .read<NotificationBloc>()
+                                .add(UpdateNotificationSettingsEvent(newLikes: value));
+                          },
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Comments section
+                    _buildSectionHeader(context, l10n.comments, Icons.chat_bubble_outline),
+                    _buildSettingsGroup(
+                      context,
+                      settings,
+                      [
+                        _SettingData(
+                          title: l10n.commentReplies,
+                          subtitle: l10n.commentRepliesDescription,
+                          value: settings.commentReplies,
+                          onChanged: (value) {
+                            context.read<NotificationBloc>().add(
+                                UpdateNotificationSettingsEvent(commentReplies: value));
+                          },
+                        ),
+                        _SettingData(
+                          title: l10n.mentions,
+                          subtitle: l10n.mentionsDescription,
+                          value: settings.mentions,
+                          onChanged: (value) {
+                            context
+                                .read<NotificationBloc>()
+                                .add(UpdateNotificationSettingsEvent(mentions: value));
+                          },
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Chat section
+                    _buildSectionHeader(context, l10n.chat, Icons.forum_outlined),
+                    _buildSettingsGroup(
+                      context,
+                      settings,
+                      [
+                        _SettingData(
+                          title: l10n.chatMessages,
+                          subtitle: l10n.chatMessagesDescription,
+                          value: settings.chatMessages,
+                          onChanged: (value) {
+                            context
+                                .read<NotificationBloc>()
+                                .add(UpdateNotificationSettingsEvent(chatMessages: value));
+                          },
+                        ),
+                        _SettingData(
+                          title: l10n.chatMentions,
+                          subtitle: l10n.chatMentionsDescription,
+                          value: settings.chatMentions,
+                          onChanged: (value) {
+                            context
+                                .read<NotificationBloc>()
+                                .add(UpdateNotificationSettingsEvent(chatMentions: value));
+                          },
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 40),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: theme.colorScheme.onSurface.withOpacity(0.5),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsGroup(
+      BuildContext context,
+      dynamic settings,
+      List<_SettingData> items,
+      ) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.onSurface.withOpacity(0.08),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          for (int i = 0; i < items.length; i++) ...[
+            _buildSettingTile(
+              context: context,
+              data: items[i],
+              enabled: settings.enabled,
+            ),
+            if (i < items.length - 1)
+              Container(
+                height: 1,
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                color: theme.colorScheme.onSurface.withOpacity(0.06),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingTile({
+    required BuildContext context,
+    required _SettingData data,
+    required bool enabled,
+  }) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: enabled ? () => data.onChanged(!data.value) : null,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    data.title,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0,
+                      color: enabled
+                          ? theme.colorScheme.onSurface
+                          : theme.colorScheme.onSurface.withOpacity(0.4),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    data.subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: enabled
+                          ? theme.colorScheme.onSurface.withOpacity(0.6)
+                          : theme.colorScheme.onSurface.withOpacity(0.3),
+                      letterSpacing: 0.1,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Switch(
+              value: data.value,
+              onChanged: enabled ? data.onChanged : null,
+              activeColor: theme.colorScheme.primary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingData {
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  _SettingData({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+}import 'package:dio/dio.dart';
+import 'package:unitalk/features/notifications/model/notification_model.dart';
+import 'package:unitalk/features/notifications/model/notification_response_model.dart';
+import 'package:unitalk/features/notifications/model/notification_settings_model.dart';
+
+class NotificationRemoteDataSource {
+  final Dio dio;
+
+  NotificationRemoteDataSource({required this.dio});
+
+  // ============== SETTINGS ==============
+
+  Future<NotificationSettingsModel> getSettings() async {
+    final response = await dio.get('/notifications/settings');
+    return NotificationSettingsModel.fromJson(response.data);
+  }
+
+  Future<NotificationSettingsModel> updateSettings({
+    bool? enabled,
+    bool? newPosts,
+    bool? newComments,
+    bool? newLikes,
+    bool? commentReplies,
+    bool? mentions,
+    bool? chatMessages,
+    bool? chatMentions,
+  }) async {
+    final data = <String, dynamic>{};
+
+    if (enabled != null) data['enabled'] = enabled;
+    if (newPosts != null) data['newPosts'] = newPosts;
+    if (newComments != null) data['newComments'] = newComments;
+    if (newLikes != null) data['newLikes'] = newLikes;
+    if (commentReplies != null) data['commentReplies'] = commentReplies;
+    if (mentions != null) data['mentions'] = mentions;
+    if (chatMessages != null) data['chatMessages'] = chatMessages;
+    if (chatMentions != null) data['chatMentions'] = chatMentions;
+
+    final response = await dio.put('/notifications/settings', data: data);
+    return NotificationSettingsModel.fromJson(response.data);
+  }
+
+  Future<void> saveFcmToken(String fcmToken) async {
+    await dio.post('/notifications/fcm-token', data: {'fcmToken': fcmToken});
+  }
+
+  Future<void> removeFcmToken() async {
+    await dio.delete('/notifications/fcm-token');
+  }
+
+  // ============== NOTIFICATIONS ==============
+
+  Future<NotificationsResponseModel> getNotifications({
+    int page = 1,
+    int limit = 20,
+    bool unreadOnly = false,
+  }) async {
+    final response = await dio.get(
+      '/notifications',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+        'unreadOnly': unreadOnly,
+      },
+    );
+    return NotificationsResponseModel.fromJson(response.data);
+  }
+
+  Future<NotificationModel> markAsRead(String notificationId) async {
+    final response = await dio.put('/notifications/$notificationId/read');
+    return NotificationModel.fromJson(response.data);
+  }
+
+  Future<void> markAllAsRead() async {
+    await dio.put('/notifications/read-all');
+  }
+
+  Future<void> deleteNotification(String notificationId) async {
+    await dio.delete('/notifications/$notificationId');
+  }
+
+  Future<void> deleteAllNotifications() async {
+    await dio.delete('/notifications');
+  }
+
+  Future<int> getUnreadCount() async {
+    final response = await dio.get('/notifications/unread-count');
+    return response.data['unreadCount'] as int;
+  }
+}import 'package:dartz/dartz.dart';
+import 'package:unitalk/core/failure/failure.dart';
+import 'package:unitalk/features/notifications/data/notifcation_remote_datasource.dart';
+import 'package:unitalk/features/notifications/domain/notifcation_repository.dart';
+import 'package:unitalk/features/notifications/model/notification_model.dart';
+import 'package:unitalk/features/notifications/model/notification_response_model.dart';
+import 'package:unitalk/features/notifications/model/notification_settings_model.dart';
+
+class NotificationRepositoryImpl implements NotificationRepository {
+  final NotificationRemoteDataSource remoteDataSource;
+
+  NotificationRepositoryImpl(this.remoteDataSource);
+
+  @override
+  Future<Either<Failure, NotificationSettingsModel>> getSettings() async {
+    try {
+      final settings = await remoteDataSource.getSettings();
+      return Right(settings);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, NotificationSettingsModel>> updateSettings({
+    bool? enabled,
+    bool? newPosts,
+    bool? newComments,
+    bool? newLikes,
+    bool? commentReplies,
+    bool? mentions,
+    bool? chatMessages,
+    bool? chatMentions,
+  }) async {
+    try {
+      final settings = await remoteDataSource.updateSettings(
+        enabled: enabled,
+        newPosts: newPosts,
+        newComments: newComments,
+        newLikes: newLikes,
+        commentReplies: commentReplies,
+        mentions: mentions,
+        chatMessages: chatMessages,
+        chatMentions: chatMentions,
+      );
+      return Right(settings);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> saveFcmToken(String fcmToken) async {
+    try {
+      await remoteDataSource.saveFcmToken(fcmToken);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> removeFcmToken() async {
+    try {
+      await remoteDataSource.removeFcmToken();
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, NotificationsResponseModel>> getNotifications({
+    int page = 1,
+    int limit = 20,
+    bool unreadOnly = false,
+  }) async {
+    try {
+      final response = await remoteDataSource.getNotifications(
+        page: page,
+        limit: limit,
+        unreadOnly: unreadOnly,
+      );
+      return Right(response);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, NotificationModel>> markAsRead(
+      String notificationId) async {
+    try {
+      final notification = await remoteDataSource.markAsRead(notificationId);
+      return Right(notification);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> markAllAsRead() async {
+    try {
+      await remoteDataSource.markAllAsRead();
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteNotification(
+      String notificationId) async {
+    try {
+      await remoteDataSource.deleteNotification(notificationId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteAllNotifications() async {
+    try {
+      await remoteDataSource.deleteAllNotifications();
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getUnreadCount() async {
+    try {
+      final count = await remoteDataSource.getUnreadCount();
+      return Right(count);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+}
+import 'package:dartz/dartz.dart';
+import 'package:unitalk/core/failure/failure.dart';
+import 'package:unitalk/features/notifications/model/notification_model.dart';
+import 'package:unitalk/features/notifications/model/notification_response_model.dart';
+import 'package:unitalk/features/notifications/model/notification_settings_model.dart';
+
+abstract class NotificationRepository {
+  // Settings
+  Future<Either<Failure, NotificationSettingsModel>> getSettings();
+
+  Future<Either<Failure, NotificationSettingsModel>> updateSettings({
+    bool? enabled,
+    bool? newPosts,
+    bool? newComments,
+    bool? newLikes,
+    bool? commentReplies,
+    bool? mentions,
+    bool? chatMessages,
+    bool? chatMentions,
+  });
+
+  Future<Either<Failure, void>> saveFcmToken(String fcmToken);
+
+  Future<Either<Failure, void>> removeFcmToken();
+
+  // Notifications
+  Future<Either<Failure, NotificationsResponseModel>> getNotifications({
+    int page = 1,
+    int limit = 20,
+    bool unreadOnly = false,
+  });
+
+  Future<Either<Failure, NotificationModel>> markAsRead(String notificationId);
+
+  Future<Either<Failure, void>> markAllAsRead();
+
+  Future<Either<Failure, void>> deleteNotification(String notificationId);
+
+  Future<Either<Failure, void>> deleteAllNotifications();
+
+  Future<Either<Failure, int>> getUnreadCount();
+}import 'dart:math';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:unitalk/features/notifications/domain/notifcation_repository.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_event.dart';
+import 'package:unitalk/features/notifications/presentation/bloc/notification_state.dart';
+
+
+class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
+  final NotificationRepository notificationRepository;
+
+  NotificationBloc({required this.notificationRepository})
+      : super(NotificationState.initial()) {
+    on<GetNotificationSettingsEvent>(_onGetSettings);
+    on<UpdateNotificationSettingsEvent>(_onUpdateSettings);
+    on<SaveFcmTokenEvent>(_onSaveFcmToken);
+    on<RemoveFcmTokenEvent>(_onRemoveFcmToken);
+    on<GetNotificationsEvent>(_onGetNotifications);
+    on<MarkNotificationAsReadEvent>(_onMarkAsRead);
+    on<MarkAllNotificationsAsReadEvent>(_onMarkAllAsRead);
+    on<DeleteNotificationEvent>(_onDeleteNotification);
+    on<DeleteAllNotificationsEvent>(_onDeleteAllNotifications);
+    on<RefreshNotificationsEvent>(_onRefreshNotifications);
+    on<GetUnreadCountEvent>(_onGetUnreadCount);
+    on<HandleIncomingNotificationEvent>(_onHandleIncomingNotification);
+  }
+
+  Future<void> _onGetSettings(
+      GetNotificationSettingsEvent event,
+      Emitter<NotificationState> emit,
+      ) async {
+    emit(state.copyWith(status: NotificationStatus.loading));
+
+    final result = await notificationRepository.getSettings();
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: NotificationStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (settings) => emit(state.copyWith(
+        status: NotificationStatus.success,
+        settings: settings,
+      )),
+    );
+  }
+
+  Future<void> _onUpdateSettings(
+      UpdateNotificationSettingsEvent event,
+      Emitter<NotificationState> emit,
+      ) async {
+    emit(state.copyWith(status: NotificationStatus.loading));
+
+    final result = await notificationRepository.updateSettings(
+      enabled: event.enabled,
+      newPosts: event.newPosts,
+      newComments: event.newComments,
+      newLikes: event.newLikes,
+      commentReplies: event.commentReplies,
+      mentions: event.mentions,
+      chatMessages: event.chatMessages,
+      chatMentions: event.chatMentions,
+    );
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: NotificationStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (settings) => emit(state.copyWith(
+        status: NotificationStatus.success,
+        settings: settings,
+      )),
+    );
+  }
+
+  Future<void> _onSaveFcmToken(
+      SaveFcmTokenEvent event,
+      Emitter<NotificationState> emit,
+      ) async {
+    final result = await notificationRepository.saveFcmToken(event.fcmToken);
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: NotificationStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (_) => null,
+    );
+  }
+
+  Future<void> _onRemoveFcmToken(
+      RemoveFcmTokenEvent event,
+      Emitter<NotificationState> emit,
+      ) async {
+    final result = await notificationRepository.removeFcmToken();
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: NotificationStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (_) => null,
+    );
+  }
+
+  Future<void> _onGetNotifications(
+      GetNotificationsEvent event,
+      Emitter<NotificationState> emit,
+      ) async {
+    if (event.loadMore) {
+      if (!state.hasMore) return;
+      emit(state.copyWith(status: NotificationStatus.loadingMore));
+    } else {
+      emit(state.copyWith(status: NotificationStatus.loading));
+    }
+
+    final result = await notificationRepository.getNotifications(
+      page: event.page,
+      limit: 20,
+      unreadOnly: event.unreadOnly,
+    );
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: NotificationStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (response) {
+        final newNotifications = event.loadMore
+            ? [...state.notifications, ...response.notifications]
+            : response.notifications;
+
+        emit(state.copyWith(
+          status: NotificationStatus.success,
+          notifications: newNotifications,
+          unreadCount: response.unreadCount,
+          currentPage: state.currentPage + 1,
+          hasMore: response.notifications.length >= 20
+        ));
+      },
+    );
+  }
+
+  Future<void> _onMarkAsRead(
+      MarkNotificationAsReadEvent event,
+      Emitter<NotificationState> emit,
+      ) async {
+    final result =
+    await notificationRepository.markAsRead(event.notificationId);
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: NotificationStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (updatedNotification) {
+        final updatedList = state.notifications.map((n) {
+          if (n.id == updatedNotification.id) {
+            return updatedNotification;
+          }
+          return n;
+        }).toList();
+
+        final newUnreadCount = state.unreadCount > 0 ? state.unreadCount - 1 : 0;
+
+        emit(state.copyWith(
+          notifications: updatedList,
+          unreadCount: newUnreadCount,
+        ));
+      },
+    );
+  }
+
+  Future<void> _onMarkAllAsRead(
+      MarkAllNotificationsAsReadEvent event,
+      Emitter<NotificationState> emit,
+      ) async {
+    final result = await notificationRepository.markAllAsRead();
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: NotificationStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (_) {
+        final updatedList = state.notifications
+            .map((n) => n.copyWith(isRead: true))
+            .toList();
+
+        emit(state.copyWith(
+          notifications: updatedList,
+          unreadCount: 0,
+        ));
+      },
+    );
+  }
+
+  Future<void> _onDeleteNotification(
+      DeleteNotificationEvent event,
+      Emitter<NotificationState> emit,
+      ) async {
+    final result =
+    await notificationRepository.deleteNotification(event.notificationId);
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: NotificationStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (_) {
+        final notification = state.notifications
+            .firstWhere((n) => n.id == event.notificationId);
+
+        final updatedList = state.notifications
+            .where((n) => n.id != event.notificationId)
+            .toList();
+
+        final newUnreadCount = !notification.isRead && state.unreadCount > 0
+            ? state.unreadCount - 1
+            : state.unreadCount;
+
+        emit(state.copyWith(
+          notifications: updatedList,
+          unreadCount: newUnreadCount,
+        ));
+      },
+    );
+  }
+
+  Future<void> _onDeleteAllNotifications(
+      DeleteAllNotificationsEvent event,
+      Emitter<NotificationState> emit,
+      ) async {
+    emit(state.copyWith(status: NotificationStatus.loading));
+
+    final result = await notificationRepository.deleteAllNotifications();
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: NotificationStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (_) => emit(state.copyWith(
+        status: NotificationStatus.success,
+        notifications: [],
+        unreadCount: 0,
+      )),
+    );
+  }
+
+  Future<void> _onRefreshNotifications(
+      RefreshNotificationsEvent event,
+      Emitter<NotificationState> emit,
+      ) async {
+    print('sdfasfasf');
+    final result = await notificationRepository.getNotifications(
+      page: 1,
+      unreadOnly: false,
+    );
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: NotificationStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (response) {
+        emit(state.copyWith(
+          status: NotificationStatus.success,
+          notifications: response.notifications,
+          unreadCount: response.unreadCount,
+          currentPage: 1,
+          hasMore: response.notifications.length < 20,
+        ));
+      },
+    );
+  }
+
+  Future<void> _onGetUnreadCount(
+      GetUnreadCountEvent event,
+      Emitter<NotificationState> emit,
+      ) async {
+    final result = await notificationRepository.getUnreadCount();
+
+    result.fold(
+          (failure) => null,
+          (count) => emit(state.copyWith(unreadCount: count)),
+    );
+  }
+
+  Future<void> _onHandleIncomingNotification(
+      HandleIncomingNotificationEvent event,
+      Emitter<NotificationState> emit,
+      ) async {
+    // Increment unread count when new notification arrives
+    emit(state.copyWith(unreadCount: state.unreadCount + 1));
+
+    // Optionally refresh notifications list
+    add(RefreshNotificationsEvent());
+  }
+}abstract class NotificationEvent {}
+
+// Settings Events
+class GetNotificationSettingsEvent extends NotificationEvent {}
+
+class UpdateNotificationSettingsEvent extends NotificationEvent {
+  final bool? enabled;
+  final bool? newPosts;
+  final bool? newComments;
+  final bool? newLikes;
+  final bool? commentReplies;
+  final bool? mentions;
+  final bool? chatMessages;
+  final bool? chatMentions;
+
+  UpdateNotificationSettingsEvent({
+    this.enabled,
+    this.newPosts,
+    this.newComments,
+    this.newLikes,
+    this.commentReplies,
+    this.mentions,
+    this.chatMessages,
+    this.chatMentions,
+  });
+}
+
+class SaveFcmTokenEvent extends NotificationEvent {
+  final String fcmToken;
+
+  SaveFcmTokenEvent(this.fcmToken);
+}
+
+class RemoveFcmTokenEvent extends NotificationEvent {}
+
+// Notification List Events
+class GetNotificationsEvent extends NotificationEvent {
+  final int page;
+  final bool unreadOnly;
+  final bool loadMore;
+
+  GetNotificationsEvent({
+    this.page = 1,
+    this.unreadOnly = false,
+    this.loadMore = false,
+  });
+}
+
+class MarkNotificationAsReadEvent extends NotificationEvent {
+  final String notificationId;
+
+  MarkNotificationAsReadEvent(this.notificationId);
+}
+
+class MarkAllNotificationsAsReadEvent extends NotificationEvent {}
+
+class DeleteNotificationEvent extends NotificationEvent {
+  final String notificationId;
+
+  DeleteNotificationEvent(this.notificationId);
+}
+
+class DeleteAllNotificationsEvent extends NotificationEvent {}
+
+class RefreshNotificationsEvent extends NotificationEvent {}
+
+class GetUnreadCountEvent extends NotificationEvent {}
+
+// Handle incoming notification from FCM
+class HandleIncomingNotificationEvent extends NotificationEvent {
+  final Map<String, dynamic> data;
+
+  HandleIncomingNotificationEvent(this.data);
+}import 'package:unitalk/features/notifications/model/notification_model.dart';
+import 'package:unitalk/features/notifications/model/notification_settings_model.dart';
+
+enum NotificationStatus {
+  initial,
+  loading,
+  loadingMore,
+  success,
+  failure,
+}
+
+class NotificationState {
+  final NotificationStatus status;
+  final List<NotificationModel> notifications;
+  final NotificationSettingsModel? settings;
+  final int unreadCount;
+  final int currentPage;
+  final bool hasMore;
+  final String? errorMessage;
+
+  NotificationState({
+    required this.status,
+    required this.notifications,
+    this.settings,
+    required this.unreadCount,
+    required this.currentPage,
+    required this.hasMore,
+    this.errorMessage,
+  });
+
+  factory NotificationState.initial() {
+    return NotificationState(
+      status: NotificationStatus.initial,
+      notifications: [],
+      settings: null,
+      unreadCount: 0,
+      currentPage: 1,
+      hasMore: true,
+      errorMessage: null,
+    );
+  }
+
+  NotificationState copyWith({
+    NotificationStatus? status,
+    List<NotificationModel>? notifications,
+    NotificationSettingsModel? settings,
+    int? unreadCount,
+    int? currentPage,
+    bool? hasMore,
+    String? errorMessage,
+  }) {
+    return NotificationState(
+      status: status ?? this.status,
+      notifications: notifications ?? this.notifications,
+      settings: settings ?? this.settings,
+      unreadCount: unreadCount ?? this.unreadCount,
+      currentPage: currentPage ?? this.currentPage,
+      hasMore: hasMore ?? this.hasMore,
+      errorMessage: errorMessage,
+    );
+  }
+}// lib/features/friendship/data/models/friendship_model.dart
+import 'package:json_annotation/json_annotation.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+
+part 'friendship_model.g.dart';
+
+enum FriendshipStatus {
+  @JsonValue('none')
+  none,
+  @JsonValue('pending')
+  pending,
+  @JsonValue('accepted')
+  accepted,
+  @JsonValue('rejected')
+  rejected,
+}
+
+@JsonSerializable()
+class FriendshipModel {
+  @JsonKey(name: '_id')
+  final String? id;
+  final FriendshipStatus status;
+  final String? friendshipId;
+  final bool? isRequester;
+  final DateTime? createdAt;
+  final DateTime? acceptedAt;
+
+  FriendshipModel({
+    this.id,
+    required this.status,
+    this.friendshipId,
+    this.isRequester,
+    this.createdAt,
+    this.acceptedAt,
+  });
+
+  factory FriendshipModel.fromJson(Map<String, dynamic> json) =>
+      _$FriendshipModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FriendshipModelToJson(this);
+
+  bool get isPending => status == FriendshipStatus.pending;
+  bool get isAccepted => status == FriendshipStatus.accepted;
+  bool get isNone => status == FriendshipStatus.none;
+}
+
+@JsonSerializable()
+class FriendshipStatusResponse {
+  final FriendshipStatus status;
+  final bool isFriend;
+  final String? friendshipId;
+  final bool? isRequester;
+  final DateTime? createdAt;
+  final DateTime? acceptedAt;
+
+  FriendshipStatusResponse({
+    required this.status,
+    required this.isFriend,
+    this.friendshipId,
+    this.isRequester,
+    this.createdAt,
+    this.acceptedAt,
+  });
+
+  factory FriendshipStatusResponse.fromJson(Map<String, dynamic> json) =>
+      _$FriendshipStatusResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FriendshipStatusResponseToJson(this);
+}
+
+@JsonSerializable()
+class FriendRequestModel {
+  final String friendshipId;
+  final UserModel user;
+  final DateTime requestedAt;
+
+  FriendRequestModel({
+    required this.friendshipId,
+    required this.user,
+    required this.requestedAt,
+  });
+
+  factory FriendRequestModel.fromJson(Map<String, dynamic> json) =>
+      _$FriendRequestModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FriendRequestModelToJson(this);
+}// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'friendship_model.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+FriendshipModel _$FriendshipModelFromJson(Map<String, dynamic> json) =>
+    FriendshipModel(
+      id: json['_id'] as String?,
+      status: $enumDecode(_$FriendshipStatusEnumMap, json['status']),
+      friendshipId: json['friendshipId'] as String?,
+      isRequester: json['isRequester'] as bool?,
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
+      acceptedAt: json['acceptedAt'] == null
+          ? null
+          : DateTime.parse(json['acceptedAt'] as String),
+    );
+
+Map<String, dynamic> _$FriendshipModelToJson(FriendshipModel instance) =>
+    <String, dynamic>{
+      '_id': instance.id,
+      'status': _$FriendshipStatusEnumMap[instance.status]!,
+      'friendshipId': instance.friendshipId,
+      'isRequester': instance.isRequester,
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'acceptedAt': instance.acceptedAt?.toIso8601String(),
+    };
+
+const _$FriendshipStatusEnumMap = {
+  FriendshipStatus.none: 'none',
+  FriendshipStatus.pending: 'pending',
+  FriendshipStatus.accepted: 'accepted',
+  FriendshipStatus.rejected: 'rejected',
+};
+
+FriendshipStatusResponse _$FriendshipStatusResponseFromJson(
+  Map<String, dynamic> json,
+) => FriendshipStatusResponse(
+  status: $enumDecode(_$FriendshipStatusEnumMap, json['status']),
+  isFriend: json['isFriend'] as bool,
+  friendshipId: json['friendshipId'] as String?,
+  isRequester: json['isRequester'] as bool?,
+  createdAt: json['createdAt'] == null
+      ? null
+      : DateTime.parse(json['createdAt'] as String),
+  acceptedAt: json['acceptedAt'] == null
+      ? null
+      : DateTime.parse(json['acceptedAt'] as String),
+);
+
+Map<String, dynamic> _$FriendshipStatusResponseToJson(
+  FriendshipStatusResponse instance,
+) => <String, dynamic>{
+  'status': _$FriendshipStatusEnumMap[instance.status]!,
+  'isFriend': instance.isFriend,
+  'friendshipId': instance.friendshipId,
+  'isRequester': instance.isRequester,
+  'createdAt': instance.createdAt?.toIso8601String(),
+  'acceptedAt': instance.acceptedAt?.toIso8601String(),
+};
+
+FriendRequestModel _$FriendRequestModelFromJson(Map<String, dynamic> json) =>
+    FriendRequestModel(
+      friendshipId: json['friendshipId'] as String,
+      user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
+      requestedAt: DateTime.parse(json['requestedAt'] as String),
+    );
+
+Map<String, dynamic> _$FriendRequestModelToJson(FriendRequestModel instance) =>
+    <String, dynamic>{
+      'friendshipId': instance.friendshipId,
+      'user': instance.user,
+      'requestedAt': instance.requestedAt.toIso8601String(),
+    };

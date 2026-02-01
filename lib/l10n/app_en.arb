@@ -1468,5 +1468,21 @@
         "type": "int"
       }
     }
-  }
+  },
+
+  "postNotificationFilter": "Filter post notifications",
+  "allUniversities": "All universities",
+  "allUniversitiesDescription": "Receive notifications from all universities",
+  "selectedUniversities": "Selected universities",
+  "selectedUniversitiesDescription": "Choose specific universities",
+  "universitiesSelected": "{count} universities selected",
+  "friendsOnly": "Friends only",
+  "friendsOnlyDescription": "Only from people you follow",
+  "selectUniversities": "Select Universities",
+  "errorLoadingUniversities": "Error loading universities",
+  "done": "Done",
+  "myUniversity": "My university",
+  "myUniversityDescription": "Only from students at my university"
+
+
 }

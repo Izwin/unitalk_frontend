@@ -20,6 +20,9 @@ NotificationSettingsModel _$NotificationSettingsModelFromJson(
   mentions: json['mentions'] as bool,
   chatMessages: json['chatMessages'] as bool,
   chatMentions: json['chatMentions'] as bool,
+  newPostsFilter:
+      $enumDecodeNullable(_$NewPostsFilterEnumMap, json['newPostsFilter']) ??
+      NewPostsFilter.all,
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
 );
@@ -38,6 +41,13 @@ Map<String, dynamic> _$NotificationSettingsModelToJson(
   'mentions': instance.mentions,
   'chatMessages': instance.chatMessages,
   'chatMentions': instance.chatMentions,
+  'newPostsFilter': _$NewPostsFilterEnumMap[instance.newPostsFilter]!,
   'createdAt': instance.createdAt.toIso8601String(),
   'updatedAt': instance.updatedAt.toIso8601String(),
+};
+
+const _$NewPostsFilterEnumMap = {
+  NewPostsFilter.all: 'all',
+  NewPostsFilter.myUniversity: 'myUniversity',
+  NewPostsFilter.friends: 'friends',
 };

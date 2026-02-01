@@ -1456,4 +1456,46 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get postNotificationFilter => 'Filter post notifications';
+
+  @override
+  String get allUniversities => 'All universities';
+
+  @override
+  String get allUniversitiesDescription =>
+      'Receive notifications from all universities';
+
+  @override
+  String get selectedUniversities => 'Selected universities';
+
+  @override
+  String get selectedUniversitiesDescription => 'Choose specific universities';
+
+  @override
+  String universitiesSelected(Object count) {
+    return '$count universities selected';
+  }
+
+  @override
+  String get friendsOnly => 'Friends only';
+
+  @override
+  String get friendsOnlyDescription => 'Only from people you follow';
+
+  @override
+  String get selectUniversities => 'Select Universities';
+
+  @override
+  String get errorLoadingUniversities => 'Error loading universities';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get myUniversity => 'My university';
+
+  @override
+  String get myUniversityDescription => 'Only from students at my university';
 }

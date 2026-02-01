@@ -2733,6 +2733,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{No friends} =1{1 friend} other{{count} friends}}'**
   String friendsCount(int count);
+
+  /// No description provided for @postNotificationFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter post notifications'**
+  String get postNotificationFilter;
+
+  /// No description provided for @allUniversities.
+  ///
+  /// In en, this message translates to:
+  /// **'All universities'**
+  String get allUniversities;
+
+  /// No description provided for @allUniversitiesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive notifications from all universities'**
+  String get allUniversitiesDescription;
+
+  /// No description provided for @selectedUniversities.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected universities'**
+  String get selectedUniversities;
+
+  /// No description provided for @selectedUniversitiesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose specific universities'**
+  String get selectedUniversitiesDescription;
+
+  /// No description provided for @universitiesSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} universities selected'**
+  String universitiesSelected(Object count);
+
+  /// No description provided for @friendsOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends only'**
+  String get friendsOnly;
+
+  /// No description provided for @friendsOnlyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Only from people you follow'**
+  String get friendsOnlyDescription;
+
+  /// No description provided for @selectUniversities.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Universities'**
+  String get selectUniversities;
+
+  /// No description provided for @errorLoadingUniversities.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading universities'**
+  String get errorLoadingUniversities;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @myUniversity.
+  ///
+  /// In en, this message translates to:
+  /// **'My university'**
+  String get myUniversity;
+
+  /// No description provided for @myUniversityDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Only from students at my university'**
+  String get myUniversityDescription;
 }
 
 class _AppLocalizationsDelegate

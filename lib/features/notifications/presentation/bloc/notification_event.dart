@@ -1,3 +1,5 @@
+import 'package:unitalk/features/notifications/model/notification_settings_model.dart';
+
 abstract class NotificationEvent {}
 
 // Settings Events
@@ -12,6 +14,7 @@ class UpdateNotificationSettingsEvent extends NotificationEvent {
   final bool? mentions;
   final bool? chatMessages;
   final bool? chatMentions;
+  final NewPostsFilter? newPostsFilter;
 
   UpdateNotificationSettingsEvent({
     this.enabled,
@@ -22,6 +25,7 @@ class UpdateNotificationSettingsEvent extends NotificationEvent {
     this.mentions,
     this.chatMessages,
     this.chatMentions,
+    this.newPostsFilter,
   });
 }
 

@@ -24,6 +24,8 @@ class NotificationRemoteDataSource {
     bool? mentions,
     bool? chatMessages,
     bool? chatMentions,
+    // ========== НОВЫЕ ПАРАМЕТРЫ ==========
+    NewPostsFilter? newPostsFilter,
   }) async {
     final data = <String, dynamic>{};
 
@@ -35,6 +37,11 @@ class NotificationRemoteDataSource {
     if (mentions != null) data['mentions'] = mentions;
     if (chatMessages != null) data['chatMessages'] = chatMessages;
     if (chatMentions != null) data['chatMentions'] = chatMentions;
+
+    // ========== НОВЫЕ ПОЛЯ ==========
+    if (newPostsFilter != null) {
+      data['newPostsFilter'] = newPostsFilter.name; // 'all', 'universities', 'friends'
+    }
 
     final response = await dio.put('/notifications/settings', data: data);
     return NotificationSettingsModel.fromJson(response.data);

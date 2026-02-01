@@ -531,6 +531,18 @@
   "incoming": "Входящие",
   "outgoing": "Исходящие",
   "sentAt": "Отправлено",
-  "friendsCount": "{count, plural, =0{Нет друзей} =1{1 друг} few{{count} друга} other{{count} друзей}}"
-
+  "friendsCount": "{count, plural, =0{Нет друзей} =1{1 друг} few{{count} друга} other{{count} друзей}}",
+  "postNotificationFilter": "Фильтр уведомлений о постах",
+  "allUniversities": "Все университеты",
+  "allUniversitiesDescription": "Получать уведомления от всех университетов",
+  "selectedUniversities": "Выбранные университеты",
+  "selectedUniversitiesDescription": "Выберите конкретные университеты",
+  "universitiesSelected": "Выбрано университетов: {count}",
+  "friendsOnly": "Только друзья",
+  "friendsOnlyDescription": "Только от людей, на которых вы подписаны",
+  "selectUniversities": "Выбор университетов",
+  "errorLoadingUniversities": "Ошибка загрузки университетов",
+  "done": "Готово",
+  "myUniversity": "Моем университет",
+  "myUniversityDescription": "Только от студентов моего университета"
 }

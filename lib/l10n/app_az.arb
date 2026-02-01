@@ -532,7 +532,20 @@
   "incoming": "Входящие",
   "outgoing": "Исходящие",
   "sentAt": "Отправлено",
-  "friendsCount": "{count, plural, =0{Нет друзей} =1{1 друг} few{{count} друга} other{{count} друзей}}"
+  "friendsCount": "{count, plural, =0{Нет друзей} =1{1 друг} few{{count} друга} other{{count} друзей}}",
+  "postNotificationFilter": "Post bildirişlərini filtrlə",
+  "allUniversities": "Bütün universitetlər",
+  "allUniversitiesDescription": "Bütün universitetlərdən bildirişlər al",
+  "selectedUniversities": "Seçilmiş universitetlər",
+  "selectedUniversitiesDescription": "Müəyyən universitetləri seçin",
+  "universitiesSelected": "{count} universitet seçildi",
+  "friendsOnly": "Yalnız dostlar",
+  "friendsOnlyDescription": "Yalnız izlədiyiniz insanlardan",
+  "selectUniversities": "Universitetləri seçin",
+  "errorLoadingUniversities": "Universitetləri yükləmək mümkün olmadı",
+  "done": "Hazır",
+  "myUniversity": "Mənim universiteti",
+  "myUniversityDescription": "Yalnız mənim universitetimin tələbəlarından"
 }
 
 

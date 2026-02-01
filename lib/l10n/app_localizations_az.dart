@@ -1461,4 +1461,48 @@ class AppLocalizationsAz extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get postNotificationFilter => 'Post bildirişlərini filtrlə';
+
+  @override
+  String get allUniversities => 'Bütün universitetlər';
+
+  @override
+  String get allUniversitiesDescription =>
+      'Bütün universitetlərdən bildirişlər al';
+
+  @override
+  String get selectedUniversities => 'Seçilmiş universitetlər';
+
+  @override
+  String get selectedUniversitiesDescription => 'Müəyyən universitetləri seçin';
+
+  @override
+  String universitiesSelected(Object count) {
+    return '$count universitet seçildi';
+  }
+
+  @override
+  String get friendsOnly => 'Yalnız dostlar';
+
+  @override
+  String get friendsOnlyDescription => 'Yalnız izlədiyiniz insanlardan';
+
+  @override
+  String get selectUniversities => 'Universitetləri seçin';
+
+  @override
+  String get errorLoadingUniversities =>
+      'Universitetləri yükləmək mümkün olmadı';
+
+  @override
+  String get done => 'Hazır';
+
+  @override
+  String get myUniversity => 'Mənim universiteti';
+
+  @override
+  String get myUniversityDescription =>
+      'Yalnız mənim universitetimin tələbəlarından';
 }

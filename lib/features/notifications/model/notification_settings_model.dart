@@ -1,5 +1,18 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:unitalk/features/university/data/models/university_model.dart';
+
 part 'notification_settings_model.g.dart';
+
+// Enum для типа фильтра постов
+enum NewPostsFilter {
+  @JsonValue('all')
+  all,
+  @JsonValue('myUniversity')
+  myUniversity,
+  @JsonValue('friends')
+  friends,
+}
+
 @JsonSerializable()
 class NotificationSettingsModel {
   @JsonKey(name: '_id')
@@ -14,6 +27,11 @@ class NotificationSettingsModel {
   final bool mentions;
   final bool chatMessages;
   final bool chatMentions;
+
+  // ========== НОВЫЕ ПОЛЯ ==========
+  final NewPostsFilter newPostsFilter;
+  // ================================
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -29,6 +47,7 @@ class NotificationSettingsModel {
     required this.mentions,
     required this.chatMessages,
     required this.chatMentions,
+    this.newPostsFilter = NewPostsFilter.all,  // default
     required this.createdAt,
     required this.updatedAt,
   });
@@ -50,6 +69,8 @@ class NotificationSettingsModel {
     bool? mentions,
     bool? chatMessages,
     bool? chatMentions,
+    NewPostsFilter? newPostsFilter,
+    List<UniversityModel>? newPostsUniversities,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -65,8 +86,10 @@ class NotificationSettingsModel {
       mentions: mentions ?? this.mentions,
       chatMessages: chatMessages ?? this.chatMessages,
       chatMentions: chatMentions ?? this.chatMentions,
+      newPostsFilter: newPostsFilter ?? this.newPostsFilter,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }
+

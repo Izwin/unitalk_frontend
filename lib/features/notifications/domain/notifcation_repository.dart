@@ -18,6 +18,7 @@ abstract class NotificationRepository {
     bool? mentions,
     bool? chatMessages,
     bool? chatMentions,
+    NewPostsFilter? newPostsFilter,
   });
 
   Future<Either<Failure, void>> saveFcmToken(String fcmToken);

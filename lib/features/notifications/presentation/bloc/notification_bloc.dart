@@ -60,6 +60,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       mentions: event.mentions,
       chatMessages: event.chatMessages,
       chatMentions: event.chatMentions,
+      // ========== НОВЫЕ ПОЛЯ ==========
+      newPostsFilter: event.newPostsFilter,
     );
 
     result.fold(
@@ -73,7 +75,6 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       )),
     );
   }
-
   Future<void> _onSaveFcmToken(
       SaveFcmTokenEvent event,
       Emitter<NotificationState> emit,

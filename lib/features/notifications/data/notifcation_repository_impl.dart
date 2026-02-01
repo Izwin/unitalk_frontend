@@ -13,6 +13,8 @@ class NotificationRepositoryImpl implements NotificationRepository {
 
   @override
   Future<Either<Failure, NotificationSettingsModel>> getSettings() async {
+    final settings = await remoteDataSource.getSettings();
+    return Right(settings);
     try {
       final settings = await remoteDataSource.getSettings();
       return Right(settings);
@@ -31,6 +33,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
     bool? mentions,
     bool? chatMessages,
     bool? chatMentions,
+    NewPostsFilter? newPostsFilter,
   }) async {
     try {
       final settings = await remoteDataSource.updateSettings(
@@ -42,6 +45,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
         mentions: mentions,
         chatMessages: chatMessages,
         chatMentions: chatMentions,
+        newPostsFilter: newPostsFilter,
       );
       return Right(settings);
     } catch (e) {
