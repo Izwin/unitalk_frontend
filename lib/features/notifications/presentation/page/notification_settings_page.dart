@@ -15,9 +15,6 @@ import 'package:unitalk/features/university/presentation/manager/university_even
 import 'package:unitalk/features/university/presentation/manager/university_state.dart';
 import 'package:unitalk/l10n/app_localizations.dart';
 
-// Converted to StatefulWidget so we can own a ScrollController
-// that survives BlocBuilder rebuilds — this prevents the list
-// from jumping back to the top and flickering on every toggle.
 class NotificationSettingsPage extends StatefulWidget {
   const NotificationSettingsPage({Key? key}) : super(key: key);
 
@@ -27,7 +24,6 @@ class NotificationSettingsPage extends StatefulWidget {
 }
 
 class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
-  // Persistent controller — survives bloc rebuilds
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -62,9 +58,10 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
             color: theme.colorScheme.onSurface.withOpacity(0.08),
           ),
           Expanded(
-            // BlocBuilder only rebuilds the ListView's *content*;
-            // the ScrollController keeps the current offset intact.
             child: BlocBuilder<NotificationBloc, NotificationState>(
+              buildWhen: (previous, current) =>
+              previous.settings != current.settings ||
+                  previous.status != current.status,
               builder: (context, state) {
                 if (state.status == NotificationStatus.loading) {
                   return const Center(child: CircularProgressIndicator());
@@ -85,22 +82,24 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                 final settings = state.settings!;
 
                 return ListView(
-                  // Attach the persistent controller here
+                  key: const PageStorageKey<String>('notification_settings_list'),
                   controller: _scrollController,
+                  primary: false,
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   children: [
                     // Master switch
-                    _buildMasterSwitch(context, settings, l10n, theme),
+                    _MasterSwitchWidget(settings: settings),
 
                     const SizedBox(height: 24),
 
                     // Posts section
-                    _buildSectionHeader(
-                        context, l10n.posts, Icons.post_add_rounded),
-                    _buildSettingsGroup(
-                      context,
-                      settings,
-                      [
+                    _SectionHeaderWidget(
+                      title: l10n.posts,
+                      icon: Icons.post_add_rounded,
+                    ),
+                    _SettingsGroupWidget(
+                      settings: settings,
+                      items: [
                         _SettingData(
                           title: l10n.newPosts,
                           subtitle: l10n.newPostsDescription,
@@ -134,21 +133,29 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                       ],
                     ),
 
-                    // Post notification filter section (only visible when newPosts is enabled)
-                    if (settings.newPosts && settings.enabled) ...[
-                      const SizedBox(height: 16),
-                      _buildPostFilterSection(context, settings, l10n, theme),
-                    ],
+                    // Post notification filter section
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      alignment: Alignment.topCenter,
+                      child: (settings.newPosts && settings.enabled)
+                          ? Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: _PostFilterSectionWidget(settings: settings),
+                      )
+                          : const SizedBox.shrink(),
+                    ),
 
                     const SizedBox(height: 32),
 
                     // Comments section
-                    _buildSectionHeader(
-                        context, l10n.comments, Icons.chat_bubble_outline),
-                    _buildSettingsGroup(
-                      context,
-                      settings,
-                      [
+                    _SectionHeaderWidget(
+                      title: l10n.comments,
+                      icon: Icons.chat_bubble_outline,
+                    ),
+                    _SettingsGroupWidget(
+                      settings: settings,
+                      items: [
                         _SettingData(
                           title: l10n.commentReplies,
                           subtitle: l10n.commentRepliesDescription,
@@ -175,12 +182,13 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                     const SizedBox(height: 32),
 
                     // Chat section
-                    _buildSectionHeader(
-                        context, l10n.chat, Icons.forum_outlined),
-                    _buildSettingsGroup(
-                      context,
-                      settings,
-                      [
+                    _SectionHeaderWidget(
+                      title: l10n.chat,
+                      icon: Icons.forum_outlined,
+                    ),
+                    _SettingsGroupWidget(
+                      settings: settings,
+                      items: [
                         _SettingData(
                           title: l10n.chatMessages,
                           subtitle: l10n.chatMessagesDescription,
@@ -214,13 +222,22 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       ),
     );
   }
+}
 
-  Widget _buildMasterSwitch(
-      BuildContext context,
-      NotificationSettingsModel settings,
-      AppLocalizations l10n,
-      ThemeData theme,
-      ) {
+// ============================================================================
+// Master Switch Widget
+// ============================================================================
+
+class _MasterSwitchWidget extends StatelessWidget {
+  final NotificationSettingsModel settings;
+
+  const _MasterSwitchWidget({required this.settings});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       padding: const EdgeInsets.all(20),
@@ -282,7 +299,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
             ),
           ),
           const SizedBox(width: 12),
-          Switch(
+          Switch.adaptive(
             value: settings.enabled,
             onChanged: (value) {
               context
@@ -295,13 +312,63 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       ),
     );
   }
+}
 
-  Widget _buildPostFilterSection(
-      BuildContext context,
-      NotificationSettingsModel settings,
-      AppLocalizations l10n,
-      ThemeData theme,
-      ) {
+// ============================================================================
+// Section Header Widget
+// ============================================================================
+
+class _SectionHeaderWidget extends StatelessWidget {
+  final String title;
+  final IconData icon;
+
+  const _SectionHeaderWidget({
+    required this.title,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: theme.colorScheme.onSurface.withOpacity(0.5),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// Post Filter Section Widget
+// ============================================================================
+
+class _PostFilterSectionWidget extends StatelessWidget {
+  final NotificationSettingsModel settings;
+
+  const _PostFilterSectionWidget({required this.settings});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
@@ -337,9 +404,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
           ),
 
           // All universities
-          _buildFilterOption(
-            context: context,
-            theme: theme,
+          _FilterOptionWidget(
             icon: Icons.public_rounded,
             title: l10n.allUniversities,
             subtitle: l10n.allUniversitiesDescription,
@@ -356,9 +421,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
           _buildDivider(theme),
 
           // My university only
-          _buildFilterOption(
-            context: context,
-            theme: theme,
+          _FilterOptionWidget(
             icon: Icons.school_rounded,
             title: l10n.myUniversity,
             subtitle: l10n.myUniversityDescription,
@@ -375,9 +438,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
           _buildDivider(theme),
 
           // Friends only
-          _buildFilterOption(
-            context: context,
-            theme: theme,
+          _FilterOptionWidget(
             icon: Icons.people_rounded,
             title: l10n.friendsOnly,
             subtitle: l10n.friendsOnlyDescription,
@@ -397,16 +458,40 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
     );
   }
 
-  Widget _buildFilterOption({
-    required BuildContext context,
-    required ThemeData theme,
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool isSelected,
-    required VoidCallback onTap,
-    Widget? trailing,
-  }) {
+  Widget _buildDivider(ThemeData theme) {
+    return Container(
+      height: 1,
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      color: theme.colorScheme.onSurface.withOpacity(0.06),
+    );
+  }
+}
+
+// ============================================================================
+// Filter Option Widget
+// ============================================================================
+
+class _FilterOptionWidget extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final Widget? trailing;
+
+  const _FilterOptionWidget({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.isSelected,
+    required this.onTap,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -452,7 +537,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                 ],
               ),
             ),
-            if (trailing != null) trailing,
+            if (trailing != null) trailing!,
             Radio<bool>(
               value: true,
               groupValue: isSelected,
@@ -464,47 +549,25 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       ),
     );
   }
+}
 
-  Widget _buildDivider(ThemeData theme) {
-    return Container(
-      height: 1,
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      color: theme.colorScheme.onSurface.withOpacity(0.06),
-    );
-  }
+// ============================================================================
+// Settings Group Widget
+// ============================================================================
 
-  Widget _buildSectionHeader(
-      BuildContext context, String title, IconData icon) {
+class _SettingsGroupWidget extends StatelessWidget {
+  final NotificationSettingsModel settings;
+  final List<_SettingData> items;
+
+  const _SettingsGroupWidget({
+    required this.settings,
+    required this.items,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 18,
-            color: theme.colorScheme.onSurface.withOpacity(0.5),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            title.toUpperCase(),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildSettingsGroup(
-      BuildContext context,
-      NotificationSettingsModel settings,
-      List<_SettingData> items,
-      ) {
-    final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
@@ -518,8 +581,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       child: Column(
         children: [
           for (int i = 0; i < items.length; i++) ...[
-            _buildSettingTile(
-              context: context,
+            _SettingTileWidget(
               data: items[i],
               enabled: settings.enabled,
             ),
@@ -534,13 +596,25 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       ),
     );
   }
+}
 
-  Widget _buildSettingTile({
-    required BuildContext context,
-    required _SettingData data,
-    required bool enabled,
-  }) {
+// ============================================================================
+// Setting Tile Widget
+// ============================================================================
+
+class _SettingTileWidget extends StatelessWidget {
+  final _SettingData data;
+  final bool enabled;
+
+  const _SettingTileWidget({
+    required this.data,
+    required this.enabled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return InkWell(
       onTap: enabled ? () => data.onChanged(!data.value) : null,
       borderRadius: BorderRadius.circular(16),
@@ -577,7 +651,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
               ),
             ),
             const SizedBox(width: 16),
-            Switch(
+            Switch.adaptive(
               value: data.value,
               onChanged: enabled ? data.onChanged : null,
               activeColor: theme.colorScheme.primary,
@@ -588,6 +662,10 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
     );
   }
 }
+
+// ============================================================================
+// Setting Data Model
+// ============================================================================
 
 class _SettingData {
   final String title;
@@ -958,13 +1036,15 @@ class _UniversityCheckboxTile extends StatelessWidget {
             // University logo
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: university.logoUrl != null && university.logoUrl!.isNotEmpty
+              child:
+              university.logoUrl != null && university.logoUrl!.isNotEmpty
                   ? CachedNetworkImage(
                 imageUrl: university.logoUrl!,
                 width: 48,
                 height: 48,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => _buildPlaceholder(theme),
+                placeholder: (context, url) =>
+                    _buildPlaceholder(theme),
                 errorWidget: (context, url, error) =>
                     _buildPlaceholder(theme),
               )
