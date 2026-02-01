@@ -107,7 +107,7 @@ class ProfileDrawer extends StatelessWidget {
             ],
           ),
           onTap: () {
-            context.pop();
+            _safePop(context);
             _showLanguageDialog(context);
           },
           contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -143,7 +143,7 @@ class ProfileDrawer extends StatelessWidget {
       title: Text(title, style: TextStyle(fontSize: 15, color: color)),
       trailing: route != null ? Icon(Icons.chevron_right, size: 20) : null,
       onTap: onTap ?? () {
-        context.pop();
+        _safePop(context);
         if (route != null) context.push(route);
       },
       contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -209,5 +209,11 @@ class ProfileDrawer extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _safePop(BuildContext context) {
+    if (Navigator.of(context).canPop()) {
+      context.pop();
+    }
   }
 }

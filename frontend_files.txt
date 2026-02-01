@@ -1,1358 +1,1759 @@
 import 'package:json_annotation/json_annotation.dart';
-part 'notification_settings_model.g.dart';
-@JsonSerializable()
-class NotificationSettingsModel {
-  @JsonKey(name: '_id')
-  final String id;
-  final String userId;
-  final bool enabled;
-  final String? fcmToken;
-  final bool newPosts;
-  final bool newComments;
-  final bool newLikes;
-  final bool commentReplies;
-  final bool mentions;
-  final bool chatMessages;
-  final bool chatMentions;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+import 'package:unitalk/features/block/data/model/block_model.dart';
+import 'package:unitalk/features/faculty/data/models/faculty_model.dart';
+import 'package:unitalk/features/university/data/models/university_model.dart';
+import 'verification_model.dart';
 
-  NotificationSettingsModel({
+part 'user_model.g.dart';
+
+enum Sector {
+  @JsonValue('en')
+  english,
+  @JsonValue('ru')
+  russian,
+  @JsonValue('az')
+  azerbaijani;
+
+  String get code {
+    switch (this) {
+      case Sector.english:
+        return 'en';
+      case Sector.russian:
+        return 'ru';
+      case Sector.azerbaijani:
+        return 'az';
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case Sector.english:
+        return 'English';
+      case Sector.russian:
+        return 'Russian';
+      case Sector.azerbaijani:
+        return 'Azerbaijani';
+    }
+  }
+
+  String get flagEmoji {
+    switch (this) {
+      case Sector.english:
+        return '🇬🇧';
+      case Sector.russian:
+        return '🇷🇺';
+      case Sector.azerbaijani:
+        return '🇦🇿';
+    }
+  }
+
+  static Sector? fromCode(String? code) {
+    if (code == null) return null;
+    switch (code) {
+      case 'en':
+        return Sector.english;
+      case 'ru':
+        return Sector.russian;
+      case 'az':
+        return Sector.azerbaijani;
+      default:
+        return null;
+    }
+  }
+}
+
+@JsonSerializable()
+class UserModel {
+  @JsonKey(name: '_id')
+  final String? id;
+  final String? email;
+  final String? photoUrl;
+  final String? firstName;
+  final String? lastName;
+  @JsonKey(name: 'universityId')
+  final UniversityModel? university;
+  @JsonKey(name: 'facultyId')
+  final FacultyModel? faculty;
+  final Sector? sector;
+  final bool? isVerified;
+  @JsonKey(name: 'verificationId')
+  final VerificationModel? verification;
+  final BlockStatusModel? blockStatus;
+  final int? friendsCount;
+  final int? pendingRequestsCount;
+
+  // НОВОЕ: Язык пользователя с сервера
+  final String? language;
+
+  UserModel({
     required this.id,
-    required this.userId,
-    required this.enabled,
-    this.fcmToken,
-    required this.newPosts,
-    required this.newComments,
-    required this.newLikes,
-    required this.commentReplies,
-    required this.mentions,
-    required this.chatMessages,
-    required this.chatMentions,
-    required this.createdAt,
-    required this.updatedAt,
+    this.email,
+    this.photoUrl,
+    this.firstName,
+    this.lastName,
+    this.university,
+    this.faculty,
+    this.sector,
+    this.isVerified,
+    this.verification,
+    this.blockStatus,
+    this.friendsCount,
+    this.pendingRequestsCount,
+    this.language, // НОВОЕ
   });
 
-  factory NotificationSettingsModel.fromJson(Map<String, dynamic> json) =>
-      _$NotificationSettingsModelFromJson(json);
+  factory UserModel.fromJson(Map<String, dynamic> json) =>
+      _$UserModelFromJson(json);
 
-  Map<String, dynamic> toJson() => _$NotificationSettingsModelToJson(this);
+  Map<String, dynamic> toJson() => _$UserModelToJson(this);
 
-  NotificationSettingsModel copyWith({
-    String? id,
-    String? userId,
-    bool? enabled,
-    String? fcmToken,
-    bool? newPosts,
-    bool? newComments,
-    bool? newLikes,
-    bool? commentReplies,
-    bool? mentions,
-    bool? chatMessages,
-    bool? chatMentions,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return NotificationSettingsModel(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      enabled: enabled ?? this.enabled,
-      fcmToken: fcmToken ?? this.fcmToken,
-      newPosts: newPosts ?? this.newPosts,
-      newComments: newComments ?? this.newComments,
-      newLikes: newLikes ?? this.newLikes,
-      commentReplies: commentReplies ?? this.commentReplies,
-      mentions: mentions ?? this.mentions,
-      chatMessages: chatMessages ?? this.chatMessages,
-      chatMentions: chatMentions ?? this.chatMentions,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
-  }
-}// GENERATED CODE - DO NOT MODIFY BY HAND
+  bool get isProfileComplete =>
+      firstName != null &&
+          lastName != null &&
+          university != null &&
+          faculty != null &&
+          sector != null;
 
-part of 'notification_settings_model.dart';
+  bool get canInteract => blockStatus?.canInteract ?? true;
+  bool get isBlocked => blockStatus?.isBlocked ?? false;
+  bool get isBlockedBy => blockStatus?.isBlockedBy ?? false;
+}// features/auth/presentation/pages/profile_page.dart
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-NotificationSettingsModel _$NotificationSettingsModelFromJson(
-  Map<String, dynamic> json,
-) => NotificationSettingsModel(
-  id: json['_id'] as String,
-  userId: json['userId'] as String,
-  enabled: json['enabled'] as bool,
-  fcmToken: json['fcmToken'] as String?,
-  newPosts: json['newPosts'] as bool,
-  newComments: json['newComments'] as bool,
-  newLikes: json['newLikes'] as bool,
-  commentReplies: json['commentReplies'] as bool,
-  mentions: json['mentions'] as bool,
-  chatMessages: json['chatMessages'] as bool,
-  chatMentions: json['chatMentions'] as bool,
-  createdAt: DateTime.parse(json['createdAt'] as String),
-  updatedAt: DateTime.parse(json['updatedAt'] as String),
-);
-
-Map<String, dynamic> _$NotificationSettingsModelToJson(
-  NotificationSettingsModel instance,
-) => <String, dynamic>{
-  '_id': instance.id,
-  'userId': instance.userId,
-  'enabled': instance.enabled,
-  'fcmToken': instance.fcmToken,
-  'newPosts': instance.newPosts,
-  'newComments': instance.newComments,
-  'newLikes': instance.newLikes,
-  'commentReplies': instance.commentReplies,
-  'mentions': instance.mentions,
-  'chatMessages': instance.chatMessages,
-  'chatMentions': instance.chatMentions,
-  'createdAt': instance.createdAt.toIso8601String(),
-  'updatedAt': instance.updatedAt.toIso8601String(),
-};
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:unitalk/core/ui/common/error_state_widget.dart';
-import 'package:unitalk/features/notifications/presentation/bloc/notification_bloc.dart';
-import 'package:unitalk/features/notifications/presentation/bloc/notification_event.dart';
-import 'package:unitalk/features/notifications/presentation/bloc/notification_state.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_event.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:unitalk/features/auth/presentation/widget/profile_drawer.dart';
+import 'package:unitalk/features/auth/presentation/widget/student_id_card_widget.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_state.dart';
+import 'package:unitalk/features/feed/presentation/widget/post_item.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friends_count_button.dart';
 import 'package:unitalk/l10n/app_localizations.dart';
 
-class NotificationSettingsPage extends StatelessWidget {
-  const NotificationSettingsPage({Key? key}) : super(key: key);
+import 'widget/verification_status_widget.dart';
+
+const double _kDrawerBreakpoint = 600.0;
+const double _kDrawerWidth = 300.0;
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProfilePageContent();
+  }
+}
+
+class _ProfilePageContent extends StatefulWidget {
+  @override
+  State<_ProfilePageContent> createState() => _ProfilePageContentState();
+}
+
+class _ProfilePageContentState extends State<_ProfilePageContent> {
+  late final ScrollController _scrollController;  // ✅ Добавлен
+
+  String? get _currentUserId => context.read<AuthBloc>().state.user?.id;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✅ Инициализация ScrollController
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+
+    // Загрузка первой страницы
+    _loadPosts(page: 1);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // ✅ Обработка скролла
+  void _onScroll() {
+    if (_isBottom) {
+      _loadMorePosts();
+    }
+  }
+
+  // ✅ Проверка достижения конца списка
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    // Загружаем когда до конца осталось 200 пикселей
+    return currentScroll >= (maxScroll - 200);
+  }
+
+  // ✅ Загрузка постов
+  void _loadPosts({required int page}) {
+    final userId = _currentUserId;
+    if (userId == null) return;
+
+    context.read<PostBloc>().add(
+      GetPostsEvent(
+        authorId: userId,
+        page: page,
+      ),
+    );
+  }
+
+  // ✅ Загрузка следующей страницы
+  void _loadMorePosts() {
+    final postState = context.read<PostBloc>().state;
+
+    // Не загружаем если:
+    // - уже идёт загрузка
+    // - достигли последней страницы
+    if (postState.status == PostStatus.loading ||
+        postState.isLoadingMore ||
+        postState.postsLastPage) {
+      return;
+    }
+
+    final userId = _currentUserId;
+    if (userId == null) return;
+
+    print('📄 Loading page ${postState.postsPage}'); // Debug
+
+    context.read<PostBloc>().add(
+      GetPostsEvent(
+        authorId: userId,
+        page: postState.postsPage,
+      ),
+    );
+  }
+
+  Future<void> _onRefresh() async {
+    final userId = _currentUserId;
+    if (userId == null) return;
+
+    context.read<PostBloc>().add(GetPostsEvent(authorId: userId, page: 1));
+    context.read<AuthBloc>().add(GetCurrentUserEvent());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWide = screenWidth >= _kDrawerBreakpoint;
+
+    if (isWide) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: _kDrawerWidth,
+              child: ProfileDrawer(),
+            ),
+            VerticalDivider(width: 1, thickness: 1),
+            Expanded(
+              child: _buildContent(context, isWide: true),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      endDrawer: ProfileDrawer(),
+      body: _buildContent(context, isWide: false),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, {required bool isWide}) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        final user = authState.user;
+
+        if (user == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return RefreshIndicator(
+          onRefresh: _onRefresh,
+          color: Theme.of(context).colorScheme.primary,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          child: CustomScrollView(
+            controller: _scrollController,  // ✅ Подключаем контроллер
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // ─── AppBar ─────────────────────────────────────
+              SliverAppBar(
+                expandedHeight: 0,
+                pinned: false,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                title: Text(l10n.profile),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined),
+                    tooltip: l10n.editProfile,
+                    onPressed: () => context.push('/edit-profile'),
+                  ),
+                  if (!isWide)
+                    IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: () => Scaffold.of(context).openEndDrawer(),
+                    ),
+                ],
+              ),
+
+              // ─── Profile header section ───────────────────────
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    StudentIdCardWidget(user: user),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: StatCountButton(
+                            count: user.friendsCount ?? 0,
+                            label: l10n.friends,
+                            icon: Icons.people_outlined,
+                            onTap: () => context.push('/friends'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: StatCountButton(
+                            count: user.pendingRequestsCount ?? 0,
+                            label: l10n.friendRequests,
+                            icon: Icons.person_add_outlined,
+                            highlightThreshold: 1,
+                            onTap: () => context.push('/friend-requests'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    VerificationStatusWidget(user: user),
+                    const SizedBox(height: 24),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.myPosts,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        BlocBuilder<PostBloc, PostState>(
+                          builder: (context, state) {
+                            return Text(
+                              l10n.postsCount(state.totalPostsCount),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.color
+                                    ?.withOpacity(0.6),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ]),
+                ),
+              ),
+
+              // ─── Posts List ─────────────────────────────────────
+              BlocBuilder<PostBloc, PostState>(
+                builder: (context, state) {
+                  if (state.status == PostStatus.loading &&
+                      state.posts.isEmpty) {
+                    return const SliverFillRemaining(
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  if (state.posts.isEmpty) {
+                    return SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.article_outlined,
+                              size: 64,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.color
+                                  ?.withOpacity(0.3),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              l10n.noPostsYet,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.color
+                                    ?.withOpacity(0.6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                        // ✅ Показываем индикатор загрузки в конце списка
+                        if (index == state.posts.length) {
+                          return _buildLoadingIndicator(state);
+                        }
+                        return PostItem(post: state.posts[index]);
+                      },
+                      // ✅ +1 для индикатора загрузки
+                      childCount: state.posts.length + (state.postsLastPage ? 0 : 1),
+                    ),
+                  );
+                },
+              ),
+
+              const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ✅ Индикатор загрузки внизу списка
+  Widget _buildLoadingIndicator(PostState state) {
+    if (state.postsLastPage) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      alignment: Alignment.center,
+      child: state.status == PostStatus.loading || state.isLoadingMore
+          ? const CircularProgressIndicator()
+          : TextButton(
+        onPressed: _loadMorePosts,
+        child: const Text('Загрузить ещё'),
+      ),
+    );
+  }
+}import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:unitalk/core/ui/common/bottom_sheet_list_picker.dart';
+import 'package:unitalk/core/ui/common/common_text_field.dart';
+import 'package:unitalk/core/ui/common/confirmation_dialog.dart';
+import 'package:unitalk/core/ui/common/image_source_picker.dart';
+import 'package:unitalk/core/ui/common/selector_card.dart';
+import 'package:unitalk/core/ui/common/university_selection_sheet.dart';
+import 'package:unitalk/core/ui/common/user_avatar.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_event.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:unitalk/features/faculty/data/models/faculty_model.dart';
+import 'package:unitalk/features/university/data/models/university_model.dart';
+import 'package:unitalk/features/university/presentation/manager/university_bloc.dart';
+import 'package:unitalk/features/university/presentation/manager/university_event.dart';
+import 'package:unitalk/features/university/presentation/manager/university_state.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:unitalk/l10n/bloc/locale_cubit.dart';
+
+class EditProfilePage extends StatefulWidget {
+  const EditProfilePage({Key? key}) : super(key: key);
+
+  @override
+  State<EditProfilePage> createState() => _EditProfilePageState();
+}
+
+class _EditProfilePageState extends State<EditProfilePage> {
+  final _formKey = GlobalKey<FormState>();
+
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
+
+  UniversityModel? _selectedUniversity;
+  FacultyModel? _selectedFaculty;
+  Sector? _selectedSector;
+  File? _selectedImage;
+
+  bool _isModified = false;
+  bool _universityChanged = false;
+  bool _facultyChanged = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = context.read<AuthBloc>().state.user!;
+
+    _firstNameController = TextEditingController(text: user.firstName);
+    _lastNameController = TextEditingController(text: user.lastName);
+
+    _selectedUniversity = user.university;
+    _selectedFaculty = user.faculty;
+    _selectedSector = user.sector;
+
+    _firstNameController.addListener(_onFieldChanged);
+    _lastNameController.addListener(_onFieldChanged);
+
+    if (_selectedUniversity != null) {
+      context.read<UniversityBloc>().add(
+        LoadFacultiesEvent(_selectedUniversity!.id),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    super.dispose();
+  }
+
+  void _onFieldChanged() {
+    if (!_isModified) {
+      setState(() => _isModified = true);
+    }
+  }
+
+  Future<void> _handleImageSelection() async {
+    final l10n = AppLocalizations.of(context)!;
+    final user = context.read<AuthBloc>().state.user;
+
+    final image = await MediaSourcePicker.show(
+      context,
+      galleryText: l10n.chooseFromGallery,
+      videoText: l10n.video,
+      cameraText: l10n.takePhoto,
+      removeText: l10n.removePhoto,
+      canRemove: _selectedImage != null || user?.photoUrl != null,
+      onRemove: () {
+        setState(() {
+          _selectedImage = null;
+          _isModified = true;
+        });
+      },
+    );
+
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+        _isModified = true;
+      });
+    }
+  }
+
+// В EditProfilePage замените метод _showUniversityPicker на этот:
+
+  Future<void> _showUniversityPicker(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) => BlocProvider.value(
+        value: context.read<UniversityBloc>(),
+        child: BlocProvider.value(
+          value: context.read<LocaleCubit>(),
+          child: UniversitySelectionSheet(
+            currentUniversity: _selectedUniversity,
+            onUniversitySelected: (university) {
+              final user = context.read<AuthBloc>().state.user!;
+              final willLoseVerification = user.isVerified == true &&
+                  user.university?.id != university.id;
+
+              void selectUniversity() {
+                setState(() {
+                  _selectedUniversity = university;
+                  _selectedFaculty = null;
+                  _isModified = true;
+                  _universityChanged = user.university?.id != university.id;
+                });
+                context.read<UniversityBloc>().add(
+                  LoadFacultiesEvent(university.id),
+                );
+                Navigator.pop(modalContext); // Закрываем bottom sheet
+              }
+
+              if (willLoseVerification) {
+                Navigator.pop(modalContext); // Сначала закрываем sheet
+                _showVerificationWarning(selectUniversity, context);
+              } else {
+                selectUniversity();
+              }
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showFacultyPicker(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = context.read<LocaleCubit>().state.languageCode;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BlocBuilder<UniversityBloc, UniversityState>(
+        builder: (_, state) {
+          return BottomSheetListPicker<FacultyModel>(
+            title: l10n.selectFaculty,
+            items: state.faculties,
+            selectedItem: _selectedFaculty,
+            itemTitle: (faculty) => faculty.getLocalizedName(locale),
+            defaultIcon: Icons.account_balance,
+            customFilter: (faculty, query) => faculty.matchesQuery(query),
+            onItemSelected: (faculty) {
+              final user = context.read<AuthBloc>().state.user!;
+              final willLoseVerification = user.isVerified == true &&
+                  user.faculty?.id != faculty.id;
+
+              void selectFaculty() {
+                setState(() {
+                  _selectedFaculty = faculty;
+                  _isModified = true;
+                  _facultyChanged = user.faculty?.id != faculty.id;
+                });
+              }
+
+              if (willLoseVerification) {
+                _showVerificationWarning(selectFaculty, context);
+              } else {
+                context.pop();
+                selectFaculty();
+              }
+            },
+            searchHint: l10n.searchFaculties,
+            emptyMessage: l10n.noFacultiesFound,
+          );
+        },
+      ),
+    );
+  }
+  Future<void> _showSectorPicker() async {
+    final l10n = AppLocalizations.of(context)!;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        margin: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              SizedBox(height: 20),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Text(
+                      l10n.selectSector,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Spacer(),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () => context.pop(),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.grey.shade100,
+                        shape: CircleBorder(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 12),
+              ...Sector.values.map((sector) {
+                final isSelected = _selectedSector == sector;
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  child: RadioSelectorItem(
+                    title: sector.displayName,
+                    isSelected: isSelected,
+                    icon: Icons.language,
+                    onTap: () {
+                      setState(() {
+                        _selectedSector = sector;
+                        _isModified = true;
+                      });
+                      context.pop();
+                    },
+                  ),
+                );
+              }).toList(),
+              SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showVerificationWarning(VoidCallback onConfirm,BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    final confirmed = await ConfirmationDialog.showVerificationWarning(
+      context,
+      l10n.verificationWarningTitle,
+      l10n.verificationWarningMessage,
+      l10n.continueButton,
+      l10n.cancel,
+    );
+
+    if (confirmed) {
+      onConfirm();
+    }
+  }
+
+  void _saveChanges(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final user = context.read<AuthBloc>().state.user!;
+    final willLoseVerification = user.isVerified == true &&
+        (_universityChanged || _facultyChanged);
+
+    void performSave() async {
+      if (_selectedImage != null) {
+        context.read<AuthBloc>().add(UpdateAvatarEvent(_selectedImage!));
+        await Future.delayed(Duration(milliseconds: 500));
+      }
+
+      context.read<AuthBloc>().add(
+        UpdateProfileEvent(
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          universityId: _selectedUniversity?.id,
+          facultyId: _selectedFaculty?.id,
+          sector: _selectedSector,
+        ),
+      );
+      context.pop();
+    }
+
+    if (willLoseVerification) {
+      _showVerificationWarning(performSave,context);
+    } else {
+      performSave();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final user = context.read<AuthBloc>().state.user!;
+    final locale = context.read<LocaleCubit>().state.languageCode;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
-        centerTitle: false,
-        title: Text(
-          l10n.notificationSettings,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.5,
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          Container(
-            height: 1,
-            color: theme.colorScheme.onSurface.withOpacity(0.08),
-          ),
-          Expanded(
-            child: BlocBuilder<NotificationBloc, NotificationState>(
-              builder: (context, state) {
-                if (state.status == NotificationStatus.loading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (state.settings == null) {
-                  return ErrorStateWidget(
-                    message: l10n.errorLoadingSettings,
-                    onRetry: () {
-                      context
-                          .read<NotificationBloc>()
-                          .add(GetNotificationSettingsEvent());
-                    },
-                    retryButtonText: l10n.retry,
-                  );
-                }
-
-                final settings = state.settings!;
-
-                return ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  children: [
-                    // Master switch
-                    Container(
-                      margin: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: settings.enabled
-                            ? theme.colorScheme.primary.withOpacity(0.08)
-                            : theme.colorScheme.onSurface.withOpacity(0.04),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: settings.enabled
-                              ? theme.colorScheme.primary.withOpacity(0.2)
-                              : theme.colorScheme.onSurface.withOpacity(0.08),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: settings.enabled
-                                  ? theme.colorScheme.primary
-                                  : theme.colorScheme.onSurface.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              settings.enabled
-                                  ? Icons.notifications_active
-                                  : Icons.notifications_off_outlined,
-                              color: settings.enabled
-                                  ? Colors.white
-                                  : theme.colorScheme.onSurface.withOpacity(0.4),
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l10n.enableNotifications,
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  l10n.enableNotificationsDescription,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurface.withOpacity(0.6),
-                                    letterSpacing: 0.1,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Switch(
-                            value: settings.enabled,
-                            onChanged: (value) {
-                              context
-                                  .read<NotificationBloc>()
-                                  .add(UpdateNotificationSettingsEvent(enabled: value));
-                            },
-                            activeColor: theme.colorScheme.primary,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Posts section
-                    _buildSectionHeader(context, l10n.posts, Icons.post_add_rounded),
-                    _buildSettingsGroup(
-                      context,
-                      settings,
-                      [
-                        _SettingData(
-                          title: l10n.newPosts,
-                          subtitle: l10n.newPostsDescription,
-                          value: settings.newPosts,
-                          onChanged: (value) {
-                            context
-                                .read<NotificationBloc>()
-                                .add(UpdateNotificationSettingsEvent(newPosts: value));
-                          },
-                        ),
-                        _SettingData(
-                          title: l10n.newComments,
-                          subtitle: l10n.newCommentsDescription,
-                          value: settings.newComments,
-                          onChanged: (value) {
-                            context
-                                .read<NotificationBloc>()
-                                .add(UpdateNotificationSettingsEvent(newComments: value));
-                          },
-                        ),
-                        _SettingData(
-                          title: l10n.newLikes,
-                          subtitle: l10n.newLikesDescription,
-                          value: settings.newLikes,
-                          onChanged: (value) {
-                            context
-                                .read<NotificationBloc>()
-                                .add(UpdateNotificationSettingsEvent(newLikes: value));
-                          },
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Comments section
-                    _buildSectionHeader(context, l10n.comments, Icons.chat_bubble_outline),
-                    _buildSettingsGroup(
-                      context,
-                      settings,
-                      [
-                        _SettingData(
-                          title: l10n.commentReplies,
-                          subtitle: l10n.commentRepliesDescription,
-                          value: settings.commentReplies,
-                          onChanged: (value) {
-                            context.read<NotificationBloc>().add(
-                                UpdateNotificationSettingsEvent(commentReplies: value));
-                          },
-                        ),
-                        _SettingData(
-                          title: l10n.mentions,
-                          subtitle: l10n.mentionsDescription,
-                          value: settings.mentions,
-                          onChanged: (value) {
-                            context
-                                .read<NotificationBloc>()
-                                .add(UpdateNotificationSettingsEvent(mentions: value));
-                          },
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Chat section
-                    _buildSectionHeader(context, l10n.chat, Icons.forum_outlined),
-                    _buildSettingsGroup(
-                      context,
-                      settings,
-                      [
-                        _SettingData(
-                          title: l10n.chatMessages,
-                          subtitle: l10n.chatMessagesDescription,
-                          value: settings.chatMessages,
-                          onChanged: (value) {
-                            context
-                                .read<NotificationBloc>()
-                                .add(UpdateNotificationSettingsEvent(chatMessages: value));
-                          },
-                        ),
-                        _SettingData(
-                          title: l10n.chatMentions,
-                          subtitle: l10n.chatMentionsDescription,
-                          value: settings.chatMentions,
-                          onChanged: (value) {
-                            context
-                                .read<NotificationBloc>()
-                                .add(UpdateNotificationSettingsEvent(chatMentions: value));
-                          },
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 40),
-                  ],
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 18,
-            color: theme.colorScheme.onSurface.withOpacity(0.5),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            title.toUpperCase(),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingsGroup(
-      BuildContext context,
-      dynamic settings,
-      List<_SettingData> items,
-      ) {
-    final theme = Theme.of(context);
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.onSurface.withOpacity(0.08),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          for (int i = 0; i < items.length; i++) ...[
-            _buildSettingTile(
-              context: context,
-              data: items[i],
-              enabled: settings.enabled,
-            ),
-            if (i < items.length - 1)
-              Container(
-                height: 1,
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                color: theme.colorScheme.onSurface.withOpacity(0.06),
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state.status == AuthStatus.failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage ?? l10n.failedToUpdateProfile),
+              backgroundColor: Colors.red.shade400,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingTile({
-    required BuildContext context,
-    required _SettingData data,
-    required bool enabled,
-  }) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: enabled ? () => data.onChanged(!data.value) : null,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    data.title,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0,
-                      color: enabled
-                          ? theme.colorScheme.onSurface
-                          : theme.colorScheme.onSurface.withOpacity(0.4),
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => context.pop(),
+          ),
+          title: Text(
+            l10n.editProfile,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          actions: [
+            if (_isModified)
+              Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: TextButton(
+                  onPressed: () => _saveChanges(context),
+                  style: TextButton.styleFrom(
+                    backgroundColor: theme.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  child: Text(
+                    l10n.save,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: EdgeInsets.all(20),
+            children: [
+              // Avatar Section
+              Center(
+                child: Stack(
+                  children: [
+                    UserAvatar(
+                      photoUrl: _selectedImage != null
+                          ? null
+                          : user.photoUrl,
+                      firstName: user.firstName,
+                      lastName: user.lastName,
+                      size: 120,
+                    ),
+                    if (_selectedImage != null)
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                        ),
+                        child: ClipOval(
+                          child: Image.file(
+                            _selectedImage!,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: _handleImageSelection,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: theme.primaryColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: theme.scaffoldBackgroundColor,
+                              width: 3,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.photo_camera,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 32),
+
+              // Personal Information
+              _buildSectionTitle(l10n.personalInformation),
+              SizedBox(height: 12),
+              CommonTextField(
+                controller: _firstNameController,
+                label: l10n.firstName,
+                icon: Icons.person_outline,
+                validator: (value) {
+                  if (value?.trim().isEmpty ?? true) {
+                    return l10n.firstNameRequired;
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 12),
+              CommonTextField(
+                controller: _lastNameController,
+                label: l10n.lastName,
+                icon: Icons.person_outline,
+                validator: (value) {
+                  if (value?.trim().isEmpty ?? true) {
+                    return l10n.lastNameRequired;
+                  }
+                  return null;
+                },
+              ),
+
+              SizedBox(height: 32),
+
+              // Academic Information
+              _buildSectionTitle(l10n.academicInformation),
+              SizedBox(height: 12),
+              SelectorCard(
+                label: l10n.university,
+                value: _selectedUniversity?.getLocalizedName(locale) ?? l10n.selectUniversityPrompt,
+                icon: Icons.school_outlined,
+                onTap: ()=>_showUniversityPicker(context),
+              ),
+              SizedBox(height: 12),
+              SelectorCard(
+                label: l10n.faculty,
+                value: _selectedFaculty?.getLocalizedName(locale) ?? l10n.selectFacultyPrompt,
+                icon: Icons.account_balance_outlined,
+                onTap: () => _showFacultyPicker(context),
+                isEnabled: _selectedUniversity != null,
+              ),
+              SizedBox(height: 12),
+              SelectorCard(
+                label: l10n.sector,
+                value: _selectedSector?.displayName ?? l10n.selectSectorPrompt,
+                icon: Icons.language_outlined,
+                onTap: _showSectorPicker,
+              ),
+              SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: Colors.grey.shade600,
+        letterSpacing: 0.5,
+      ),
+    );
+  }
+}
+
+class RadioSelectorItem extends StatelessWidget {
+  final String title;
+  final bool isSelected;
+  final IconData? icon;
+  final VoidCallback onTap;
+
+  const RadioSelectorItem({
+    Key? key,
+    required this.title,
+    required this.isSelected,
+    this.icon,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? theme.primaryColor.withOpacity(0.08)
+              : theme.cardColor,
+          border: Border.all(
+            color: isSelected
+                ? theme.primaryColor
+                : Colors.grey.shade200,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            if (icon != null)
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: theme.primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: theme.primaryColor,
+                  size: 24,
+                ),
+              ),
+            if (icon != null) SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            if (isSelected)
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: theme.primaryColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/core/di/service_locator.dart';
+import 'package:unitalk/core/ui/common/report_dialog.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_bloc.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_event.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_state.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_state.dart';
+import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_event.dart';
+import 'package:unitalk/features/feed/presentation/bloc/user_profile/user_profile_state.dart';
+import 'package:unitalk/features/feed/presentation/widget/post_item.dart';
+import 'package:unitalk/features/auth/presentation/widget/student_id_card_widget.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_bloc.dart';
+import 'package:unitalk/features/friendship/presentation/bloc/friendship_event.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friends_count_button.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friendship_button.dart';
+import 'package:unitalk/features/report/data/model/report_model.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+
+class OtherUserProfileScreen extends StatefulWidget {
+  final String userId;
+
+  const OtherUserProfileScreen({Key? key, required this.userId})
+      : super(key: key);
+
+  @override
+  State<OtherUserProfileScreen> createState() => _OtherUserProfileScreenState();
+}
+
+class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+
+    context.read<UserProfileBloc>().add(GetUserProfileEvent(widget.userId));
+    context.read<PostBloc>().add(
+      GetPostsEvent(authorId: widget.userId, page: 1, limit: 20),
+    );
+    context.read<FriendshipBloc>().add(LoadFriendshipStatusEvent(widget.userId));
+    context.read<BlockBloc>().add(CheckBlockStatusEvent(widget.userId));
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onRefresh() async {
+    context.read<UserProfileBloc>().add(GetUserProfileEvent(widget.userId));
+    context.read<BlockBloc>().add(CheckBlockStatusEvent(widget.userId));
+    context.read<PostBloc>().add(
+      GetPostsEvent(authorId: widget.userId, page: 1, limit: 20),
+    );
+    context.read<FriendshipBloc>().add(LoadFriendshipStatusEvent(widget.userId));
+
+
+    await context.read<UserProfileBloc>().stream.firstWhere(
+          (state) => !state.isLoading,
+    );
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      final postState = context.read<PostBloc>().state;
+
+      if (!postState.postsLastPage && !postState.isLoadingMore) {
+        context.read<PostBloc>().add(
+          GetPostsEvent(
+            authorId: widget.userId,
+            page: postState.postsPage + 1,
+            limit: 20,
+          ),
+        );
+      }
+    }
+  }
+
+  // ─── Модерационное меню (3 точки) ─────────────────────────────
+  void _showModerationMenu(BuildContext context, UserModel user) {
+    final l10n = AppLocalizations.of(context)!;
+    final blockStatus = user.blockStatus;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 20),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).dividerColor,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
+            // Block / Unblock
+            if (blockStatus?.isBlocked == true)
+              ListTile(
+                leading: const Icon(Icons.block, color: Colors.red),
+                title: Text(l10n.unblockUser),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showUnblockDialog(context, widget.userId, user);
+                },
+              )
+            else if (blockStatus?.isBlockedBy != true)
+              ListTile(
+                leading: const Icon(Icons.block, color: Colors.red),
+                title: Text(l10n.blockUser),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showBlockDialog(context, widget.userId, user);
+                },
+              ),
+
+            // Report
+            if (blockStatus?.isBlockedBy != true)
+              ListTile(
+                leading: const Icon(Icons.flag_outlined),
+                title: Text(l10n.report),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  ReportDialog.show(
+                    context,
+                    targetType: ReportTargetType.user,
+                    targetId: widget.userId,
+                  );
+                },
+              ),
+
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showBlockDialog(BuildContext context, String userId, UserModel user) {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.blockUser),
+        content: Text(
+          l10n.blockUserConfirmation('${user.firstName} ${user.lastName}'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.read<BlockBloc>().add(BlockUserEvent(userId));
+              Navigator.pop(dialogContext);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.userBlocked)),
+              );
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(l10n.block),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showUnblockDialog(
+      BuildContext context,
+      String userId,
+      UserModel user,
+      ) {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.unblockUser),
+        content: Text(
+          l10n.unblockUserConfirmation('${user.firstName} ${user.lastName}'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.read<BlockBloc>().add(UnblockUserEvent(userId));
+              Navigator.pop(dialogContext);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.userUnblocked)),
+              );
+            },
+            child: Text(l10n.unblock),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: BlocBuilder<UserProfileBloc, UserProfileState>(
+        builder: (context, profileState) {
+          // ─── Loading ──────────────────────────────────
+          if (profileState.isLoading && profileState.user == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // ─── Error ────────────────────────────────────
+          if (profileState.errorMessage != null &&
+              profileState.user == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.color
+                        ?.withOpacity(0.3),
+                  ),
+                  const SizedBox(height: 16),
                   Text(
-                    data.subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: enabled
-                          ? theme.colorScheme.onSurface.withOpacity(0.6)
-                          : theme.colorScheme.onSurface.withOpacity(0.3),
-                      letterSpacing: 0.1,
-                      height: 1.4,
+                    l10n.errorMessage(profileState.errorMessage ?? ''),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.color
+                          ?.withOpacity(0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<UserProfileBloc>().add(
+                        GetUserProfileEvent(widget.userId),
+                      );
+                    },
+                    child: Text(l10n.tryAgain),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // ─── User not found ───────────────────────────
+          final user = profileState.user;
+          if (user == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.person_off_outlined,
+                    size: 64,
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.color
+                        ?.withOpacity(0.3),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.userNotFound,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.color
+                          ?.withOpacity(0.6),
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(width: 16),
-            Switch(
-              value: data.value,
-              onChanged: enabled ? data.onChanged : null,
-              activeColor: theme.colorScheme.primary,
-            ),
-          ],
-        ),
+            );
+          }
+
+          // ─── Main content ─────────────────────────────
+          return BlocBuilder<PostBloc, PostState>(
+            builder: (context, postState) {
+              return RefreshIndicator(
+                onRefresh: _onRefresh,
+                color: Theme.of(context).colorScheme.primary,
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    // ─── AppBar ─────────────────────────
+                    SliverAppBar(
+                      expandedHeight: 0,
+                      pinned: false,
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      title: Text(l10n.profile),
+                      leading: IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => context.pop(),
+                      ),
+                      actions: [
+                        BlocBuilder<AuthBloc, AuthState>(
+                          builder: (context, authState) {
+                            if (authState.user?.id == widget.userId) {
+                              return const SizedBox.shrink();
+                            }
+                            return IconButton(
+                              icon: const Icon(Icons.more_vert),
+                              onPressed: () =>
+                                  _showModerationMenu(context, user),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+
+                    // ─── Profile header ───────────────
+                    SliverPadding(
+                      padding: const EdgeInsets.all(20),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
+                          // Студенческая карта
+                          StudentIdCardWidget(user: user),
+                          const SizedBox(height: 16),
+
+                          // ─── Друзья ─────────────────
+                          if (user.friendsCount != null &&
+                              user.friendsCount! > 0)
+                            StatCountButton(
+                              count: profileState.user?.friendsCount ?? 0,
+                              label: l10n.friends,
+                              icon: Icons.people_outlined,
+                              onTap: () => context.push('/user/${ profileState.user?.id}/friends'),
+                            ),
+
+                          const SizedBox(height: 14),
+
+                          // ─── Кнопка дружбы ──────────
+                          FriendshipButton(userId: widget.userId),
+                          const SizedBox(height: 24),
+
+                          // ─── Posts header ───────────
+                          Row(
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                l10n.posts,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                l10n.postsCount(postState.totalPostsCount),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color
+                                      ?.withOpacity(0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ]),
+                      ),
+                    ),
+
+                    // ─── Posts List ─────────────────────
+                    if (postState.posts.isEmpty && postState.status != PostStatus.loading)
+                      SliverFillRemaining(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.article_outlined,
+                                size: 64,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.color
+                                    ?.withOpacity(0.3),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                l10n.userHasNoPosts,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color
+                                      ?.withOpacity(0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                            return PostItem(post: postState.posts[index]);
+                          },
+                          childCount: postState.posts.length,
+                        ),
+                      ),
+
+                    // ─── Loading more ─────────────────
+                    if (postState.isLoadingMore)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      ),
+
+                    const SliverPadding(
+                      padding: EdgeInsets.only(bottom: 40),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
-}
-
-class _SettingData {
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  _SettingData({
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-}import 'package:dio/dio.dart';
-import 'package:unitalk/features/notifications/model/notification_model.dart';
-import 'package:unitalk/features/notifications/model/notification_response_model.dart';
-import 'package:unitalk/features/notifications/model/notification_settings_model.dart';
-
-class NotificationRemoteDataSource {
-  final Dio dio;
-
-  NotificationRemoteDataSource({required this.dio});
-
-  // ============== SETTINGS ==============
-
-  Future<NotificationSettingsModel> getSettings() async {
-    final response = await dio.get('/notifications/settings');
-    return NotificationSettingsModel.fromJson(response.data);
-  }
-
-  Future<NotificationSettingsModel> updateSettings({
-    bool? enabled,
-    bool? newPosts,
-    bool? newComments,
-    bool? newLikes,
-    bool? commentReplies,
-    bool? mentions,
-    bool? chatMessages,
-    bool? chatMentions,
-  }) async {
-    final data = <String, dynamic>{};
-
-    if (enabled != null) data['enabled'] = enabled;
-    if (newPosts != null) data['newPosts'] = newPosts;
-    if (newComments != null) data['newComments'] = newComments;
-    if (newLikes != null) data['newLikes'] = newLikes;
-    if (commentReplies != null) data['commentReplies'] = commentReplies;
-    if (mentions != null) data['mentions'] = mentions;
-    if (chatMessages != null) data['chatMessages'] = chatMessages;
-    if (chatMentions != null) data['chatMentions'] = chatMentions;
-
-    final response = await dio.put('/notifications/settings', data: data);
-    return NotificationSettingsModel.fromJson(response.data);
-  }
-
-  Future<void> saveFcmToken(String fcmToken) async {
-    await dio.post('/notifications/fcm-token', data: {'fcmToken': fcmToken});
-  }
-
-  Future<void> removeFcmToken() async {
-    await dio.delete('/notifications/fcm-token');
-  }
-
-  // ============== NOTIFICATIONS ==============
-
-  Future<NotificationsResponseModel> getNotifications({
-    int page = 1,
-    int limit = 20,
-    bool unreadOnly = false,
-  }) async {
-    final response = await dio.get(
-      '/notifications',
-      queryParameters: {
-        'page': page,
-        'limit': limit,
-        'unreadOnly': unreadOnly,
-      },
-    );
-    return NotificationsResponseModel.fromJson(response.data);
-  }
-
-  Future<NotificationModel> markAsRead(String notificationId) async {
-    final response = await dio.put('/notifications/$notificationId/read');
-    return NotificationModel.fromJson(response.data);
-  }
-
-  Future<void> markAllAsRead() async {
-    await dio.put('/notifications/read-all');
-  }
-
-  Future<void> deleteNotification(String notificationId) async {
-    await dio.delete('/notifications/$notificationId');
-  }
-
-  Future<void> deleteAllNotifications() async {
-    await dio.delete('/notifications');
-  }
-
-  Future<int> getUnreadCount() async {
-    final response = await dio.get('/notifications/unread-count');
-    return response.data['unreadCount'] as int;
-  }
-}import 'package:dartz/dartz.dart';
-import 'package:unitalk/core/failure/failure.dart';
-import 'package:unitalk/features/notifications/data/notifcation_remote_datasource.dart';
-import 'package:unitalk/features/notifications/domain/notifcation_repository.dart';
-import 'package:unitalk/features/notifications/model/notification_model.dart';
-import 'package:unitalk/features/notifications/model/notification_response_model.dart';
-import 'package:unitalk/features/notifications/model/notification_settings_model.dart';
-
-class NotificationRepositoryImpl implements NotificationRepository {
-  final NotificationRemoteDataSource remoteDataSource;
-
-  NotificationRepositoryImpl(this.remoteDataSource);
-
-  @override
-  Future<Either<Failure, NotificationSettingsModel>> getSettings() async {
-    try {
-      final settings = await remoteDataSource.getSettings();
-      return Right(settings);
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, NotificationSettingsModel>> updateSettings({
-    bool? enabled,
-    bool? newPosts,
-    bool? newComments,
-    bool? newLikes,
-    bool? commentReplies,
-    bool? mentions,
-    bool? chatMessages,
-    bool? chatMentions,
-  }) async {
-    try {
-      final settings = await remoteDataSource.updateSettings(
-        enabled: enabled,
-        newPosts: newPosts,
-        newComments: newComments,
-        newLikes: newLikes,
-        commentReplies: commentReplies,
-        mentions: mentions,
-        chatMessages: chatMessages,
-        chatMentions: chatMentions,
-      );
-      return Right(settings);
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> saveFcmToken(String fcmToken) async {
-    try {
-      await remoteDataSource.saveFcmToken(fcmToken);
-      return const Right(null);
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> removeFcmToken() async {
-    try {
-      await remoteDataSource.removeFcmToken();
-      return const Right(null);
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, NotificationsResponseModel>> getNotifications({
-    int page = 1,
-    int limit = 20,
-    bool unreadOnly = false,
-  }) async {
-    try {
-      final response = await remoteDataSource.getNotifications(
-        page: page,
-        limit: limit,
-        unreadOnly: unreadOnly,
-      );
-      return Right(response);
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, NotificationModel>> markAsRead(
-      String notificationId) async {
-    try {
-      final notification = await remoteDataSource.markAsRead(notificationId);
-      return Right(notification);
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> markAllAsRead() async {
-    try {
-      await remoteDataSource.markAllAsRead();
-      return const Right(null);
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> deleteNotification(
-      String notificationId) async {
-    try {
-      await remoteDataSource.deleteNotification(notificationId);
-      return const Right(null);
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> deleteAllNotifications() async {
-    try {
-      await remoteDataSource.deleteAllNotifications();
-      return const Right(null);
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, int>> getUnreadCount() async {
-    try {
-      final count = await remoteDataSource.getUnreadCount();
-      return Right(count);
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
-    }
-  }
-}
-import 'package:dartz/dartz.dart';
-import 'package:unitalk/core/failure/failure.dart';
-import 'package:unitalk/features/notifications/model/notification_model.dart';
-import 'package:unitalk/features/notifications/model/notification_response_model.dart';
-import 'package:unitalk/features/notifications/model/notification_settings_model.dart';
-
-abstract class NotificationRepository {
-  // Settings
-  Future<Either<Failure, NotificationSettingsModel>> getSettings();
-
-  Future<Either<Failure, NotificationSettingsModel>> updateSettings({
-    bool? enabled,
-    bool? newPosts,
-    bool? newComments,
-    bool? newLikes,
-    bool? commentReplies,
-    bool? mentions,
-    bool? chatMessages,
-    bool? chatMentions,
-  });
-
-  Future<Either<Failure, void>> saveFcmToken(String fcmToken);
-
-  Future<Either<Failure, void>> removeFcmToken();
-
-  // Notifications
-  Future<Either<Failure, NotificationsResponseModel>> getNotifications({
-    int page = 1,
-    int limit = 20,
-    bool unreadOnly = false,
-  });
-
-  Future<Either<Failure, NotificationModel>> markAsRead(String notificationId);
-
-  Future<Either<Failure, void>> markAllAsRead();
-
-  Future<Either<Failure, void>> deleteNotification(String notificationId);
-
-  Future<Either<Failure, void>> deleteAllNotifications();
-
-  Future<Either<Failure, int>> getUnreadCount();
-}import 'dart:math';
-
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:unitalk/features/notifications/domain/notifcation_repository.dart';
-import 'package:unitalk/features/notifications/presentation/bloc/notification_event.dart';
-import 'package:unitalk/features/notifications/presentation/bloc/notification_state.dart';
-
-
-class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
-  final NotificationRepository notificationRepository;
-
-  NotificationBloc({required this.notificationRepository})
-      : super(NotificationState.initial()) {
-    on<GetNotificationSettingsEvent>(_onGetSettings);
-    on<UpdateNotificationSettingsEvent>(_onUpdateSettings);
-    on<SaveFcmTokenEvent>(_onSaveFcmToken);
-    on<RemoveFcmTokenEvent>(_onRemoveFcmToken);
-    on<GetNotificationsEvent>(_onGetNotifications);
-    on<MarkNotificationAsReadEvent>(_onMarkAsRead);
-    on<MarkAllNotificationsAsReadEvent>(_onMarkAllAsRead);
-    on<DeleteNotificationEvent>(_onDeleteNotification);
-    on<DeleteAllNotificationsEvent>(_onDeleteAllNotifications);
-    on<RefreshNotificationsEvent>(_onRefreshNotifications);
-    on<GetUnreadCountEvent>(_onGetUnreadCount);
-    on<HandleIncomingNotificationEvent>(_onHandleIncomingNotification);
-  }
-
-  Future<void> _onGetSettings(
-      GetNotificationSettingsEvent event,
-      Emitter<NotificationState> emit,
-      ) async {
-    emit(state.copyWith(status: NotificationStatus.loading));
-
-    final result = await notificationRepository.getSettings();
-
-    result.fold(
-          (failure) => emit(state.copyWith(
-        status: NotificationStatus.failure,
-        errorMessage: failure.message,
-      )),
-          (settings) => emit(state.copyWith(
-        status: NotificationStatus.success,
-        settings: settings,
-      )),
-    );
-  }
-
-  Future<void> _onUpdateSettings(
-      UpdateNotificationSettingsEvent event,
-      Emitter<NotificationState> emit,
-      ) async {
-    emit(state.copyWith(status: NotificationStatus.loading));
-
-    final result = await notificationRepository.updateSettings(
-      enabled: event.enabled,
-      newPosts: event.newPosts,
-      newComments: event.newComments,
-      newLikes: event.newLikes,
-      commentReplies: event.commentReplies,
-      mentions: event.mentions,
-      chatMessages: event.chatMessages,
-      chatMentions: event.chatMentions,
-    );
-
-    result.fold(
-          (failure) => emit(state.copyWith(
-        status: NotificationStatus.failure,
-        errorMessage: failure.message,
-      )),
-          (settings) => emit(state.copyWith(
-        status: NotificationStatus.success,
-        settings: settings,
-      )),
-    );
-  }
-
-  Future<void> _onSaveFcmToken(
-      SaveFcmTokenEvent event,
-      Emitter<NotificationState> emit,
-      ) async {
-    final result = await notificationRepository.saveFcmToken(event.fcmToken);
-
-    result.fold(
-          (failure) => emit(state.copyWith(
-        status: NotificationStatus.failure,
-        errorMessage: failure.message,
-      )),
-          (_) => null,
-    );
-  }
-
-  Future<void> _onRemoveFcmToken(
-      RemoveFcmTokenEvent event,
-      Emitter<NotificationState> emit,
-      ) async {
-    final result = await notificationRepository.removeFcmToken();
-
-    result.fold(
-          (failure) => emit(state.copyWith(
-        status: NotificationStatus.failure,
-        errorMessage: failure.message,
-      )),
-          (_) => null,
-    );
-  }
-
-  Future<void> _onGetNotifications(
-      GetNotificationsEvent event,
-      Emitter<NotificationState> emit,
-      ) async {
-    if (event.loadMore) {
-      if (!state.hasMore) return;
-      emit(state.copyWith(status: NotificationStatus.loadingMore));
-    } else {
-      emit(state.copyWith(status: NotificationStatus.loading));
-    }
-
-    final result = await notificationRepository.getNotifications(
-      page: event.page,
-      limit: 20,
-      unreadOnly: event.unreadOnly,
-    );
-
-    result.fold(
-          (failure) => emit(state.copyWith(
-        status: NotificationStatus.failure,
-        errorMessage: failure.message,
-      )),
-          (response) {
-        final newNotifications = event.loadMore
-            ? [...state.notifications, ...response.notifications]
-            : response.notifications;
-
-        emit(state.copyWith(
-          status: NotificationStatus.success,
-          notifications: newNotifications,
-          unreadCount: response.unreadCount,
-          currentPage: state.currentPage + 1,
-          hasMore: response.notifications.length >= 20
-        ));
-      },
-    );
-  }
-
-  Future<void> _onMarkAsRead(
-      MarkNotificationAsReadEvent event,
-      Emitter<NotificationState> emit,
-      ) async {
-    final result =
-    await notificationRepository.markAsRead(event.notificationId);
-
-    result.fold(
-          (failure) => emit(state.copyWith(
-        status: NotificationStatus.failure,
-        errorMessage: failure.message,
-      )),
-          (updatedNotification) {
-        final updatedList = state.notifications.map((n) {
-          if (n.id == updatedNotification.id) {
-            return updatedNotification;
-          }
-          return n;
-        }).toList();
-
-        final newUnreadCount = state.unreadCount > 0 ? state.unreadCount - 1 : 0;
-
-        emit(state.copyWith(
-          notifications: updatedList,
-          unreadCount: newUnreadCount,
-        ));
-      },
-    );
-  }
-
-  Future<void> _onMarkAllAsRead(
-      MarkAllNotificationsAsReadEvent event,
-      Emitter<NotificationState> emit,
-      ) async {
-    final result = await notificationRepository.markAllAsRead();
-
-    result.fold(
-          (failure) => emit(state.copyWith(
-        status: NotificationStatus.failure,
-        errorMessage: failure.message,
-      )),
-          (_) {
-        final updatedList = state.notifications
-            .map((n) => n.copyWith(isRead: true))
-            .toList();
-
-        emit(state.copyWith(
-          notifications: updatedList,
-          unreadCount: 0,
-        ));
-      },
-    );
-  }
-
-  Future<void> _onDeleteNotification(
-      DeleteNotificationEvent event,
-      Emitter<NotificationState> emit,
-      ) async {
-    final result =
-    await notificationRepository.deleteNotification(event.notificationId);
-
-    result.fold(
-          (failure) => emit(state.copyWith(
-        status: NotificationStatus.failure,
-        errorMessage: failure.message,
-      )),
-          (_) {
-        final notification = state.notifications
-            .firstWhere((n) => n.id == event.notificationId);
-
-        final updatedList = state.notifications
-            .where((n) => n.id != event.notificationId)
-            .toList();
-
-        final newUnreadCount = !notification.isRead && state.unreadCount > 0
-            ? state.unreadCount - 1
-            : state.unreadCount;
-
-        emit(state.copyWith(
-          notifications: updatedList,
-          unreadCount: newUnreadCount,
-        ));
-      },
-    );
-  }
-
-  Future<void> _onDeleteAllNotifications(
-      DeleteAllNotificationsEvent event,
-      Emitter<NotificationState> emit,
-      ) async {
-    emit(state.copyWith(status: NotificationStatus.loading));
-
-    final result = await notificationRepository.deleteAllNotifications();
-
-    result.fold(
-          (failure) => emit(state.copyWith(
-        status: NotificationStatus.failure,
-        errorMessage: failure.message,
-      )),
-          (_) => emit(state.copyWith(
-        status: NotificationStatus.success,
-        notifications: [],
-        unreadCount: 0,
-      )),
-    );
-  }
-
-  Future<void> _onRefreshNotifications(
-      RefreshNotificationsEvent event,
-      Emitter<NotificationState> emit,
-      ) async {
-    print('sdfasfasf');
-    final result = await notificationRepository.getNotifications(
-      page: 1,
-      unreadOnly: false,
-    );
-
-    result.fold(
-          (failure) => emit(state.copyWith(
-        status: NotificationStatus.failure,
-        errorMessage: failure.message,
-      )),
-          (response) {
-        emit(state.copyWith(
-          status: NotificationStatus.success,
-          notifications: response.notifications,
-          unreadCount: response.unreadCount,
-          currentPage: 1,
-          hasMore: response.notifications.length < 20,
-        ));
-      },
-    );
-  }
-
-  Future<void> _onGetUnreadCount(
-      GetUnreadCountEvent event,
-      Emitter<NotificationState> emit,
-      ) async {
-    final result = await notificationRepository.getUnreadCount();
-
-    result.fold(
-          (failure) => null,
-          (count) => emit(state.copyWith(unreadCount: count)),
-    );
-  }
-
-  Future<void> _onHandleIncomingNotification(
-      HandleIncomingNotificationEvent event,
-      Emitter<NotificationState> emit,
-      ) async {
-    // Increment unread count when new notification arrives
-    emit(state.copyWith(unreadCount: state.unreadCount + 1));
-
-    // Optionally refresh notifications list
-    add(RefreshNotificationsEvent());
-  }
-}abstract class NotificationEvent {}
-
-// Settings Events
-class GetNotificationSettingsEvent extends NotificationEvent {}
-
-class UpdateNotificationSettingsEvent extends NotificationEvent {
-  final bool? enabled;
-  final bool? newPosts;
-  final bool? newComments;
-  final bool? newLikes;
-  final bool? commentReplies;
-  final bool? mentions;
-  final bool? chatMessages;
-  final bool? chatMentions;
-
-  UpdateNotificationSettingsEvent({
-    this.enabled,
-    this.newPosts,
-    this.newComments,
-    this.newLikes,
-    this.commentReplies,
-    this.mentions,
-    this.chatMessages,
-    this.chatMentions,
-  });
-}
-
-class SaveFcmTokenEvent extends NotificationEvent {
-  final String fcmToken;
-
-  SaveFcmTokenEvent(this.fcmToken);
-}
-
-class RemoveFcmTokenEvent extends NotificationEvent {}
-
-// Notification List Events
-class GetNotificationsEvent extends NotificationEvent {
-  final int page;
-  final bool unreadOnly;
-  final bool loadMore;
-
-  GetNotificationsEvent({
-    this.page = 1,
-    this.unreadOnly = false,
-    this.loadMore = false,
-  });
-}
-
-class MarkNotificationAsReadEvent extends NotificationEvent {
-  final String notificationId;
-
-  MarkNotificationAsReadEvent(this.notificationId);
-}
-
-class MarkAllNotificationsAsReadEvent extends NotificationEvent {}
-
-class DeleteNotificationEvent extends NotificationEvent {
-  final String notificationId;
-
-  DeleteNotificationEvent(this.notificationId);
-}
-
-class DeleteAllNotificationsEvent extends NotificationEvent {}
-
-class RefreshNotificationsEvent extends NotificationEvent {}
-
-class GetUnreadCountEvent extends NotificationEvent {}
-
-// Handle incoming notification from FCM
-class HandleIncomingNotificationEvent extends NotificationEvent {
-  final Map<String, dynamic> data;
-
-  HandleIncomingNotificationEvent(this.data);
-}import 'package:unitalk/features/notifications/model/notification_model.dart';
-import 'package:unitalk/features/notifications/model/notification_settings_model.dart';
-
-enum NotificationStatus {
-  initial,
-  loading,
-  loadingMore,
-  success,
-  failure,
-}
-
-class NotificationState {
-  final NotificationStatus status;
-  final List<NotificationModel> notifications;
-  final NotificationSettingsModel? settings;
-  final int unreadCount;
-  final int currentPage;
-  final bool hasMore;
-  final String? errorMessage;
-
-  NotificationState({
-    required this.status,
-    required this.notifications,
-    this.settings,
-    required this.unreadCount,
-    required this.currentPage,
-    required this.hasMore,
-    this.errorMessage,
-  });
-
-  factory NotificationState.initial() {
-    return NotificationState(
-      status: NotificationStatus.initial,
-      notifications: [],
-      settings: null,
-      unreadCount: 0,
-      currentPage: 1,
-      hasMore: true,
-      errorMessage: null,
-    );
-  }
-
-  NotificationState copyWith({
-    NotificationStatus? status,
-    List<NotificationModel>? notifications,
-    NotificationSettingsModel? settings,
-    int? unreadCount,
-    int? currentPage,
-    bool? hasMore,
-    String? errorMessage,
-  }) {
-    return NotificationState(
-      status: status ?? this.status,
-      notifications: notifications ?? this.notifications,
-      settings: settings ?? this.settings,
-      unreadCount: unreadCount ?? this.unreadCount,
-      currentPage: currentPage ?? this.currentPage,
-      hasMore: hasMore ?? this.hasMore,
-      errorMessage: errorMessage,
-    );
-  }
-}// lib/features/friendship/data/models/friendship_model.dart
-import 'package:json_annotation/json_annotation.dart';
+}import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:unitalk/features/auth/data/model/user_model.dart';
 
-part 'friendship_model.g.dart';
+class UserRemoteDataSource {
+  final Dio dio;
 
-enum FriendshipStatus {
-  @JsonValue('none')
-  none,
-  @JsonValue('pending')
-  pending,
-  @JsonValue('accepted')
-  accepted,
-  @JsonValue('rejected')
-  rejected,
-}
+  UserRemoteDataSource({required this.dio});
 
-@JsonSerializable()
-class FriendshipModel {
-  @JsonKey(name: '_id')
-  final String? id;
-  final FriendshipStatus status;
-  final String? friendshipId;
-  final bool? isRequester;
-  final DateTime? createdAt;
-  final DateTime? acceptedAt;
+  Future<UserModel> getCurrentUser() async {
+    try {
+      final response = await dio.get('/auth/me');
+      return UserModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
 
-  FriendshipModel({
-    this.id,
-    required this.status,
-    this.friendshipId,
-    this.isRequester,
-    this.createdAt,
-    this.acceptedAt,
+  Future<UserModel> getUserById(String userId) async {
+    try {
+      final response = await dio.get('/auth/$userId');
+      return UserModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Future<UserModel> updateProfile({
+    required String firstName,
+    required String lastName,
+    required String universityId,
+    required String facultyId,
+    required String sector,
+    String? language,
+  }) async {
+    try {
+      final data = {
+        'firstName': firstName,
+        'lastName': lastName,
+        'universityId': universityId,
+        'facultyId': facultyId,
+        'sector': sector,
+      };
+
+      if (language != null) {
+        data['language'] = language;
+      }
+
+      final response = await dio.put('/auth/profile', data: data);
+      return UserModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Future<UserModel> updateLanguage(String language) async {
+    try {
+      final response = await dio.put(
+        '/auth/profile',
+        data: {'language': language},
+      );
+      return UserModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Future<String> updateAvatar({required File file}) async {
+    try {
+      final formData = FormData.fromMap({
+        'avatar': await MultipartFile.fromFile(file.path, filename: 'avatar.jpg'),
+      });
+
+      final response = await dio.post('/auth/avatar', data: formData);
+      return response.data['photoUrl'] as String;
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Future<void> deleteProfile() async {
+    try {
+      await dio.delete('/auth/profile');
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  String _handleDioError(DioException error) {
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return 'Connection timeout. Please check your internet connection.';
+
+      case DioExceptionType.connectionError:
+        if (error.error is SocketException) {
+          return 'No internet connection. Please check your network.';
+        }
+        return 'Connection error. Please check your internet connection.';
+
+      case DioExceptionType.badResponse:
+        final statusCode = error.response?.statusCode;
+        if (statusCode == 401) {
+          return 'Session expired. Please login again.';
+        } else if (statusCode == 403) {
+          return 'Access denied.';
+        } else if (statusCode == 404) {
+          return 'Resource not found.';
+        } else if (statusCode != null && statusCode >= 500) {
+          return 'Server error. Please try again later.';
+        }
+        return error.response?.data?['message'] ?? 'Request failed.';
+
+      case DioExceptionType.cancel:
+        return 'Request cancelled.';
+
+      case DioExceptionType.unknown:
+        if (error.error is SocketException) {
+          return 'No internet connection. Please check your network.';
+        }
+        return 'An unexpected error occurred.';
+
+      default:
+        return 'An error occurred. Please try again.';
+    }
+  }
+}import 'dart:io';
+import 'package:dartz/dartz.dart';
+import 'package:unitalk/core/failure/failure.dart';
+import 'package:unitalk/features/auth/data/datasource/user_remote_datasource.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:unitalk/features/auth/domain/repository/user_repository.dart';
+
+class UserRepositoryImpl implements UserRepository {
+  final UserRemoteDataSource remoteDataSource;
+
+  UserRepositoryImpl(this.remoteDataSource);
+
+  @override
+  Future<Either<Failure, UserModel>> getCurrentUser() async {
+    try {
+      final user = await remoteDataSource.getCurrentUser();
+      return Right(user);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserModel>> getUserById(String userId) async {
+    try {
+      final user = await remoteDataSource.getUserById(userId);
+      return Right(user);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserModel>> updateProfile({
+    required String firstName,
+    required String lastName,
+    required String universityId,
+    required String facultyId,
+    required Sector sector,
+    String? language,
+  }) async {
+    try {
+      final user = await remoteDataSource.updateProfile(
+        firstName: firstName,
+        lastName: lastName,
+        universityId: universityId,
+        facultyId: facultyId,
+        sector: sector.code,
+        language: language,
+      );
+      return Right(user);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> updateAvatar(File file) async {
+    try {
+      final photoUrl = await remoteDataSource.updateAvatar(file: file);
+      return Right(photoUrl);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteProfile() async {
+    try {
+      await remoteDataSource.deleteProfile();
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+}import 'dart:io';
+import 'package:dartz/dartz.dart';
+import 'package:unitalk/core/failure/failure.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+
+abstract class UserRepository {
+  Future<Either<Failure, UserModel>> getCurrentUser();
+
+  Future<Either<Failure, UserModel>> getUserById(String userId);
+
+  Future<Either<Failure, UserModel>> updateProfile({
+    required String firstName,
+    required String lastName,
+    required String universityId,
+    required String facultyId,
+    required Sector sector,
+    String? language,
   });
 
-  factory FriendshipModel.fromJson(Map<String, dynamic> json) =>
-      _$FriendshipModelFromJson(json);
+  Future<Either<Failure, String>> updateAvatar(File file);
 
-  Map<String, dynamic> toJson() => _$FriendshipModelToJson(this);
-
-  bool get isPending => status == FriendshipStatus.pending;
-  bool get isAccepted => status == FriendshipStatus.accepted;
-  bool get isNone => status == FriendshipStatus.none;
+  Future<Either<Failure, void>> deleteProfile();
 }
-
-@JsonSerializable()
-class FriendshipStatusResponse {
-  final FriendshipStatus status;
-  final bool isFriend;
-  final String? friendshipId;
-  final bool? isRequester;
-  final DateTime? createdAt;
-  final DateTime? acceptedAt;
-
-  FriendshipStatusResponse({
-    required this.status,
-    required this.isFriend,
-    this.friendshipId,
-    this.isRequester,
-    this.createdAt,
-    this.acceptedAt,
-  });
-
-  factory FriendshipStatusResponse.fromJson(Map<String, dynamic> json) =>
-      _$FriendshipStatusResponseFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FriendshipStatusResponseToJson(this);
-}
-
-@JsonSerializable()
-class FriendRequestModel {
-  final String friendshipId;
-  final UserModel user;
-  final DateTime requestedAt;
-
-  FriendRequestModel({
-    required this.friendshipId,
-    required this.user,
-    required this.requestedAt,
-  });
-
-  factory FriendRequestModel.fromJson(Map<String, dynamic> json) =>
-      _$FriendRequestModelFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FriendRequestModelToJson(this);
-}// GENERATED CODE - DO NOT MODIFY BY HAND
-
-part of 'friendship_model.dart';
-
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-FriendshipModel _$FriendshipModelFromJson(Map<String, dynamic> json) =>
-    FriendshipModel(
-      id: json['_id'] as String?,
-      status: $enumDecode(_$FriendshipStatusEnumMap, json['status']),
-      friendshipId: json['friendshipId'] as String?,
-      isRequester: json['isRequester'] as bool?,
-      createdAt: json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
-      acceptedAt: json['acceptedAt'] == null
-          ? null
-          : DateTime.parse(json['acceptedAt'] as String),
-    );
-
-Map<String, dynamic> _$FriendshipModelToJson(FriendshipModel instance) =>
-    <String, dynamic>{
-      '_id': instance.id,
-      'status': _$FriendshipStatusEnumMap[instance.status]!,
-      'friendshipId': instance.friendshipId,
-      'isRequester': instance.isRequester,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'acceptedAt': instance.acceptedAt?.toIso8601String(),
-    };
-
-const _$FriendshipStatusEnumMap = {
-  FriendshipStatus.none: 'none',
-  FriendshipStatus.pending: 'pending',
-  FriendshipStatus.accepted: 'accepted',
-  FriendshipStatus.rejected: 'rejected',
-};
-
-FriendshipStatusResponse _$FriendshipStatusResponseFromJson(
-  Map<String, dynamic> json,
-) => FriendshipStatusResponse(
-  status: $enumDecode(_$FriendshipStatusEnumMap, json['status']),
-  isFriend: json['isFriend'] as bool,
-  friendshipId: json['friendshipId'] as String?,
-  isRequester: json['isRequester'] as bool?,
-  createdAt: json['createdAt'] == null
-      ? null
-      : DateTime.parse(json['createdAt'] as String),
-  acceptedAt: json['acceptedAt'] == null
-      ? null
-      : DateTime.parse(json['acceptedAt'] as String),
-);
-
-Map<String, dynamic> _$FriendshipStatusResponseToJson(
-  FriendshipStatusResponse instance,
-) => <String, dynamic>{
-  'status': _$FriendshipStatusEnumMap[instance.status]!,
-  'isFriend': instance.isFriend,
-  'friendshipId': instance.friendshipId,
-  'isRequester': instance.isRequester,
-  'createdAt': instance.createdAt?.toIso8601String(),
-  'acceptedAt': instance.acceptedAt?.toIso8601String(),
-};
-
-FriendRequestModel _$FriendRequestModelFromJson(Map<String, dynamic> json) =>
-    FriendRequestModel(
-      friendshipId: json['friendshipId'] as String,
-      user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
-      requestedAt: DateTime.parse(json['requestedAt'] as String),
-    );
-
-Map<String, dynamic> _$FriendRequestModelToJson(FriendRequestModel instance) =>
-    <String, dynamic>{
-      'friendshipId': instance.friendshipId,
-      'user': instance.user,
-      'requestedAt': instance.requestedAt.toIso8601String(),
-    };

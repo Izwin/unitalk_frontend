@@ -1,4 +1,4 @@
-lib
+lib/
 ├── core
 │   ├── api
 │   │   └── api_client.dart
@@ -168,7 +168,9 @@ lib
 │   │   │   │   ├── like_response_model.dart
 │   │   │   │   ├── like_response_model.g.dart
 │   │   │   │   ├── post_model.dart
-│   │   │   │   └── post_model.g.dart
+│   │   │   │   ├── post_model.g.dart
+│   │   │   │   ├── posts_response_model.dart
+│   │   │   │   └── posts_response_model.g.dart
 │   │   │   └── repository
 │   │   │       ├── announcement_repository_impl.dart
 │   │   │       ├── comment_repository_impl.dart
@@ -232,11 +234,29 @@ lib
 │   │           ├── reply_input_section.dart
 │   │           └── reply_item.dart
 │   ├── friendship
-│   │   └── data
-│   │       ├── datasource
-│   │       └── model
-│   │           ├── friendship_model.dart
-│   │           └── friendship_model.g.dart
+│   │   ├── data
+│   │   │   ├── datasource
+│   │   │   │   └── friendship_remote_datasource.dart
+│   │   │   ├── model
+│   │   │   │   ├── friendship_model.dart
+│   │   │   │   └── friendship_model.g.dart
+│   │   │   └── repository
+│   │   │       └── friendship_repository_impl.dart
+│   │   ├── domain
+│   │   │   └── repository
+│   │   │       └── friendship_repository.dart
+│   │   └── presentation
+│   │       ├── bloc
+│   │       │   ├── friendship_bloc.dart
+│   │       │   ├── friendship_event.dart
+│   │       │   └── friendship_state.dart
+│   │       ├── pages
+│   │       │   ├── friend_requests_page.dart
+│   │       │   └── friends_list_page.dart
+│   │       └── widgets
+│   │           ├── friend_list_tile.dart
+│   │           ├── friends_count_button.dart
+│   │           └── friendship_button.dart
 │   ├── home
 │   │   └── home_page.dart
 │   ├── notifications
@@ -364,5 +384,6 @@ lib
 │           └── locale_repository.dart
 ├── main.dart
 └── splash_page.dart
+-  [error opening dir]
 
-131 directories, 235 files
+138 directories, 248 files

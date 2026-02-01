@@ -478,17 +478,10 @@ class _ReplyItemState extends State<ReplyItem> {
   }
 
   Widget _buildVerificationBadge(ColorScheme colors) {
-    return Container(
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        color: colors.primary,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        Icons.check,
-        size: 10,
-        color: colors.onPrimary,
-      ),
+    return Icon(
+      Icons.verified,
+      size: 16,
+      color: colors.primary,
     );
   }
 

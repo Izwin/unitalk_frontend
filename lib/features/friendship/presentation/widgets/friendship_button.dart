@@ -25,7 +25,6 @@ class FriendshipButton extends StatelessWidget {
         final friendshipStatus = state.getFriendshipStatus(userId);
 
         if (friendshipStatus == null) {
-          context.read<FriendshipBloc>().add(LoadFriendshipStatusEvent(userId));
           return const SizedBox.shrink();
         }
 

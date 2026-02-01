@@ -1,3 +1,5 @@
+// features/auth/presentation/pages/profile_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +17,9 @@ import 'package:unitalk/l10n/app_localizations.dart';
 
 import 'widget/verification_status_widget.dart';
 
+const double _kDrawerBreakpoint = 600.0;
+const double _kDrawerWidth = 300.0;
+
 class ProfilePage extends StatelessWidget {
   const ProfilePage({Key? key}) : super(key: key);
 
@@ -30,305 +35,310 @@ class _ProfilePageContent extends StatefulWidget {
 }
 
 class _ProfilePageContentState extends State<_ProfilePageContent> {
+  late final ScrollController _scrollController;  // ✅ Добавлен
+
+  String? get _currentUserId => context.read<AuthBloc>().state.user?.id;
+
   @override
   void initState() {
     super.initState();
+
+    // ✅ Инициализация ScrollController
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+
+    // Загрузка первой страницы
+    _loadPosts(page: 1);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // ✅ Обработка скролла
+  void _onScroll() {
+    if (_isBottom) {
+      _loadMorePosts();
+    }
+  }
+
+  // ✅ Проверка достижения конца списка
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    // Загружаем когда до конца осталось 200 пикселей
+    return currentScroll >= (maxScroll - 200);
+  }
+
+  // ✅ Загрузка постов
+  void _loadPosts({required int page}) {
+    final userId = _currentUserId;
+    if (userId == null) return;
+
     context.read<PostBloc>().add(
-      GetPostsEvent(authorId: context.read<AuthBloc>().state.user!.id),
+      GetPostsEvent(
+        authorId: userId,
+        page: page,
+      ),
+    );
+  }
+
+  // ✅ Загрузка следующей страницы
+  void _loadMorePosts() {
+    final postState = context.read<PostBloc>().state;
+
+    // Не загружаем если:
+    // - уже идёт загрузка
+    // - достигли последней страницы
+    if (postState.status == PostStatus.loading ||
+        postState.isLoadingMore ||
+        postState.postsLastPage) {
+      return;
+    }
+
+    final userId = _currentUserId;
+    if (userId == null) return;
+
+    print('📄 Loading page ${postState.postsPage}'); // Debug
+
+    context.read<PostBloc>().add(
+      GetPostsEvent(
+        authorId: userId,
+        page: postState.postsPage,
+      ),
     );
   }
 
   Future<void> _onRefresh() async {
-    final userId = context.read<AuthBloc>().state.user?.id;
+    final userId = _currentUserId;
     if (userId == null) return;
 
-    context.read<PostBloc>().add(GetPostsEvent(authorId: userId));
+    context.read<PostBloc>().add(GetPostsEvent(authorId: userId, page: 1));
     context.read<AuthBloc>().add(GetCurrentUserEvent());
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWide = screenWidth >= _kDrawerBreakpoint;
+
+    if (isWide) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: _kDrawerWidth,
+              child: ProfileDrawer(),
+            ),
+            VerticalDivider(width: 1, thickness: 1),
+            Expanded(
+              child: _buildContent(context, isWide: true),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       endDrawer: ProfileDrawer(),
-      body: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, authState) {
-          final user = authState.user;
+      body: _buildContent(context, isWide: false),
+    );
+  }
 
-          if (user == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
+  Widget _buildContent(BuildContext context, {required bool isWide}) {
+    final l10n = AppLocalizations.of(context)!;
 
-          return RefreshIndicator(
-            onRefresh: _onRefresh,
-            color: Theme.of(context).colorScheme.primary,
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                // ─── AppBar ───────────────────────────────
-                SliverAppBar(
-                  expandedHeight: 0,
-                  pinned: false,
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  title: Text(l10n.profile),
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined),
-                      tooltip: l10n.editProfile,
-                      onPressed: () => context.push('/edit-profile'),
-                    ),
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        final user = authState.user;
+
+        if (user == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return RefreshIndicator(
+          onRefresh: _onRefresh,
+          color: Theme.of(context).colorScheme.primary,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          child: CustomScrollView(
+            controller: _scrollController,  // ✅ Подключаем контроллер
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // ─── AppBar ─────────────────────────────────────
+              SliverAppBar(
+                expandedHeight: 0,
+                pinned: false,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                title: Text(l10n.profile),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined),
+                    tooltip: l10n.editProfile,
+                    onPressed: () => context.push('/edit-profile'),
+                  ),
+                  if (!isWide)
                     IconButton(
                       icon: const Icon(Icons.menu),
                       onPressed: () => Scaffold.of(context).openEndDrawer(),
                     ),
-                  ],
-                ),
+                ],
+              ),
 
-                // ─── Profile header section ───────────────
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      // Студенческая карта
-                      StudentIdCardWidget(user: user),
-                      const SizedBox(height: 16),
+              // ─── Profile header section ───────────────────────
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    StudentIdCardWidget(user: user),
+                    const SizedBox(height: 16),
 
-                      // ─── Друзья + запросы ─────────────────
-                      Row(
-                        children: [
-                          Expanded(
-                            child: StatCountButton(
-                              count: user.friendsCount ?? 0,
-                              label: l10n.friends,
-                              icon: Icons.people_outlined,
-                              onTap: () => context.push('/friends'),
-                            ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: StatCountButton(
+                            count: user.friendsCount ?? 0,
+                            label: l10n.friends,
+                            icon: Icons.people_outlined,
+                            onTap: () => context.push('/friends'),
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: StatCountButton(
-                              count: user.pendingRequestsCount ?? 0,
-                              label: l10n.friendRequests,
-                              icon: Icons.person_add_outlined,
-                              highlightThreshold: 1, // автоматически подсветка при count >= 1
-                              onTap: () => context.push('/friend-requests'),
-                            ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: StatCountButton(
+                            count: user.pendingRequestsCount ?? 0,
+                            label: l10n.friendRequests,
+                            icon: Icons.person_add_outlined,
+                            highlightThreshold: 1,
+                            onTap: () => context.push('/friend-requests'),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
 
-                      // Verification
-                      VerificationStatusWidget(user: user),
-                      const SizedBox(height: 24),
+                    VerificationStatusWidget(user: user),
+                    const SizedBox(height: 24),
 
-                      // ─── Posts header ─────────────────────
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            l10n.myPosts,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.myPosts,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
-                          BlocBuilder<PostBloc, PostState>(
-                            builder: (context, state) {
-                              return Text(
-                                l10n.postsCount(state.posts.length),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color
-                                      ?.withOpacity(0.6),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ]),
-                  ),
-                ),
-
-                // ─── Posts List ───────────────────────────
-                BlocBuilder<PostBloc, PostState>(
-                  builder: (context, state) {
-                    if (state.status == PostStatus.loading &&
-                        state.posts.isEmpty) {
-                      return const SliverFillRemaining(
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-
-                    if (state.posts.isEmpty) {
-                      return SliverFillRemaining(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.article_outlined,
-                                size: 64,
+                        ),
+                        BlocBuilder<PostBloc, PostState>(
+                          builder: (context, state) {
+                            return Text(
+                              l10n.postsCount(state.totalPostsCount),
+                              style: TextStyle(
+                                fontSize: 14,
                                 color: Theme.of(context)
                                     .textTheme
                                     .bodySmall
                                     ?.color
-                                    ?.withOpacity(0.3),
+                                    ?.withOpacity(0.6),
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                l10n.noPostsYet,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.color
-                                      ?.withOpacity(0.6),
-                                ),
-                              ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      );
-                    }
+                      ],
+                    ),
+                  ]),
+                ),
+              ),
 
-                    return SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                          return PostItem(post: state.posts[index]);
-                        },
-                        childCount: state.posts.length,
+              // ─── Posts List ─────────────────────────────────────
+              BlocBuilder<PostBloc, PostState>(
+                builder: (context, state) {
+                  if (state.status == PostStatus.loading &&
+                      state.posts.isEmpty) {
+                    return const SliverFillRemaining(
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  if (state.posts.isEmpty) {
+                    return SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.article_outlined,
+                              size: 64,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.color
+                                  ?.withOpacity(0.3),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              l10n.noPostsYet,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.color
+                                    ?.withOpacity(0.6),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
-                  },
-                ),
+                  }
 
-                const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
-              ],
-            ),
-          );
-        },
-      ),
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                        // ✅ Показываем индикатор загрузки в конце списка
+                        if (index == state.posts.length) {
+                          return _buildLoadingIndicator(state);
+                        }
+                        return PostItem(post: state.posts[index]);
+                      },
+                      // ✅ +1 для индикатора загрузки
+                      childCount: state.posts.length + (state.postsLastPage ? 0 : 1),
+                    ),
+                  );
+                },
+              ),
+
+              const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+            ],
+          ),
+        );
+      },
     );
   }
-}
 
-// ─── Кнопка запросов в друзья (под карту, рядом с FriendsCountButton) ─────
-class _FriendRequestsButton extends StatelessWidget {
-  final int pendingCount;
+  // ✅ Индикатор загрузки внизу списка
+  Widget _buildLoadingIndicator(PostState state) {
+    if (state.postsLastPage) {
+      return const SizedBox.shrink();
+    }
 
-  const _FriendRequestsButton({Key? key, required this.pendingCount})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-
-    return InkWell(
-      onTap: () => context.push('/friend-requests'),
-      borderRadius: BorderRadius.circular(10),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: pendingCount > 0
-              ? theme.colorScheme.errorContainer.withOpacity(0.25)
-              : theme.colorScheme.surfaceVariant.withOpacity(0.6),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: pendingCount > 0
-                ? theme.colorScheme.error.withOpacity(0.25)
-                : theme.dividerColor.withOpacity(0.4),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Icon + badge
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(
-                  Icons.person_add_outlined,
-                  size: 18,
-                  color: pendingCount > 0
-                      ? theme.colorScheme.error
-                      : theme.colorScheme.onSurfaceVariant,
-                ),
-                if (pendingCount > 0)
-                  Positioned(
-                    right: -6,
-                    top: -6,
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.error,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        pendingCount > 9 ? '9+' : '$pendingCount',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          height: 1,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 10),
-
-            // Label + count
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '$pendingCount',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      height: 1.2,
-                      color: pendingCount > 0
-                          ? theme.colorScheme.error
-                          : null,
-                    ),
-                  ),
-                  Text(
-                    l10n.friendRequests,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      height: 1.1,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Icon(
-              Icons.chevron_right,
-              size: 16,
-              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
-            ),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      alignment: Alignment.center,
+      child: state.status == PostStatus.loading || state.isLoadingMore
+          ? const CircularProgressIndicator()
+          : TextButton(
+        onPressed: _loadMorePosts,
+        child: const Text('Загрузить ещё'),
       ),
     );
   }

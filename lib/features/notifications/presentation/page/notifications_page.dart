@@ -131,137 +131,133 @@ class _NotificationsPageState extends State<NotificationsPage> {
           ),
           const SizedBox(width: 4),
         ],
+        // Разделитель как часть AppBar
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            color: theme.colorScheme.onSurface.withOpacity(0.08),
+          ),
+        ),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) => RefreshIndicator(
-          onRefresh: () => _onRefresh(),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-                maxHeight: constraints.maxHeight,
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    height: 1,
-                    color: theme.colorScheme.onSurface.withOpacity(0.08),
-                  ),
-                  Expanded(
-                    child: BlocBuilder<NotificationBloc, NotificationState>(
-                      builder: (context, state) {
-                        if (state.status == NotificationStatus.loading) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
+      body: BlocBuilder<NotificationBloc, NotificationState>(
+        builder: (context, state) {
+          // Loading state
+          if (state.status == NotificationStatus.loading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
 
-                        if (state.status == NotificationStatus.failure) {
-                          return ErrorStateWidget(
-                            message:
-                                state.errorMessage ??
-                                l10n.errorLoadingNotifications,
-                            onRetry: () {
-                              context.read<NotificationBloc>().add(
-                                RefreshNotificationsEvent(),
-                              );
-                            },
-                            retryButtonText: l10n.retry,
-                          );
-                        }
-
-                        if (state.notifications.isEmpty) {
-                          return EmptyStateWidget(
-                            icon: Icons.notifications_off_outlined,
-                            title: l10n.noNotifications,
-                            subtitle: l10n.allCaughtUp,
-                            iconColor: theme.colorScheme.primary.withOpacity(
-                              0.6,
-                            ),
-                          );
-                        }
-
-                        return RefreshIndicator(
-                          onRefresh: () => _onRefresh(),
-                          child: ListView.separated(
-                            controller: _scrollController,
-                            physics: AlwaysScrollableScrollPhysics(),
-                            itemCount:
-                                state.notifications.length +
-                                (state.status == NotificationStatus.loadingMore
-                                    ? 1
-                                    : 0),
-                            separatorBuilder: (context, index) => Container(
-                              height: 1,
-                              margin: const EdgeInsets.symmetric(horizontal: 20),
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.06,
-                              ),
-                            ),
-                            itemBuilder: (context, index) {
-                              if (index == state.notifications.length) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(24.0),
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              final notification = state.notifications[index];
-                              return Dismissible(
-                                key: Key(notification.id),
-                                direction: DismissDirection.endToStart,
-                                background: Container(
-                                  color: theme.colorScheme.error.withOpacity(0.1),
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.only(right: 24.0),
-                                  child: Icon(
-                                    Icons.delete_outline,
-                                    color: theme.colorScheme.error,
-                                    size: 22,
-                                  ),
-                                ),
-                                confirmDismiss: (direction) async {
-                                  return await ConfirmDeleteDialog.show(
-                                    context,
-                                    title: l10n.deleteNotification,
-                                    content: l10n.deleteNotificationConfirm,
-                                    onConfirm: () {},
-                                  );
-                                },
-                                onDismissed: (direction) {
-                                  context.read<NotificationBloc>().add(
-                                    DeleteNotificationEvent(notification.id),
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(l10n.notificationDeleted),
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: NotificationTile(
-                                  notification: notification,
-                                ),
-                              );
-                            },
-                          ),
+          // Error state
+          if (state.status == NotificationStatus.failure) {
+            return RefreshIndicator(
+              onRefresh: _onRefresh,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverFillRemaining(
+                    child: ErrorStateWidget(
+                      message: state.errorMessage ?? l10n.errorLoadingNotifications,
+                      onRetry: () {
+                        context.read<NotificationBloc>().add(
+                          RefreshNotificationsEvent(),
                         );
                       },
+                      retryButtonText: l10n.retry,
                     ),
                   ),
                 ],
               ),
+            );
+          }
+
+          // Empty state
+          if (state.notifications.isEmpty) {
+            return RefreshIndicator(
+              onRefresh: _onRefresh,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverFillRemaining(
+                    child: EmptyStateWidget(
+                      icon: Icons.notifications_off_outlined,
+                      title: l10n.noNotifications,
+                      subtitle: l10n.allCaughtUp,
+                      iconColor: theme.colorScheme.primary.withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Success state with data
+          return RefreshIndicator(
+            onRefresh: _onRefresh,
+            child: ListView.separated(
+              controller: _scrollController,  // ← Теперь controller работает корректно!
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: state.notifications.length +
+                  (state.status == NotificationStatus.loadingMore ? 1 : 0),
+              separatorBuilder: (context, index) => Container(
+                height: 1,
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                color: theme.colorScheme.onSurface.withOpacity(0.06),
+              ),
+              itemBuilder: (context, index) {
+                // Loading more indicator
+                if (index == state.notifications.length) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24.0),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  );
+                }
+
+                final notification = state.notifications[index];
+                return Dismissible(
+                  key: Key(notification.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    color: theme.colorScheme.error.withOpacity(0.1),
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 24.0),
+                    child: Icon(
+                      Icons.delete_outline,
+                      color: theme.colorScheme.error,
+                      size: 22,
+                    ),
+                  ),
+                  confirmDismiss: (direction) async {
+                    return await ConfirmDeleteDialog.show(
+                      context,
+                      title: l10n.deleteNotification,
+                      content: l10n.deleteNotificationConfirm,
+                      onConfirm: () {},
+                    );
+                  },
+                  onDismissed: (direction) {
+                    context.read<NotificationBloc>().add(
+                      DeleteNotificationEvent(notification.id),
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(l10n.notificationDeleted),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  },
+                  child: NotificationTile(notification: notification),
+                );
+              },
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

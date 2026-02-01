@@ -75,11 +75,27 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   }
 
   // === Получение списка постов ===
+// features/feed/presentation/bloc/post/post_bloc.dart
+
+  // features/feed/presentation/bloc/post/post_bloc.dart
+
   Future<void> _onGetPosts(
       GetPostsEvent event,
       Emitter<PostState> emit,
       ) async {
-    emit(state.copyWith(status: PostStatus.loading, errorMessage: null));
+    // ✅ Разные состояния для первой загрузки и подгрузки
+    if (event.page == 1) {
+      emit(state.copyWith(
+        status: PostStatus.loading,
+        errorMessage: null,
+        isLoadingMore: false,
+      ));
+    } else {
+      emit(state.copyWith(
+        isLoadingMore: true,
+        errorMessage: null,
+      ));
+    }
 
     final result = await postRepository.getPosts(
       universityId: event.universityId,
@@ -92,23 +108,42 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     );
 
     result.fold(
-          (failure) => emit(state.copyWith(
-        status: PostStatus.failure,
-        errorMessage: failure.message,
-      )),
-          (data) {
-        final posts = data;
-        final updatedPosts = event.page == 1 ? posts : [...state.posts, ...posts];
+          (failure) {
+        print('❌ PostBloc failure: ${failure.message}');
+        emit(state.copyWith(
+          status: PostStatus.failure,
+          errorMessage: failure.message,
+          isLoadingMore: false,
+        ));
+      },
+          (response) {
+        final posts = response.posts;
+        final pagination = response.pagination;
 
-        // При загрузке первой страницы сбрасываем счетчик
-        final newPage = event.page == 1 ? 2 : state.postsPage + 1;
+        print('📊 Page ${event.page}: received ${posts.length} posts, total: ${pagination.total}');
+
+        // ✅ Для первой страницы заменяем список, для остальных добавляем
+        final updatedPosts = event.page == 1
+            ? posts
+            : [...state.posts, ...posts];
+
+        // ✅ Следующая страница для загрузки
+        final nextPage = event.page + 1;
+
+        // ✅ Проверяем достигли ли последней страницы
+        final isLastPage = posts.length < event.limit ||
+            pagination.page >= pagination.pages;
 
         emit(state.copyWith(
           status: PostStatus.success,
           posts: updatedPosts,
-          postsPage: newPage,
-          postsLastPage: data.length < event.limit,
+          postsPage: nextPage,
+          postsLastPage: isLastPage,
+          totalPostsCount: pagination.total,
+          isLoadingMore: false,
         ));
+
+        print('✅ Updated: ${updatedPosts.length} posts, nextPage: $nextPage, isLast: $isLastPage');
       },
     );
   }

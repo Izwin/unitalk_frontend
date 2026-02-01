@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:unitalk/core/failure/failure.dart';
 import 'package:unitalk/features/feed/data/datasource/post_remote_datasource.dart';
 import 'package:unitalk/features/feed/data/model/post_model.dart';
+import 'package:unitalk/features/feed/data/model/posts_response_model.dart';
 import 'package:unitalk/features/feed/domain/repository/posts_repository.dart';
 
 class PostRepositoryImpl implements PostRepository {
@@ -28,8 +29,10 @@ class PostRepositoryImpl implements PostRepository {
     }
   }
 
+  // features/feed/data/repository/post_repository_impl.dart
+
   @override
-  Future<Either<Failure, List<PostModel>>> getPosts({
+  Future<Either<Failure, PostsResponseModel>> getPosts({
     String? universityId,
     String? authorId,
     String sortBy = 'new',
@@ -48,10 +51,10 @@ class PostRepositoryImpl implements PostRepository {
         page: page,
         limit: limit,
       );
-      final posts = (data['posts'] as List)
-          .map((p) => PostModel.fromJson(p as Map<String, dynamic>))
-          .toList();
-      return Right(posts);
+
+      // ✅ Используем fromJson для парсинга всего ответа
+      final response = PostsResponseModel.fromJson(data);
+      return Right(response);
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }

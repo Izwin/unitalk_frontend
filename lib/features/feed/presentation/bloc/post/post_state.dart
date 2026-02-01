@@ -9,11 +9,10 @@ class PostState extends Equatable {
   final List<PostModel> posts;
   final int postsPage;
   final bool postsLastPage;
+  final int totalPostsCount;  // ✅ Добавлено
   final PostModel? currentPost;
   final String? errorMessage;
   final String? uploadUrl;
-
-  // Новые поля для управления лентой
   final UniversityModel? selectedUniversity;
   final bool isLoadingMore;
   final bool isRefreshing;
@@ -23,6 +22,7 @@ class PostState extends Equatable {
     this.posts = const [],
     required this.postsPage,
     required this.postsLastPage,
+    this.totalPostsCount = 0,  // ✅ Добавлено
     this.currentPost,
     this.errorMessage,
     this.uploadUrl,
@@ -36,6 +36,7 @@ class PostState extends Equatable {
     posts: [],
     postsLastPage: false,
     postsPage: 1,
+    totalPostsCount: 0,  // ✅ Добавлено
     isLoadingMore: false,
     isRefreshing: false,
   );
@@ -45,6 +46,7 @@ class PostState extends Equatable {
     List<PostModel>? posts,
     int? postsPage,
     bool? postsLastPage,
+    int? totalPostsCount,  // ✅ Добавлено
     PostModel? currentPost,
     String? errorMessage,
     String? uploadUrl,
@@ -57,6 +59,7 @@ class PostState extends Equatable {
       posts: posts ?? this.posts,
       postsPage: postsPage ?? this.postsPage,
       postsLastPage: postsLastPage ?? this.postsLastPage,
+      totalPostsCount: totalPostsCount ?? this.totalPostsCount,  // ✅ Добавлено
       currentPost: currentPost ?? this.currentPost,
       errorMessage: errorMessage ?? this.errorMessage,
       uploadUrl: uploadUrl ?? this.uploadUrl,
@@ -66,18 +69,13 @@ class PostState extends Equatable {
     );
   }
 
-  // Геттеры для удобства
-  bool get hasSelectedUniversity => selectedUniversity != null;
-  bool get isEmpty => posts.isEmpty;
-  bool get isLoading => status == PostStatus.loading && !isLoadingMore && !isRefreshing;
-  bool get hasError => status == PostStatus.failure;
-
   @override
   List<Object?> get props => [
     status,
     posts,
     postsPage,
     postsLastPage,
+    totalPostsCount,  // ✅ Добавлено
     currentPost,
     errorMessage,
     uploadUrl,

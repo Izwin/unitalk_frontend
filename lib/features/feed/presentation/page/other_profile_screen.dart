@@ -385,7 +385,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                                 ),
                               ),
                               Text(
-                                l10n.postsCount(postState.posts.length),
+                                l10n.postsCount(postState.totalPostsCount),
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Theme.of(context)
@@ -402,7 +402,7 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                     ),
 
                     // ─── Posts List ─────────────────────
-                    if (postState.posts.isEmpty && !postState.isLoading)
+                    if (postState.posts.isEmpty && postState.status != PostStatus.loading)
                       SliverFillRemaining(
                         child: Center(
                           child: Column(

@@ -41,10 +41,9 @@ class _FriendsListPageState extends State<FriendsListPage> {
 
   void _onScroll() {
     if (_isBottom) {
-      final state = context.read().state;
+      final state = context.read<FriendshipBloc>().state;
       if (state.friendsHasMore && !state.isLoadingMore) {
-        // ✅ ИЗМЕНЕНО: передаем userId
-        context.read().add(
+        context.read<FriendshipBloc>().add(
           LoadFriendsListEvent(loadMore: true, userId: widget.userId),
         );
       }
@@ -113,7 +112,7 @@ class _FriendsListPageState extends State<FriendsListPage> {
           return RefreshIndicator(
             onRefresh: () async {
               // ✅ ИЗМЕНЕНО: передаем userId
-              context.read().add(LoadFriendsListEvent(userId: widget.userId));
+              context.read<FriendshipBloc>().add(LoadFriendsListEvent(userId: widget.userId));
             },
             child: ListView.separated(
               controller: _scrollController,

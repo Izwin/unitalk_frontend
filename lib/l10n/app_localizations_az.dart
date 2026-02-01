@@ -1392,72 +1392,74 @@ class AppLocalizationsAz extends AppLocalizations {
       'Zəhmət olmasa aşağıdakı təlimatlara əməl edərək yeni ekran görüntüsü yükləyin.';
 
   @override
-  String get friends => 'Друзья';
+  String get friends => 'Dostlar';
 
   @override
-  String get friendRequests => 'Запросы в друзья';
+  String get friendRequests => 'Dostluq sorğuları';
 
   @override
-  String get addFriend => 'Добавить в друзья';
+  String get addFriend => 'Dost əlavə et';
 
   @override
-  String get add => 'Добавить';
+  String get add => 'Əlavə et';
 
   @override
-  String get removeFriend => 'Удалить из друзей';
+  String get removeFriend => 'Dostu sil';
 
   @override
-  String get cancelRequest => 'Отменить запрос';
+  String get cancelRequest => 'Sorğunu ləğv et';
 
   @override
-  String get accept => 'Принять';
+  String get accept => 'Qəbul et';
 
   @override
-  String get reject => 'Отклонить';
+  String get reject => 'Rədd et';
 
   @override
-  String get remove => 'Удалить';
+  String get remove => 'Sil';
 
   @override
   String get removeFriendConfirmation =>
-      'Вы уверены, что хотите удалить этого друга?';
+      'Bu dostu silmək istədiyinizə əminsiniz?';
 
   @override
-  String get noFriendsYet => 'У вас пока нет друзей';
+  String get noFriendsYet => 'Hələ dostunuz yoxdur';
 
   @override
-  String get startAddingFriends => 'Начните добавлять друзей, чтобы общаться';
+  String get startAddingFriends =>
+      'Ünsiyyət qurmaq üçün dostlar əlavə etməyə başlayın';
 
   @override
-  String get noIncomingRequests => 'Нет входящих запросов';
+  String get noIncomingRequests => 'Gələn sorğular yoxdur';
 
   @override
-  String get noIncomingRequestsSubtitle => 'У вас нет запросов в друзья';
+  String get noIncomingRequestsSubtitle => 'Sizin dostluq sorğularınız yoxdur';
 
   @override
-  String get noOutgoingRequests => 'Нет исходящих запросов';
+  String get noOutgoingRequests => 'Göndərilən sorğular yoxdur';
 
   @override
-  String get noOutgoingRequestsSubtitle => 'Вы не отправляли запросы в друзья';
+  String get noOutgoingRequestsSubtitle =>
+      'Siz dostluq sorğusu göndərməmisiniz';
 
   @override
-  String get incoming => 'Входящие';
+  String get incoming => 'Gələn';
 
   @override
-  String get outgoing => 'Исходящие';
+  String get outgoing => 'Göndərilən';
 
   @override
-  String get sentAt => 'Отправлено';
+  String get sentAt => 'Göndərildi';
 
   @override
   String friendsCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count друзей',
-      few: '$count друга',
-      one: '1 друг',
-      zero: 'Нет друзей',
+      other: '$count dost',
+      few: '$count dost',
+      one: '1 dost',
+      zero: 'Dost yoxdur',
     );
     return '$_temp0';
   }
