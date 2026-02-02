@@ -1507,4 +1507,184 @@ class AppLocalizationsAz extends AppLocalizations {
   @override
   String get myUniversityDescription =>
       'Yalnız mənim universitetimin tələbəlarından';
+
+  @override
+  String get badges => 'Nişanlar';
+
+  @override
+  String get viewAll => 'Hamısı';
+
+  @override
+  String get nextBadges => 'Növbəti nişanlar';
+
+  @override
+  String get noBadgesYet => 'İlk nişanınızı qazanın!';
+
+  @override
+  String get earnBadgesHint => 'qazanılıb';
+
+  @override
+  String get selectEmoji => 'Emoji seçin';
+
+  @override
+  String get noEmoji => 'Emoji yoxdur';
+
+  @override
+  String get aboutMe => 'Haqqımda';
+
+  @override
+  String get bio => 'Bio';
+
+  @override
+  String get bioHint => 'Özünüz haqqında yazın...';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get statusHint => 'Nə ilə məşğulsunuz?';
+
+  @override
+  String get profileEmoji => 'Profil emojisi';
+
+  @override
+  String get course => 'Kurs';
+
+  @override
+  String get selectCourse => 'Kurs seçin';
+
+  @override
+  String get removeEmoji => 'Sil';
+
+  @override
+  String get badgeOgName => 'OG';
+
+  @override
+  String badgeOgDescription(int value) {
+    return 'İstifadəçi #$value';
+  }
+
+  @override
+  String get badgeOgRequirement => 'İlk 1000 istifadəçi arasında olmaq';
+
+  @override
+  String get badgeAuthorName => 'Müəllif';
+
+  @override
+  String badgeAuthorDescription(int value) {
+    return '$value post';
+  }
+
+  @override
+  String get badgeAuthorRequirement => '10 və ya daha çox post yazmaq';
+
+  @override
+  String get badgePopularName => 'Populyar';
+
+  @override
+  String badgePopularDescription(int value) {
+    return '$value bəyənmə alındı';
+  }
+
+  @override
+  String get badgePopularRequirement => '100 və ya daha çox bəyənmə almaq';
+
+  @override
+  String get badgeTalkativeName => 'Danışqan';
+
+  @override
+  String badgeTalkativeDescription(int value) {
+    return '$value şərh';
+  }
+
+  @override
+  String get badgeTalkativeRequirement => '50 və ya daha çox şərh yazmaq';
+
+  @override
+  String get badgeSocialName => 'Sosial';
+
+  @override
+  String badgeSocialDescription(int value) {
+    return '$value dost';
+  }
+
+  @override
+  String get badgeSocialRequirement => '20 və ya daha çox dost əldə etmək';
+
+  @override
+  String get tierGold => 'Qızıl';
+
+  @override
+  String get tierSilver => 'Gümüş';
+
+  @override
+  String get tierBronze => 'Bürünc';
+
+  @override
+  String get year1 => '1-ci kurs';
+
+  @override
+  String get year2 => '2-ci kurs';
+
+  @override
+  String get year3 => '3-cü kurs';
+
+  @override
+  String get year4 => '4-cü kurs';
+
+  @override
+  String get master1 => 'Magistr 1';
+
+  @override
+  String get master2 => 'Magistr 2';
+
+  @override
+  String get phd => 'Doktorant';
+
+  @override
+  String get graduate => 'Məzun';
+
+  @override
+  String get totalLikesReceived => 'Alınan bəyənmələr';
+
+  @override
+  String get phdCourse => 'Doktorant';
+
+  @override
+  String get graduateCourse => 'Məzun';
+
+  @override
+  String get likesReceived => 'Bəyənmələr';
+
+  @override
+  String get badgesOverviewSubtitle =>
+      'İcma daxilində aktiv iştirak edərək nişanlar qazanın';
+
+  @override
+  String get userNumber => 'İstifadəçi #';
+
+  @override
+  String get totalLikes => 'Ümumi bəyənmələr';
+
+  @override
+  String copiedToClipboard(String text) {
+    return '$text kopyalandı';
+  }
+
+  @override
+  String get noMorePosts => 'Daha çox post yoxdur';
+
+  @override
+  String get ogUser => 'OG İstifadəçi';
+
+  @override
+  String newFriendRequests(int count) {
+    return '$count yeni istək';
+  }
+
+  @override
+  String get allBadgesEarned => 'Bütün nişanlar toplandı! 🎉';
+
+  @override
+  String get nextBadge => 'Növbəti';
 }

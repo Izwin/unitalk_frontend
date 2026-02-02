@@ -544,5 +544,105 @@
   "errorLoadingUniversities": "Ошибка загрузки университетов",
   "done": "Готово",
   "myUniversity": "Моем университет",
-  "myUniversityDescription": "Только от студентов моего университета"
+  "myUniversityDescription": "Только от студентов моего университета",
+  "badges": "Значки",
+  "viewAll": "Все",
+  "nextBadges": "Следующие значки",
+  "noBadgesYet": "Пока нет значков",
+  "earnBadgesHint": "Будьте активны, чтобы получить значки!",
+  "selectEmoji": "Выберите эмодзи",
+  "noEmoji": "Без эмодзи",
+  "aboutMe": "О себе",
+  "bio": "Био",
+  "bioHint": "Расскажите о себе...",
+  "status": "Статус",
+  "statusHint": "Чем занимаетесь?",
+  "profileEmoji": "Эмодзи профиля",
+  "course": "Курс",
+  "selectCourse": "Выберите курс",
+
+  "badgeOgName": "OG",
+  "badgeOgDescription": "Пользователь #{value}",
+  "@badgeOgDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeOgRequirement": "Быть среди первых 1000 пользователей",
+
+  "badgeAuthorName": "Автор",
+  "badgeAuthorDescription": "{value} постов",
+  "@badgeAuthorDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeAuthorRequirement": "Написать 10 и более постов",
+
+  "badgePopularName": "Популярный",
+  "badgePopularDescription": "{value} лайков получено",
+  "@badgePopularDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgePopularRequirement": "Получить 100 и более лайков",
+
+  "badgeTalkativeName": "Общительный",
+  "badgeTalkativeDescription": "{value} комментариев",
+  "@badgeTalkativeDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeTalkativeRequirement": "Написать 50 и более комментариев",
+
+  "badgeSocialName": "Социальный",
+  "badgeSocialDescription": "{value} друзей",
+  "@badgeSocialDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeSocialRequirement": "Иметь 20 и более друзей",
+
+  "tierGold": "Золото",
+  "tierSilver": "Серебро",
+  "tierBronze": "Бронза",
+
+
+  "year1": "1 курс",
+  "year2": "2 курс",
+  "year3": "3 курс",
+  "year4": "4 курс",
+  "master1": "Магистр 1",
+  "master2": "Магистр 2",
+  "phd": "Аспирант",
+  "graduate": "Выпускник",
+
+  "totalLikesReceived": "Получено лайков",
+
+  "removeEmoji": "Убрать",
+  "phdCourse": "Аспирант",
+  "graduateCourse": "Выпускник",
+
+  "likesReceived": "Лайки",
+  "badgesOverviewSubtitle": "Зарабатывайте значки, активно участвуя в сообществе",
+  "userNumber": "Пользователь #",
+  "totalLikes": "Всего лайков",
+  "copiedToClipboard": "Скопировано {text}",
+  "noMorePosts": "Больше постов нет",
+  "ogUser": "OG Пользователь",
+  "newFriendRequests": "{count, plural, =1{1 новая заявка} few{{count} новые заявки} other{{count} новых заявок}}",
+  "@newFriendRequests": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "badges": "Значки",
+  "noBadgesYet": "Заработайте первый значок!",
+  "earnBadgesHint": "получено",
+  "allBadgesEarned": "Все значки собраны! 🎉",
+  "nextBadge": "Следующий"
+
 }

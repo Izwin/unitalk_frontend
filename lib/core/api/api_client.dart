@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 class DioClient {
-  static const String baseUrl = 'http://35.198.109.53/api';
+  static const String baseUrl = 'http://127.0.0.1:5003/api';
 
   static Dio createDio({bool withAuthInterceptor = false, FirebaseAuth? firebaseAuth}) {
     final dio = Dio(

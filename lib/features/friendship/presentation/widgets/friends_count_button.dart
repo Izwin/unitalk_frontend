@@ -1,28 +1,13 @@
+// lib/features/friendship/presentation/widgets/friends_count_button.dart
+
 import 'package:flutter/material.dart';
 
-/// Единый компонент для кнопок-статистик (друзья, запросы и т.д.)
-///
-/// Использование:
-/// ```dart
-/// StatCountButton(
-///   count: user.friendsCount ?? 0,
-///   label: l10n.friends,
-///   icon: Icons.people_outlined,
-///   onTap: () => context.push('/friends'),
-/// )
-/// ```
 class StatCountButton extends StatelessWidget {
   final int count;
   final String label;
   final IconData icon;
   final VoidCallback onTap;
-
-  /// Когда true — кнопка окрашивается в «тревожный» акцент (error),
-  /// например при наличии входящих запросов.
   final bool highlight;
-
-  /// Порог: если count >= этого значения — включается highlight.
-  /// По умолчанию highlight управляется явно через параметр.
   final int? highlightThreshold;
 
   const StatCountButton({
@@ -45,129 +30,113 @@ class StatCountButton extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
-    final Color iconColor =
-    _isHighlighted ? cs.error : cs.onSurfaceVariant;
-    final Color bgColor =
-    _isHighlighted
-        ? cs.errorContainer.withOpacity(0.18)
-        : cs.surfaceVariant.withOpacity(0.45);
-    final Color borderColor =
-    _isHighlighted
-        ? cs.error.withOpacity(0.22)
-        : theme.dividerColor.withOpacity(0.3);
-    final Color countColor =
-    _isHighlighted ? cs.error : cs.onSurface;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor, width: 0.8),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _IconWithBadge(
-              icon: icon,
-              iconColor: iconColor,
-              badgeCount: _isHighlighted ? count : null,
-              badgeColor: cs.error,
-            ),
-            const SizedBox(width: 10),
-
-            // ─── Count + label ──────────────────────────
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '$count',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      height: 1.2,
-                      color: countColor,
-                    ),
-                  ),
-                  Text(
-                    label,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: cs.onSurfaceVariant,
-                      height: 1.2,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: _isHighlighted
+                ? cs.error.withOpacity(0.08)
+                : cs.surfaceVariant.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              // Icon with optional badge
+              _IconBadge(
+                icon: icon,
+                count: _isHighlighted ? count : null,
+                iconColor: _isHighlighted ? cs.error : cs.onSurfaceVariant,
+                badgeColor: cs.error,
               ),
-            ),
+              const SizedBox(width: 12),
 
-            const SizedBox(width: 6),
+              // Count + Label
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$count',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: _isHighlighted ? cs.error : cs.onSurface,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: cs.onSurfaceVariant,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
 
-            // ─── Chevron ────────────────────────────────
-            Icon(
-              Icons.chevron_right,
-              size: 16,
-              color: cs.onSurfaceVariant.withOpacity(0.4),
-            ),
-          ],
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: cs.onSurfaceVariant.withOpacity(0.4),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// ─── Иконка с опциональным баджем ─────────────────────────────────────────
-class _IconWithBadge extends StatelessWidget {
+class _IconBadge extends StatelessWidget {
   final IconData icon;
+  final int? count;
   final Color iconColor;
-  final int? badgeCount; // null → бадж не рендерится
   final Color badgeColor;
 
-  const _IconWithBadge({
-    Key? key,
+  const _IconBadge({
     required this.icon,
+    this.count,
     required this.iconColor,
-    this.badgeCount,
     required this.badgeColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (badgeCount == null) {
-      return Icon(icon, size: 18, color: iconColor);
-    }
-
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Icon(icon, size: 18, color: iconColor),
-        Positioned(
-          right: -5,
-          top: -5,
-          child: Container(
-            width: 15,
-            height: 15,
-            decoration: BoxDecoration(
-              color: badgeColor,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              badgeCount! > 9 ? '9+' : '$badgeCount',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-                height: 1,
+        Icon(icon, size: 22, color: iconColor),
+        if (count != null && count! > 0)
+          Positioned(
+            right: -6,
+            top: -6,
+            child: Container(
+              constraints: const BoxConstraints(minWidth: 16),
+              height: 16,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: badgeColor,
+                borderRadius: BorderRadius.circular(8),
               ),
-              textAlign: TextAlign.center,
+              child: Center(
+                child: Text(
+                  count! > 99 ? '99+' : '$count',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
       ],
     );
   }

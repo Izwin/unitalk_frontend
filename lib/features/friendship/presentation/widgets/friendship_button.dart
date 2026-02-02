@@ -1,3 +1,5 @@
+// lib/features/friendship/presentation/widgets/friendship_button.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:unitalk/features/friendship/presentation/bloc/friendship_bloc.dart';
@@ -17,7 +19,6 @@ class FriendshipButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
     return BlocBuilder<FriendshipBloc, FriendshipState>(
@@ -32,24 +33,24 @@ class FriendshipButton extends StatelessWidget {
         final isRequester = friendshipStatus.isRequester ?? false;
         final friendshipId = friendshipStatus.friendshipId;
 
-        // ─── Уже друзья ─────────────────────────────────────
+        // Already friends
         if (status == FriendshipStatus.accepted) {
-          return _buildButton(
-            context: context,
+          return _StyledButton(
             label: compact ? l10n.friends : l10n.removeFriend,
-            icon: compact ? Icons.people_outlined : Icons.person_remove_outlined,
-            style: _ButtonStyle.secondary,
+            icon: compact ? Icons.people_rounded : Icons.person_remove_outlined,
+            style: _ButtonVariant.secondary,
+            compact: compact,
             onPressed: () => _showRemoveFriendDialog(context, friendshipId!),
           );
         }
 
-        // ─── Ожидает ответа (мы отправили запрос) ───────────
+        // Pending (we sent the request)
         if (status == FriendshipStatus.pending && isRequester) {
-          return _buildButton(
-            context: context,
+          return _StyledButton(
             label: compact ? l10n.pending : l10n.cancelRequest,
-            icon: compact ? Icons.schedule_outlined : Icons.close_outlined,
-            style: _ButtonStyle.ghost,
+            icon: compact ? Icons.schedule_rounded : Icons.close_rounded,
+            style: _ButtonVariant.ghost,
+            compact: compact,
             onPressed: () {
               context.read<FriendshipBloc>().add(
                 RemoveFriendshipEvent(friendshipId!, userId: userId),
@@ -58,106 +59,66 @@ class FriendshipButton extends StatelessWidget {
           );
         }
 
-        // ─── Входящий запрос (нам написали) ─────────────────
+        // Incoming request
         if (status == FriendshipStatus.pending && !isRequester) {
+          if (compact) {
+            return _StyledButton(
+              label: l10n.accept,
+              icon: Icons.check_rounded,
+              style: _ButtonVariant.primary,
+              compact: true,
+              onPressed: () {
+                context.read<FriendshipBloc>().add(
+                  AcceptFriendRequestEvent(friendshipId!),
+                );
+              },
+            );
+          }
+
           return Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              _buildButton(
-                context: context,
-                label: l10n.accept,
-                icon: Icons.check_outlined,
-                style: _ButtonStyle.primary,
-                onPressed: () {
-                  context.read<FriendshipBloc>().add(
-                    AcceptFriendRequestEvent(friendshipId!),
-                  );
-                },
+              Expanded(
+                child: _StyledButton(
+                  label: l10n.accept,
+                  icon: Icons.check_rounded,
+                  style: _ButtonVariant.primary,
+                  compact: false,
+                  onPressed: () {
+                    context.read<FriendshipBloc>().add(
+                      AcceptFriendRequestEvent(friendshipId!),
+                    );
+                  },
+                ),
               ),
-              const SizedBox(width: 8),
-              _buildButton(
-                context: context,
-                label: l10n.reject,
-                icon: Icons.close_outlined,
-                style: _ButtonStyle.ghost,
-                onPressed: () {
-                  context.read<FriendshipBloc>().add(
-                    RejectFriendRequestEvent(friendshipId!),
-                  );
-                },
+              const SizedBox(width: 12),
+              Expanded(
+                child: _StyledButton(
+                  label: l10n.reject,
+                  icon: Icons.close_rounded,
+                  style: _ButtonVariant.ghost,
+                  compact: false,
+                  onPressed: () {
+                    context.read<FriendshipBloc>().add(
+                      RejectFriendRequestEvent(friendshipId!),
+                    );
+                  },
+                ),
               ),
             ],
           );
         }
 
-        // ─── Нет дружбы ─────────────────────────────────────
-        return _buildButton(
-          context: context,
+        // No friendship
+        return _StyledButton(
           label: compact ? l10n.add : l10n.addFriend,
-          icon: compact ? Icons.person_add_outlined : Icons.person_add_outlined,
-          style: _ButtonStyle.primary,
+          icon: Icons.person_add_rounded,
+          style: _ButtonVariant.primary,
+          compact: compact,
           onPressed: () {
             context.read<FriendshipBloc>().add(SendFriendRequestEvent(userId));
           },
         );
       },
-    );
-  }
-
-  Widget _buildButton({
-    required BuildContext context,
-    required String label,
-    required IconData icon,
-    required _ButtonStyle style,
-    required VoidCallback onPressed,
-  }) {
-    final theme = Theme.of(context);
-
-    final Color bg;
-    final Color fg;
-    final Color? border;
-
-    switch (style) {
-      case _ButtonStyle.primary:
-        bg = theme.primaryColor;
-        fg = Colors.white;
-        border = null;
-      case _ButtonStyle.secondary:
-        bg = theme.colorScheme.surfaceVariant.withOpacity(0.7);
-        fg = theme.colorScheme.onSurfaceVariant;
-        border = theme.dividerColor.withOpacity(0.4);
-      case _ButtonStyle.ghost:
-        bg = theme.colorScheme.surfaceVariant.withOpacity(0.4);
-        fg = theme.colorScheme.onSurfaceVariant.withOpacity(0.7);
-        border = theme.dividerColor.withOpacity(0.3);
-    }
-
-    if (compact) {
-      return IconButton.filled(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 18),
-        style: IconButton.styleFrom(
-          backgroundColor: bg,
-          foregroundColor: fg,
-          side: border != null ? BorderSide(color: border) : null,
-          iconSize: 18,
-        ),
-      );
-    }
-
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 16),
-      label: Text(label),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: bg,
-        foregroundColor: fg,
-        elevation: 0,
-        side: border != null ? BorderSide(color: border) : null,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-      ),
     );
   }
 
@@ -168,6 +129,7 @@ class FriendshipButton extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(l10n.removeFriend),
         content: Text(l10n.removeFriendConfirmation),
         actions: [
@@ -191,4 +153,80 @@ class FriendshipButton extends StatelessWidget {
   }
 }
 
-enum _ButtonStyle { primary, secondary, ghost }
+enum _ButtonVariant { primary, secondary, ghost }
+
+class _StyledButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final _ButtonVariant style;
+  final bool compact;
+  final VoidCallback onPressed;
+
+  const _StyledButton({
+    required this.label,
+    required this.icon,
+    required this.style,
+    required this.compact,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    Color bg;
+    Color fg;
+
+    switch (style) {
+      case _ButtonVariant.primary:
+        bg = cs.primary;
+        fg = cs.onPrimary;
+      case _ButtonVariant.secondary:
+        bg = cs.surfaceVariant.withOpacity(0.5);
+        fg = cs.onSurfaceVariant;
+      case _ButtonVariant.ghost:
+        bg = cs.surfaceVariant.withOpacity(0.3);
+        fg = cs.onSurfaceVariant.withOpacity(0.7);
+    }
+
+    if (compact) {
+      return SizedBox(
+        width: 40,
+        height: 40,
+        child: IconButton(
+          onPressed: onPressed,
+          icon: Icon(icon, size: 20),
+          style: IconButton.styleFrom(
+            backgroundColor: bg,
+            foregroundColor: fg,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 48,
+      child: FilledButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 18),
+        label: Text(label),
+        style: FilledButton.styleFrom(
+          backgroundColor: bg,
+          foregroundColor: fg,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}

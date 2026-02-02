@@ -1,3 +1,5 @@
+// lib/features/auth/presentation/bloc/auth_bloc.dart
+
 import 'dart:io';
 import 'package:unitalk/features/auth/domain/repository/auth_repository.dart';
 import 'package:unitalk/features/auth/domain/repository/user_repository.dart';
@@ -18,7 +20,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }) : super(AuthState.initial()) {
     on<SignInWithGoogleEvent>(_onSignInWithGoogle);
     on<SignInWithAppleEvent>(_onSignInWithApple);
-    on<SignInWithDemoEvent>(_onSignInWithDemo); // НОВЫЙ ОБРАБОТЧИК
+    on<SignInWithDemoEvent>(_onSignInWithDemo);
     on<GetCurrentUserEvent>(_onGetCurrentUser);
     on<UpdateProfileEvent>(_onUpdateProfile);
     on<UpdateAvatarEvent>(_onUpdateAvatar);
@@ -89,7 +91,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
-  // НОВЫЙ МЕТОД: Обработка демо-входа
   Future<void> _onSignInWithDemo(
       SignInWithDemoEvent event,
       Emitter<AuthState> emit,
@@ -198,7 +199,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       universityId: universityId,
       facultyId: facultyId,
       sector: sector,
-      language: event.language?.countryCode,
+      // НОВЫЕ ПОЛЯ
+      bio: event.bio,
+      status: event.status,
+      profileEmoji: event.profileEmoji,
+      course: event.course,
+      instagramUsername: event.instagramUsername,
     );
 
     result.fold(

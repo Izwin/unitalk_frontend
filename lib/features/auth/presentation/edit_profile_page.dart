@@ -1,8 +1,9 @@
+// lib/features/auth/presentation/edit_profile_page.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:unitalk/core/ui/common/bottom_sheet_list_picker.dart';
 import 'package:unitalk/core/ui/common/common_text_field.dart';
 import 'package:unitalk/core/ui/common/confirmation_dialog.dart';
@@ -34,10 +35,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
+  late TextEditingController _bioController;
+  late TextEditingController _instagramController;
 
   UniversityModel? _selectedUniversity;
   FacultyModel? _selectedFaculty;
   Sector? _selectedSector;
+  Course? _selectedCourse;
   File? _selectedImage;
 
   bool _isModified = false;
@@ -51,18 +55,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     _firstNameController = TextEditingController(text: user.firstName);
     _lastNameController = TextEditingController(text: user.lastName);
+    _bioController = TextEditingController(text: user.bio);
+    _instagramController = TextEditingController(text: user.instagramUsername);
 
     _selectedUniversity = user.university;
     _selectedFaculty = user.faculty;
     _selectedSector = user.sector;
+    _selectedCourse = user.course;
 
     _firstNameController.addListener(_onFieldChanged);
     _lastNameController.addListener(_onFieldChanged);
+    _bioController.addListener(_onFieldChanged);
+    _instagramController.addListener(_onFieldChanged);
 
     if (_selectedUniversity != null) {
-      context.read<UniversityBloc>().add(
-        LoadFacultiesEvent(_selectedUniversity!.id),
-      );
+      context.read<UniversityBloc>().add(LoadFacultiesEvent(_selectedUniversity!.id));
     }
   }
 
@@ -70,13 +77,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _bioController.dispose();
+    _instagramController.dispose();
     super.dispose();
   }
 
   void _onFieldChanged() {
-    if (!_isModified) {
-      setState(() => _isModified = true);
-    }
+    if (!_isModified) setState(() => _isModified = true);
   }
 
   Future<void> _handleImageSelection() async {
@@ -106,7 +113,86 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-// В EditProfilePage замените метод _showUniversityPicker на этот:
+  Future<void> _showCoursePicker() async {
+    final l10n = AppLocalizations.of(context)!;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Text(
+                      l10n.selectCourse,
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                    ),
+                    const Spacer(),
+                    if (_selectedCourse != null)
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _selectedCourse = null;
+                            _isModified = true;
+                          });
+                          Navigator.pop(ctx);
+                        },
+                        child: Text(l10n.clear),
+                      ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...Course.values.map((course) {
+                final isSelected = _selectedCourse == course;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  child: RadioSelectorItem(
+                    title: course.getLocalizedName(l10n),
+                    isSelected: isSelected,
+                    icon: Icons.school_outlined,
+                    onTap: () {
+                      setState(() {
+                        _selectedCourse = course;
+                        _isModified = true;
+                      });
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                );
+              }),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Future<void> _showUniversityPicker(BuildContext context) async {
     showModalBottomSheet(
@@ -121,8 +207,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
             currentUniversity: _selectedUniversity,
             onUniversitySelected: (university) {
               final user = context.read<AuthBloc>().state.user!;
-              final willLoseVerification = user.isVerified == true &&
-                  user.university?.id != university.id;
+              final willLoseVerification =
+                  user.isVerified == true && user.university?.id != university.id;
 
               void selectUniversity() {
                 setState(() {
@@ -131,14 +217,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   _isModified = true;
                   _universityChanged = user.university?.id != university.id;
                 });
-                context.read<UniversityBloc>().add(
-                  LoadFacultiesEvent(university.id),
-                );
-                Navigator.pop(modalContext); // Закрываем bottom sheet
+                context.read<UniversityBloc>().add(LoadFacultiesEvent(university.id));
+                Navigator.pop(modalContext);
               }
 
               if (willLoseVerification) {
-                Navigator.pop(modalContext); // Сначала закрываем sheet
+                Navigator.pop(modalContext);
                 _showVerificationWarning(selectUniversity, context);
               } else {
                 selectUniversity();
@@ -169,8 +253,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
             customFilter: (faculty, query) => faculty.matchesQuery(query),
             onItemSelected: (faculty) {
               final user = context.read<AuthBloc>().state.user!;
-              final willLoseVerification = user.isVerified == true &&
-                  user.faculty?.id != faculty.id;
+              final willLoseVerification =
+                  user.isVerified == true && user.faculty?.id != faculty.id;
 
               void selectFaculty() {
                 setState(() {
@@ -194,14 +278,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
       ),
     );
   }
+
   Future<void> _showSectorPicker() async {
     final l10n = AppLocalizations.of(context)!;
 
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        margin: EdgeInsets.all(16),
+      builder: (ctx) => Container(
+        margin: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,
           borderRadius: BorderRadius.circular(24),
@@ -210,7 +295,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Container(
                 width: 40,
                 height: 4,
@@ -219,35 +304,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
                   children: [
                     Text(
                       l10n.selectSector,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () => context.pop(),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.grey.shade100,
-                        shape: CircleBorder(),
-                      ),
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               ...Sector.values.map((sector) {
                 final isSelected = _selectedSector == sector;
                 return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                   child: RadioSelectorItem(
                     title: sector.displayName,
                     isSelected: isSelected,
@@ -257,12 +335,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         _selectedSector = sector;
                         _isModified = true;
                       });
-                      context.pop();
+                      Navigator.pop(ctx);
                     },
                   ),
                 );
-              }).toList(),
-              SizedBox(height: 20),
+              }),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -270,7 +348,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Future<void> _showVerificationWarning(VoidCallback onConfirm,BuildContext context) async {
+  Future<void> _showVerificationWarning(VoidCallback onConfirm, BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
 
     final confirmed = await ConfirmationDialog.showVerificationWarning(
@@ -281,22 +359,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
       l10n.cancel,
     );
 
-    if (confirmed) {
-      onConfirm();
-    }
+    if (confirmed) onConfirm();
   }
 
   void _saveChanges(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
 
     final user = context.read<AuthBloc>().state.user!;
-    final willLoseVerification = user.isVerified == true &&
-        (_universityChanged || _facultyChanged);
+    final willLoseVerification = user.isVerified == true && (_universityChanged || _facultyChanged);
 
     void performSave() async {
       if (_selectedImage != null) {
         context.read<AuthBloc>().add(UpdateAvatarEvent(_selectedImage!));
-        await Future.delayed(Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 500));
       }
 
       context.read<AuthBloc>().add(
@@ -306,13 +381,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
           universityId: _selectedUniversity?.id,
           facultyId: _selectedFaculty?.id,
           sector: _selectedSector,
+          bio: _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
+          course: _selectedCourse,
+          instagramUsername: _instagramController.text.trim().isEmpty
+              ? null
+              : _instagramController.text.trim().replaceAll('@', ''),
         ),
       );
       context.pop();
     }
 
     if (willLoseVerification) {
-      _showVerificationWarning(performSave,context);
+      _showVerificationWarning(performSave, context);
     } else {
       performSave();
     }
@@ -333,9 +413,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               content: Text(state.errorMessage ?? l10n.failedToUpdateProfile),
               backgroundColor: Colors.red.shade400,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           );
         }
@@ -346,37 +424,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
           elevation: 0,
           backgroundColor: Colors.transparent,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () => context.pop(),
           ),
-          title: Text(
-            l10n.editProfile,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          title: Text(l10n.editProfile, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
           actions: [
             if (_isModified)
               Padding(
-                padding: EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(right: 8),
                 child: TextButton(
                   onPressed: () => _saveChanges(context),
                   style: TextButton.styleFrom(
                     backgroundColor: theme.primaryColor,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text(
-                    l10n.save,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: Text(l10n.save, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                 ),
               ),
           ],
@@ -384,16 +448,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
         body: Form(
           key: _formKey,
           child: ListView(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             children: [
-              // Avatar Section
+              // Avatar
               Center(
                 child: Stack(
                   children: [
                     UserAvatar(
-                      photoUrl: _selectedImage != null
-                          ? null
-                          : user.photoUrl,
+                      photoUrl: _selectedImage != null ? null : user.photoUrl,
                       firstName: user.firstName,
                       lastName: user.lastName,
                       size: 120,
@@ -402,15 +464,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       Container(
                         width: 120,
                         height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                        ),
-                        child: ClipOval(
-                          child: Image.file(
-                            _selectedImage!,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                        decoration: const BoxDecoration(shape: BoxShape.circle),
+                        child: ClipOval(child: Image.file(_selectedImage!, fit: BoxFit.cover)),
                       ),
                     Positioned(
                       bottom: 0,
@@ -423,70 +478,66 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           decoration: BoxDecoration(
                             color: theme.primaryColor,
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: theme.scaffoldBackgroundColor,
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 8,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
+                            border: Border.all(color: theme.scaffoldBackgroundColor, width: 3),
                           ),
-                          child: Icon(
-                            Icons.photo_camera,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                          child: const Icon(Icons.photo_camera, color: Colors.white, size: 20),
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-              // Personal Information
+              // Personal Info
               _buildSectionTitle(l10n.personalInformation),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               CommonTextField(
                 controller: _firstNameController,
                 label: l10n.firstName,
                 icon: Icons.person_outline,
-                validator: (value) {
-                  if (value?.trim().isEmpty ?? true) {
-                    return l10n.firstNameRequired;
-                  }
-                  return null;
-                },
+                validator: (value) => (value?.trim().isEmpty ?? true) ? l10n.firstNameRequired : null,
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               CommonTextField(
                 controller: _lastNameController,
                 label: l10n.lastName,
                 icon: Icons.person_outline,
-                validator: (value) {
-                  if (value?.trim().isEmpty ?? true) {
-                    return l10n.lastNameRequired;
-                  }
-                  return null;
-                },
+                validator: (value) => (value?.trim().isEmpty ?? true) ? l10n.lastNameRequired : null,
               ),
+              const SizedBox(height: 32),
 
-              SizedBox(height: 32),
+              // About Me
+              _buildSectionTitle(l10n.aboutMe),
+              const SizedBox(height: 12),
+              CommonTextField(
+                controller: _bioController,
+                label: l10n.bio,
+                icon: Icons.info_outline,
+                maxLines: 3,
+                maxLength: 150,
+                hintText: l10n.bioHint,
+              ),
+              const SizedBox(height: 12),
+              CommonTextField(
+                controller: _instagramController,
+                label: 'Instagram',
+                icon: Icons.camera_alt_outlined,
+                prefixText: '@',
+                hintText: 'username',
+              ),
+              const SizedBox(height: 32),
 
-              // Academic Information
+              // Academic Info
               _buildSectionTitle(l10n.academicInformation),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               SelectorCard(
                 label: l10n.university,
                 value: _selectedUniversity?.getLocalizedName(locale) ?? l10n.selectUniversityPrompt,
                 icon: Icons.school_outlined,
-                onTap: ()=>_showUniversityPicker(context),
+                onTap: () => _showUniversityPicker(context),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               SelectorCard(
                 label: l10n.faculty,
                 value: _selectedFaculty?.getLocalizedName(locale) ?? l10n.selectFacultyPrompt,
@@ -494,14 +545,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 onTap: () => _showFacultyPicker(context),
                 isEnabled: _selectedUniversity != null,
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               SelectorCard(
                 label: l10n.sector,
                 value: _selectedSector?.displayName ?? l10n.selectSectorPrompt,
                 icon: Icons.language_outlined,
                 onTap: _showSectorPicker,
               ),
-              SizedBox(height: 32),
+              const SizedBox(height: 12),
+              SelectorCard(
+                label: l10n.course,
+                value: _selectedCourse?.getLocalizedName(l10n) ?? l10n.selectCourse,
+                icon: Icons.timeline_outlined,
+                onTap: _showCoursePicker,
+              ),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -544,15 +602,11 @@ class RadioSelectorItem extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected
-              ? theme.primaryColor.withOpacity(0.08)
-              : theme.cardColor,
+          color: isSelected ? theme.primaryColor.withOpacity(0.08) : theme.cardColor,
           border: Border.all(
-            color: isSelected
-                ? theme.primaryColor
-                : Colors.grey.shade200,
+            color: isSelected ? theme.primaryColor : Colors.grey.shade200,
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(16),
@@ -567,35 +621,18 @@ class RadioSelectorItem extends StatelessWidget {
                   color: theme.primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  color: theme.primaryColor,
-                  size: 24,
-                ),
+                child: Icon(icon, color: theme.primaryColor, size: 24),
               ),
-            if (icon != null) SizedBox(width: 16),
+            if (icon != null) const SizedBox(width: 16),
             Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
             ),
             if (isSelected)
               Container(
                 width: 28,
                 height: 28,
-                decoration: BoxDecoration(
-                  color: theme.primaryColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 16,
-                ),
+                decoration: BoxDecoration(color: theme.primaryColor, shape: BoxShape.circle),
+                child: const Icon(Icons.check, color: Colors.white, size: 16),
               ),
           ],
         ),

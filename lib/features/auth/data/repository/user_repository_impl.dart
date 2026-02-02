@@ -1,3 +1,5 @@
+// lib/features/auth/data/repository/user_repository_impl.dart
+
 import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:unitalk/core/failure/failure.dart';
@@ -37,7 +39,12 @@ class UserRepositoryImpl implements UserRepository {
     required String universityId,
     required String facultyId,
     required Sector sector,
-    String? language,
+    // НОВЫЕ ПОЛЯ
+    String? bio,
+    String? status,
+    String? profileEmoji,
+    Course? course,
+    String? instagramUsername,
   }) async {
     try {
       final user = await remoteDataSource.updateProfile(
@@ -46,7 +53,11 @@ class UserRepositoryImpl implements UserRepository {
         universityId: universityId,
         facultyId: facultyId,
         sector: sector.code,
-        language: language,
+        bio: bio,
+        status: status,
+        profileEmoji: profileEmoji,
+        course: course?.code,
+        instagramUsername: instagramUsername,
       );
       return Right(user);
     } catch (e) {

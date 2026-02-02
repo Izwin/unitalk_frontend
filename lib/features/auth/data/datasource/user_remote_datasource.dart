@@ -1,3 +1,5 @@
+// lib/features/auth/data/datasource/user_remote_datasource.dart
+
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:unitalk/features/auth/data/model/user_model.dart';
@@ -32,9 +34,14 @@ class UserRemoteDataSource {
     required String facultyId,
     required String sector,
     String? language,
+    String? bio,
+    String? status,
+    String? profileEmoji,
+    String? course,
+    String? instagramUsername,
   }) async {
     try {
-      final data = {
+      final data = <String, dynamic>{
         'firstName': firstName,
         'lastName': lastName,
         'universityId': universityId,
@@ -42,9 +49,14 @@ class UserRemoteDataSource {
         'sector': sector,
       };
 
-      if (language != null) {
-        data['language'] = language;
-      }
+      if (language != null) data['language'] = language;
+
+      // Новые поля (null удаляет значение)
+      data['bio'] = bio;
+      data['status'] = status;
+      data['profileEmoji'] = profileEmoji;
+      data['course'] = course;
+      data['instagramUsername'] = instagramUsername;
 
       final response = await dio.put('/auth/profile', data: data);
       return UserModel.fromJson(response.data);

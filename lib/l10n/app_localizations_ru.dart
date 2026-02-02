@@ -1510,4 +1510,191 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get myUniversityDescription =>
       'Только от студентов моего университета';
+
+  @override
+  String get badges => 'Значки';
+
+  @override
+  String get viewAll => 'Все';
+
+  @override
+  String get nextBadges => 'Следующие значки';
+
+  @override
+  String get noBadgesYet => 'Заработайте первый значок!';
+
+  @override
+  String get earnBadgesHint => 'получено';
+
+  @override
+  String get selectEmoji => 'Выберите эмодзи';
+
+  @override
+  String get noEmoji => 'Без эмодзи';
+
+  @override
+  String get aboutMe => 'О себе';
+
+  @override
+  String get bio => 'Био';
+
+  @override
+  String get bioHint => 'Расскажите о себе...';
+
+  @override
+  String get status => 'Статус';
+
+  @override
+  String get statusHint => 'Чем занимаетесь?';
+
+  @override
+  String get profileEmoji => 'Эмодзи профиля';
+
+  @override
+  String get course => 'Курс';
+
+  @override
+  String get selectCourse => 'Выберите курс';
+
+  @override
+  String get removeEmoji => 'Убрать';
+
+  @override
+  String get badgeOgName => 'OG';
+
+  @override
+  String badgeOgDescription(int value) {
+    return 'Пользователь #$value';
+  }
+
+  @override
+  String get badgeOgRequirement => 'Быть среди первых 1000 пользователей';
+
+  @override
+  String get badgeAuthorName => 'Автор';
+
+  @override
+  String badgeAuthorDescription(int value) {
+    return '$value постов';
+  }
+
+  @override
+  String get badgeAuthorRequirement => 'Написать 10 и более постов';
+
+  @override
+  String get badgePopularName => 'Популярный';
+
+  @override
+  String badgePopularDescription(int value) {
+    return '$value лайков получено';
+  }
+
+  @override
+  String get badgePopularRequirement => 'Получить 100 и более лайков';
+
+  @override
+  String get badgeTalkativeName => 'Общительный';
+
+  @override
+  String badgeTalkativeDescription(int value) {
+    return '$value комментариев';
+  }
+
+  @override
+  String get badgeTalkativeRequirement => 'Написать 50 и более комментариев';
+
+  @override
+  String get badgeSocialName => 'Социальный';
+
+  @override
+  String badgeSocialDescription(int value) {
+    return '$value друзей';
+  }
+
+  @override
+  String get badgeSocialRequirement => 'Иметь 20 и более друзей';
+
+  @override
+  String get tierGold => 'Золото';
+
+  @override
+  String get tierSilver => 'Серебро';
+
+  @override
+  String get tierBronze => 'Бронза';
+
+  @override
+  String get year1 => '1 курс';
+
+  @override
+  String get year2 => '2 курс';
+
+  @override
+  String get year3 => '3 курс';
+
+  @override
+  String get year4 => '4 курс';
+
+  @override
+  String get master1 => 'Магистр 1';
+
+  @override
+  String get master2 => 'Магистр 2';
+
+  @override
+  String get phd => 'Аспирант';
+
+  @override
+  String get graduate => 'Выпускник';
+
+  @override
+  String get totalLikesReceived => 'Получено лайков';
+
+  @override
+  String get phdCourse => 'Аспирант';
+
+  @override
+  String get graduateCourse => 'Выпускник';
+
+  @override
+  String get likesReceived => 'Лайки';
+
+  @override
+  String get badgesOverviewSubtitle =>
+      'Зарабатывайте значки, активно участвуя в сообществе';
+
+  @override
+  String get userNumber => 'Пользователь #';
+
+  @override
+  String get totalLikes => 'Всего лайков';
+
+  @override
+  String copiedToClipboard(String text) {
+    return 'Скопировано $text';
+  }
+
+  @override
+  String get noMorePosts => 'Больше постов нет';
+
+  @override
+  String get ogUser => 'OG Пользователь';
+
+  @override
+  String newFriendRequests(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count новых заявок',
+      few: '$count новые заявки',
+      one: '1 новая заявка',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get allBadgesEarned => 'Все значки собраны! 🎉';
+
+  @override
+  String get nextBadge => 'Следующий';
 }

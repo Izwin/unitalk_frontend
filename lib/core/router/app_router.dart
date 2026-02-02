@@ -31,6 +31,7 @@ import 'package:unitalk/features/feed/presentation/page/post_detail_page.dart';
 import 'package:unitalk/features/feed/presentation/page/post_likers_page.dart';
 import 'package:unitalk/features/friendship/presentation/pages/friend_requests_page.dart';
 import 'package:unitalk/features/friendship/presentation/pages/friends_list_page.dart';
+import 'package:unitalk/features/friendship/presentation/pages/friends_page.dart';
 import 'package:unitalk/features/home/home_page.dart';
 import 'package:unitalk/features/notifications/presentation/page/notification_settings_page.dart';
 import 'package:unitalk/features/notifications/presentation/page/notifications_page.dart';
@@ -280,13 +281,17 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/delete', builder: (context, state) => DeleteAccountPage()),
 
     // ─── Friendship ───────────────────────────────────────────
+    // В вашем router.dart
+
     GoRoute(
       path: '/friends',
-      builder: (context, state) => const FriendsListPage(),
+      builder: (context, state) => const FriendsPage(),
     ),
     GoRoute(
-      path: '/friend-requests',
-      builder: (context, state) => const FriendRequestsPage(),
+      path: '/user/:userId/friends',
+      builder: (context, state) => FriendsPage(
+        userId: state.pathParameters['userId'],
+      ),
     ),
 
     // Media fullscreen

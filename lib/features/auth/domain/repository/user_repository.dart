@@ -1,3 +1,5 @@
+// lib/features/auth/domain/repository/user_repository.dart
+
 import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:unitalk/core/failure/failure.dart';
@@ -14,7 +16,11 @@ abstract class UserRepository {
     required String universityId,
     required String facultyId,
     required Sector sector,
-    String? language,
+    String? bio,
+    String? status,
+    String? profileEmoji,
+    Course? course,
+    String? instagramUsername,
   });
 
   Future<Either<Failure, String>> updateAvatar(File file);

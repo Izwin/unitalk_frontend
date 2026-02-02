@@ -1498,4 +1498,190 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get myUniversityDescription => 'Only from students at my university';
+
+  @override
+  String get badges => 'Badges';
+
+  @override
+  String get viewAll => 'View All';
+
+  @override
+  String get nextBadges => 'Next badges to earn';
+
+  @override
+  String get noBadgesYet => 'No badges yet';
+
+  @override
+  String get earnBadgesHint => 'Be active to earn badges!';
+
+  @override
+  String get selectEmoji => 'Select Emoji';
+
+  @override
+  String get noEmoji => 'No emoji';
+
+  @override
+  String get aboutMe => 'About Me';
+
+  @override
+  String get bio => 'Bio';
+
+  @override
+  String get bioHint => 'Tell about yourself...';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get statusHint => 'What are you up to?';
+
+  @override
+  String get profileEmoji => 'Profile Emoji';
+
+  @override
+  String get course => 'Course';
+
+  @override
+  String get selectCourse => 'Select Course';
+
+  @override
+  String get removeEmoji => 'Remove';
+
+  @override
+  String get badgeOgName => 'OG';
+
+  @override
+  String badgeOgDescription(int value) {
+    return 'User #$value';
+  }
+
+  @override
+  String get badgeOgRequirement => 'Be among first 1000 users';
+
+  @override
+  String get badgeAuthorName => 'Author';
+
+  @override
+  String badgeAuthorDescription(int value) {
+    return '$value posts';
+  }
+
+  @override
+  String get badgeAuthorRequirement => 'Write 10 or more posts';
+
+  @override
+  String get badgePopularName => 'Popular';
+
+  @override
+  String badgePopularDescription(int value) {
+    return '$value likes received';
+  }
+
+  @override
+  String get badgePopularRequirement => 'Receive 100 or more likes';
+
+  @override
+  String get badgeTalkativeName => 'Talkative';
+
+  @override
+  String badgeTalkativeDescription(int value) {
+    return '$value comments';
+  }
+
+  @override
+  String get badgeTalkativeRequirement => 'Write 50 or more comments';
+
+  @override
+  String get badgeSocialName => 'Social';
+
+  @override
+  String badgeSocialDescription(int value) {
+    return '$value friends';
+  }
+
+  @override
+  String get badgeSocialRequirement => 'Have 20 or more friends';
+
+  @override
+  String get tierGold => 'Gold';
+
+  @override
+  String get tierSilver => 'Silver';
+
+  @override
+  String get tierBronze => 'Bronze';
+
+  @override
+  String get year1 => '1st Year';
+
+  @override
+  String get year2 => '2nd Year';
+
+  @override
+  String get year3 => '3rd Year';
+
+  @override
+  String get year4 => '4th Year';
+
+  @override
+  String get master1 => 'Master 1';
+
+  @override
+  String get master2 => 'Master 2';
+
+  @override
+  String get phd => 'PhD';
+
+  @override
+  String get graduate => 'Graduate';
+
+  @override
+  String get totalLikesReceived => 'Likes received';
+
+  @override
+  String get phdCourse => 'PhD';
+
+  @override
+  String get graduateCourse => 'Graduate';
+
+  @override
+  String get likesReceived => 'Likes';
+
+  @override
+  String get badgesOverviewSubtitle =>
+      'Earn badges by being active in the community';
+
+  @override
+  String get userNumber => 'User #';
+
+  @override
+  String get totalLikes => 'Total likes';
+
+  @override
+  String copiedToClipboard(String text) {
+    return 'Copied $text';
+  }
+
+  @override
+  String get noMorePosts => 'No more posts';
+
+  @override
+  String get ogUser => 'OG User';
+
+  @override
+  String newFriendRequests(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new requests',
+      one: '1 new request',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get allBadgesEarned => 'All badges collected! 🎉';
+
+  @override
+  String get nextBadge => 'Next';
 }

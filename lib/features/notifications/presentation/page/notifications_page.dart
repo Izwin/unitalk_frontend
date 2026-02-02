@@ -51,7 +51,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           bloc.state.status != NotificationStatus.loadingMore) {
         bloc.add(
           GetNotificationsEvent(
-            page: bloc.state.currentPage + 1,
+            page: bloc.state.currentPage,
             loadMore: true,
           ),
         );

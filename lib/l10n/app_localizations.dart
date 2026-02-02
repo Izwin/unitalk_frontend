@@ -2811,6 +2811,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only from students at my university'**
   String get myUniversityDescription;
+
+  /// No description provided for @badges.
+  ///
+  /// In en, this message translates to:
+  /// **'Badges'**
+  String get badges;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get viewAll;
+
+  /// No description provided for @nextBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'Next badges to earn'**
+  String get nextBadges;
+
+  /// No description provided for @noBadgesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No badges yet'**
+  String get noBadgesYet;
+
+  /// No description provided for @earnBadgesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Be active to earn badges!'**
+  String get earnBadgesHint;
+
+  /// No description provided for @selectEmoji.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Emoji'**
+  String get selectEmoji;
+
+  /// No description provided for @noEmoji.
+  ///
+  /// In en, this message translates to:
+  /// **'No emoji'**
+  String get noEmoji;
+
+  /// No description provided for @aboutMe.
+  ///
+  /// In en, this message translates to:
+  /// **'About Me'**
+  String get aboutMe;
+
+  /// No description provided for @bio.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get bio;
+
+  /// No description provided for @bioHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell about yourself...'**
+  String get bioHint;
+
+  /// No description provided for @status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get status;
+
+  /// No description provided for @statusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What are you up to?'**
+  String get statusHint;
+
+  /// No description provided for @profileEmoji.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Emoji'**
+  String get profileEmoji;
+
+  /// No description provided for @course.
+  ///
+  /// In en, this message translates to:
+  /// **'Course'**
+  String get course;
+
+  /// No description provided for @selectCourse.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Course'**
+  String get selectCourse;
+
+  /// No description provided for @removeEmoji.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeEmoji;
+
+  /// No description provided for @badgeOgName.
+  ///
+  /// In en, this message translates to:
+  /// **'OG'**
+  String get badgeOgName;
+
+  /// No description provided for @badgeOgDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'User #{value}'**
+  String badgeOgDescription(int value);
+
+  /// No description provided for @badgeOgRequirement.
+  ///
+  /// In en, this message translates to:
+  /// **'Be among first 1000 users'**
+  String get badgeOgRequirement;
+
+  /// No description provided for @badgeAuthorName.
+  ///
+  /// In en, this message translates to:
+  /// **'Author'**
+  String get badgeAuthorName;
+
+  /// No description provided for @badgeAuthorDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} posts'**
+  String badgeAuthorDescription(int value);
+
+  /// No description provided for @badgeAuthorRequirement.
+  ///
+  /// In en, this message translates to:
+  /// **'Write 10 or more posts'**
+  String get badgeAuthorRequirement;
+
+  /// No description provided for @badgePopularName.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get badgePopularName;
+
+  /// No description provided for @badgePopularDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} likes received'**
+  String badgePopularDescription(int value);
+
+  /// No description provided for @badgePopularRequirement.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive 100 or more likes'**
+  String get badgePopularRequirement;
+
+  /// No description provided for @badgeTalkativeName.
+  ///
+  /// In en, this message translates to:
+  /// **'Talkative'**
+  String get badgeTalkativeName;
+
+  /// No description provided for @badgeTalkativeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} comments'**
+  String badgeTalkativeDescription(int value);
+
+  /// No description provided for @badgeTalkativeRequirement.
+  ///
+  /// In en, this message translates to:
+  /// **'Write 50 or more comments'**
+  String get badgeTalkativeRequirement;
+
+  /// No description provided for @badgeSocialName.
+  ///
+  /// In en, this message translates to:
+  /// **'Social'**
+  String get badgeSocialName;
+
+  /// No description provided for @badgeSocialDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} friends'**
+  String badgeSocialDescription(int value);
+
+  /// No description provided for @badgeSocialRequirement.
+  ///
+  /// In en, this message translates to:
+  /// **'Have 20 or more friends'**
+  String get badgeSocialRequirement;
+
+  /// No description provided for @tierGold.
+  ///
+  /// In en, this message translates to:
+  /// **'Gold'**
+  String get tierGold;
+
+  /// No description provided for @tierSilver.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver'**
+  String get tierSilver;
+
+  /// No description provided for @tierBronze.
+  ///
+  /// In en, this message translates to:
+  /// **'Bronze'**
+  String get tierBronze;
+
+  /// No description provided for @year1.
+  ///
+  /// In en, this message translates to:
+  /// **'1st Year'**
+  String get year1;
+
+  /// No description provided for @year2.
+  ///
+  /// In en, this message translates to:
+  /// **'2nd Year'**
+  String get year2;
+
+  /// No description provided for @year3.
+  ///
+  /// In en, this message translates to:
+  /// **'3rd Year'**
+  String get year3;
+
+  /// No description provided for @year4.
+  ///
+  /// In en, this message translates to:
+  /// **'4th Year'**
+  String get year4;
+
+  /// No description provided for @master1.
+  ///
+  /// In en, this message translates to:
+  /// **'Master 1'**
+  String get master1;
+
+  /// No description provided for @master2.
+  ///
+  /// In en, this message translates to:
+  /// **'Master 2'**
+  String get master2;
+
+  /// No description provided for @phd.
+  ///
+  /// In en, this message translates to:
+  /// **'PhD'**
+  String get phd;
+
+  /// No description provided for @graduate.
+  ///
+  /// In en, this message translates to:
+  /// **'Graduate'**
+  String get graduate;
+
+  /// No description provided for @totalLikesReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Likes received'**
+  String get totalLikesReceived;
+
+  /// No description provided for @phdCourse.
+  ///
+  /// In en, this message translates to:
+  /// **'PhD'**
+  String get phdCourse;
+
+  /// No description provided for @graduateCourse.
+  ///
+  /// In en, this message translates to:
+  /// **'Graduate'**
+  String get graduateCourse;
+
+  /// No description provided for @likesReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Likes'**
+  String get likesReceived;
+
+  /// No description provided for @badgesOverviewSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn badges by being active in the community'**
+  String get badgesOverviewSubtitle;
+
+  /// No description provided for @userNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'User #'**
+  String get userNumber;
+
+  /// No description provided for @totalLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'Total likes'**
+  String get totalLikes;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied {text}'**
+  String copiedToClipboard(String text);
+
+  /// No description provided for @noMorePosts.
+  ///
+  /// In en, this message translates to:
+  /// **'No more posts'**
+  String get noMorePosts;
+
+  /// No description provided for @ogUser.
+  ///
+  /// In en, this message translates to:
+  /// **'OG User'**
+  String get ogUser;
+
+  /// No description provided for @newFriendRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 new request} other{{count} new requests}}'**
+  String newFriendRequests(int count);
+
+  /// No description provided for @allBadgesEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'All badges collected! 🎉'**
+  String get allBadgesEarned;
+
+  /// No description provided for @nextBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get nextBadge;
 }
 
 class _AppLocalizationsDelegate

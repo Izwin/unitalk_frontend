@@ -546,7 +546,114 @@
   "errorLoadingUniversities": "Universitetləri yükləmək mümkün olmadı",
   "done": "Hazır",
   "myUniversity": "Mənim universiteti",
-  "myUniversityDescription": "Yalnız mənim universitetimin tələbəlarından"
+  "myUniversityDescription": "Yalnız mənim universitetimin tələbəlarından",
+  "badges": "Nişanlar",
+  "viewAll": "Hamısı",
+  "nextBadges": "Növbəti nişanlar",
+  "noBadgesYet": "Hələ nişan yoxdur",
+  "earnBadgesHint": "Nişan qazanmaq üçün aktiv olun!",
+  "selectEmoji": "Emoji seçin",
+  "noEmoji": "Emoji yoxdur",
+  "aboutMe": "Haqqımda",
+  "bio": "Bio",
+  "bioHint": "Özünüz haqqında yazın...",
+  "status": "Status",
+  "statusHint": "Nə ilə məşğulsunuz?",
+  "profileEmoji": "Profil emojisi",
+  "course": "Kurs",
+  "selectCourse": "Kurs seçin",
+  "badgeOgName": "OG",
+  "badgeOgDescription": "İstifadəçi #{value}",
+  "@badgeOgDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeOgRequirement": "İlk 1000 istifadəçi arasında olmaq",
+
+  "badgeAuthorName": "Müəllif",
+  "badgeAuthorDescription": "{value} post",
+  "@badgeAuthorDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeAuthorRequirement": "10 və ya daha çox post yazmaq",
+
+  "badgePopularName": "Populyar",
+  "badgePopularDescription": "{value} bəyənmə alındı",
+  "@badgePopularDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgePopularRequirement": "100 və ya daha çox bəyənmə almaq",
+
+  "badgeTalkativeName": "Danışqan",
+  "badgeTalkativeDescription": "{value} şərh",
+  "@badgeTalkativeDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeTalkativeRequirement": "50 və ya daha çox şərh yazmaq",
+
+  "badgeSocialName": "Sosial",
+  "badgeSocialDescription": "{value} dost",
+  "@badgeSocialDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeSocialRequirement": "20 və ya daha çox dost əldə etmək",
+
+  "tierGold": "Qızıl",
+  "tierSilver": "Gümüş",
+  "tierBronze": "Bürünc",
+
+  "year1": "1-ci kurs",
+  "year2": "2-ci kurs",
+  "year3": "3-cü kurs",
+  "year4": "4-cü kurs",
+  "master1": "Magistr 1",
+  "master2": "Magistr 2",
+  "phd": "Doktorant",
+  "graduate": "Məzun",
+
+  "totalLikesReceived": "Alınan bəyənmələr",
+
+  "removeEmoji": "Sil",
+
+
+  "phdCourse": "Doktorant",
+  "graduateCourse": "Məzun",
+
+  "likesReceived": "Bəyənmələr",
+  "badgesOverviewSubtitle": "İcma daxilində aktiv iştirak edərək nişanlar qazanın",
+
+  "userNumber": "İstifadəçi #",
+  "totalLikes": "Ümumi bəyənmələr",
+  "copiedToClipboard": "{text} kopyalandı",
+  "@copiedToClipboard": {
+    "placeholders": {
+      "text": {"type": "String"}
+    }
+  },
+  "noMorePosts": "Daha çox post yoxdur",
+  "ogUser": "OG İstifadəçi",
+  "newFriendRequests": "{count} yeni istək",
+  "@newFriendRequests": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "badges": "Nişanlar",
+  "noBadgesYet": "İlk nişanınızı qazanın!",
+  "earnBadgesHint": "qazanılıb",
+  "allBadgesEarned": "Bütün nişanlar toplandı! 🎉",
+  "nextBadge": "Növbəti"
+
+
 }
 
 

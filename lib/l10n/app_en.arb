@@ -1469,7 +1469,6 @@
       }
     }
   },
-
   "postNotificationFilter": "Filter post notifications",
   "allUniversities": "All universities",
   "allUniversitiesDescription": "Receive notifications from all universities",
@@ -1482,7 +1481,107 @@
   "errorLoadingUniversities": "Error loading universities",
   "done": "Done",
   "myUniversity": "My university",
-  "myUniversityDescription": "Only from students at my university"
-
-
+  "myUniversityDescription": "Only from students at my university",
+  "badges": "Badges",
+  "viewAll": "View All",
+  "nextBadges": "Next badges to earn",
+  "noBadgesYet": "No badges yet",
+  "earnBadgesHint": "Be active to earn badges!",
+  "selectEmoji": "Select Emoji",
+  "noEmoji": "No emoji",
+  "aboutMe": "About Me",
+  "bio": "Bio",
+  "bioHint": "Tell about yourself...",
+  "status": "Status",
+  "statusHint": "What are you up to?",
+  "profileEmoji": "Profile Emoji",
+  "course": "Course",
+  "selectCourse": "Select Course",
+  "removeEmoji": "Remove",
+  "badgeOgName": "OG",
+  "badgeOgDescription": "User #{value}",
+  "@badgeOgDescription": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "badgeOgRequirement": "Be among first 1000 users",
+  "badgeAuthorName": "Author",
+  "badgeAuthorDescription": "{value} posts",
+  "@badgeAuthorDescription": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "badgeAuthorRequirement": "Write 10 or more posts",
+  "badgePopularName": "Popular",
+  "badgePopularDescription": "{value} likes received",
+  "@badgePopularDescription": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "badgePopularRequirement": "Receive 100 or more likes",
+  "badgeTalkativeName": "Talkative",
+  "badgeTalkativeDescription": "{value} comments",
+  "@badgeTalkativeDescription": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "badgeTalkativeRequirement": "Write 50 or more comments",
+  "badgeSocialName": "Social",
+  "badgeSocialDescription": "{value} friends",
+  "@badgeSocialDescription": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "badgeSocialRequirement": "Have 20 or more friends",
+  "tierGold": "Gold",
+  "tierSilver": "Silver",
+  "tierBronze": "Bronze",
+  "year1": "1st Year",
+  "year2": "2nd Year",
+  "year3": "3rd Year",
+  "year4": "4th Year",
+  "master1": "Master 1",
+  "master2": "Master 2",
+  "phd": "PhD",
+  "graduate": "Graduate",
+  "totalLikesReceived": "Likes received",
+  "phdCourse": "PhD",
+  "graduateCourse": "Graduate",
+  "likesReceived": "Likes",
+  "badgesOverviewSubtitle": "Earn badges by being active in the community",
+  "userNumber": "User #",
+  "totalLikes": "Total likes",
+  "copiedToClipboard": "Copied {text}",
+  "@copiedToClipboard": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "noMorePosts": "No more posts",
+  "ogUser": "OG User",
+  "newFriendRequests": "{count, plural, =1{1 new request} other{{count} new requests}}",
+  "@newFriendRequests": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "allBadgesEarned": "All badges collected! 🎉",
+  "nextBadge": "Next"
 }
