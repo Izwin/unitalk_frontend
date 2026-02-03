@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:unitalk/core/di/service_locator.dart';
 import 'package:unitalk/core/ui/common/fullscreen_image_viewer.dart';
 import 'package:unitalk/core/ui/common/fullscreen_video_player.dart';
+import 'package:unitalk/features/about_config/presentation/bloc/about_config_bloc.dart';
 import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
 import 'package:unitalk/features/auth/presentation/page/about_page.dart';
@@ -277,7 +278,13 @@ final GoRouter router = GoRouter(
       path: '/terms-of-use',
       builder: (context, state) => TermsOfUsePage(),
     ),
-    GoRoute(path: '/about', builder: (context, state) => AboutPage()),
+    GoRoute(
+      path: '/about',
+      builder: (context, state) => BlocProvider(
+        create: (context) => sl<AboutConfigBloc>(),
+        child: const AboutPage(),
+      ),
+    ),
     GoRoute(path: '/delete', builder: (context, state) => DeleteAccountPage()),
 
     // ─── Friendship ───────────────────────────────────────────
@@ -293,6 +300,7 @@ final GoRouter router = GoRouter(
         userId: state.pathParameters['userId'],
       ),
     ),
+
 
     // Media fullscreen
     GoRoute(

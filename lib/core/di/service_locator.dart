@@ -8,6 +8,10 @@ import 'package:unitalk/core/services/post_syns_service.dart';
 import 'package:unitalk/core/theme/bloc/theme_bloc.dart';
 import 'package:unitalk/core/theme/data/repository/theme_repository_impl.dart';
 import 'package:unitalk/core/theme/domain/repository/theme_repository.dart';
+import 'package:unitalk/features/about_config/data/datasource/about_config_remote_datasource.dart';
+import 'package:unitalk/features/about_config/data/repository/about_config_repository_impl.dart';
+import 'package:unitalk/features/about_config/domain/repository/about_config_repository.dart';
+import 'package:unitalk/features/about_config/presentation/bloc/about_config_bloc.dart';
 import 'package:unitalk/features/auth/data/datasource/auth_remote_data_source.dart';
 import 'package:unitalk/features/auth/data/datasource/user_remote_datasource.dart';
 import 'package:unitalk/features/auth/data/datasource/verefication_remote_datasource.dart';
@@ -159,6 +163,17 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<LikeRemoteDataSource>(
         () => LikeRemoteDataSource(dio:  sl(instanceName: 'dioAuth'),
     ),
+  );
+  sl.registerLazySingleton<AboutConfigRemoteDataSource>(
+        () => AboutConfigRemoteDataSource(dio: sl(instanceName: 'dioAuth')),
+  );
+
+  sl.registerLazySingleton<AboutConfigRepository>(
+        () => AboutConfigRepositoryImpl(sl<AboutConfigRemoteDataSource>()),
+  );
+
+  sl.registerFactory<AboutConfigBloc>(
+        () => AboutConfigBloc(repository: sl<AboutConfigRepository>()),
   );
 
   sl.registerLazySingleton<CommentRemoteDataSource>(

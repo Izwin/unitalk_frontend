@@ -202,7 +202,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
 
                     // Bio, Instagram, Likes, Registration Number
                     ProfileInfoSection(user: user),
-                    if (_hasProfileInfo(user)) const SizedBox(height: 20),
+                    if (_hasProfileInfo(user)) const SizedBox(height: 10),
 
                     // Stats Row
                     FriendsStatButton(

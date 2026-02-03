@@ -1,0 +1,3370 @@
+// lib/features/auth/data/model/user_model.dart
+
+import 'package:json_annotation/json_annotation.dart';
+import 'package:unitalk/features/block/data/model/block_model.dart';
+import 'package:unitalk/features/faculty/data/models/faculty_model.dart';
+import 'package:unitalk/features/university/data/models/university_model.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+import 'verification_model.dart';
+
+part 'user_model.g.dart';
+
+// ═══════════════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════════════
+
+enum Sector {
+  @JsonValue('en')
+  english,
+  @JsonValue('ru')
+  russian,
+  @JsonValue('az')
+  azerbaijani;
+
+  String get code {
+    switch (this) {
+      case Sector.english:
+        return 'en';
+      case Sector.russian:
+        return 'ru';
+      case Sector.azerbaijani:
+        return 'az';
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case Sector.english:
+        return 'English';
+      case Sector.russian:
+        return 'Russian';
+      case Sector.azerbaijani:
+        return 'Azerbaijani';
+    }
+  }
+
+  String get flagEmoji {
+    switch (this) {
+      case Sector.english:
+        return '🇬🇧';
+      case Sector.russian:
+        return '🇷🇺';
+      case Sector.azerbaijani:
+        return '🇦🇿';
+    }
+  }
+
+  static Sector? fromCode(String? code) {
+    if (code == null) return null;
+    switch (code) {
+      case 'en':
+        return Sector.english;
+      case 'ru':
+        return Sector.russian;
+      case 'az':
+        return Sector.azerbaijani;
+      default:
+        return null;
+    }
+  }
+}
+
+/// Курс обучения
+enum Course {
+  @JsonValue('1')
+  year1,
+  @JsonValue('2')
+  year2,
+  @JsonValue('3')
+  year3,
+  @JsonValue('4')
+  year4,
+  @JsonValue('master_1')
+  master1,
+  @JsonValue('master_2')
+  master2,
+  @JsonValue('phd')
+  phd,
+  @JsonValue('graduate')
+  graduate;
+
+  String get code {
+    switch (this) {
+      case Course.year1:
+        return '1';
+      case Course.year2:
+        return '2';
+      case Course.year3:
+        return '3';
+      case Course.year4:
+        return '4';
+      case Course.master1:
+        return 'master_1';
+      case Course.master2:
+        return 'master_2';
+      case Course.phd:
+        return 'phd';
+      case Course.graduate:
+        return 'graduate';
+    }
+  }
+
+  String getLocalizedName(AppLocalizations l10n) {
+    switch (this) {
+      case Course.year1:
+        return l10n.year1;
+      case Course.year2:
+        return l10n.year2;
+      case Course.year3:
+        return l10n.year3;
+      case Course.year4:
+        return l10n.year4;
+      case Course.master1:
+        return l10n.master1;
+      case Course.master2:
+        return l10n.master2;
+      case Course.phd:
+        return l10n.phd;
+      case Course.graduate:
+        return l10n.graduate;
+    }
+  }
+
+  static Course? fromCode(String? code) {
+    if (code == null) return null;
+    switch (code) {
+      case '1':
+        return Course.year1;
+      case '2':
+        return Course.year2;
+      case '3':
+        return Course.year3;
+      case '4':
+        return Course.year4;
+      case 'master_1':
+        return Course.master1;
+      case 'master_2':
+        return Course.master2;
+      case 'phd':
+        return Course.phd;
+      case 'graduate':
+        return Course.graduate;
+      default:
+        return null;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
+// BADGE MODEL
+// ═══════════════════════════════════════════════
+
+@JsonSerializable()
+class BadgeModel {
+  final String id;
+  final String icon;
+  final String? tier;
+  final int? value;
+
+  BadgeModel({
+    required this.id,
+    required this.icon,
+    this.tier,
+    this.value,
+  });
+
+  factory BadgeModel.fromJson(Map<String, dynamic> json) =>
+      _$BadgeModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$BadgeModelToJson(this);
+}
+
+// ═══════════════════════════════════════════════
+// BADGE PROGRESS MODEL
+// ═══════════════════════════════════════════════
+
+@JsonSerializable()
+class BadgeProgressModel {
+  final int current;
+  final int target;
+  final bool achieved;
+
+  BadgeProgressModel({
+    this.current = 0,
+    this.target = 0,
+    this.achieved = false,
+  });
+
+  double get progress => target > 0 ? (current / target).clamp(0.0, 1.0) : 0.0;
+
+  factory BadgeProgressModel.fromJson(Map<String, dynamic> json) =>
+      _$BadgeProgressModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$BadgeProgressModelToJson(this);
+}
+
+// ═══════════════════════════════════════════════
+// USER STATS MODEL
+// ═══════════════════════════════════════════════
+
+@JsonSerializable()
+class UserStatsModel {
+  final int postsCount;
+  final int commentsCount;
+  final int totalLikesReceived;
+
+  UserStatsModel({
+    this.postsCount = 0,
+    this.commentsCount = 0,
+    this.totalLikesReceived = 0,
+  });
+
+  factory UserStatsModel.fromJson(Map<String, dynamic> json) =>
+      _$UserStatsModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserStatsModelToJson(this);
+}
+
+// ═══════════════════════════════════════════════
+// USER MODEL
+// ═══════════════════════════════════════════════
+
+@JsonSerializable()
+class UserModel {
+  @JsonKey(name: '_id')
+  final String? id;
+  final String? email;
+  final String? photoUrl;
+  final String? firstName;
+  final String? lastName;
+
+  @JsonKey(name: 'universityId')
+  final UniversityModel? university;
+
+  @JsonKey(name: 'facultyId')
+  final FacultyModel? faculty;
+
+  final Sector? sector;
+  final bool? isVerified;
+
+  @JsonKey(name: 'verificationId')
+  final VerificationModel? verification;
+
+  final BlockStatusModel? blockStatus;
+  final int? friendsCount;
+  final int? pendingRequestsCount;
+  final String? language;
+
+  // ═══════════════════════════════════════════════
+  // НОВЫЕ ПОЛЯ
+  // ═══════════════════════════════════════════════
+
+  final String? bio;
+  final String? status;
+  final String? profileEmoji;
+  final Course? course;
+  final String? instagramUsername;
+  final int? registrationNumber;
+  final UserStatsModel? stats;
+  final List<BadgeModel>? badges;
+  final Map<String, BadgeProgressModel>? badgeProgress;
+
+  UserModel({
+    required this.id,
+    this.email,
+    this.photoUrl,
+    this.firstName,
+    this.lastName,
+    this.university,
+    this.faculty,
+    this.sector,
+    this.isVerified,
+    this.verification,
+    this.blockStatus,
+    this.friendsCount,
+    this.pendingRequestsCount,
+    this.language,
+    this.bio,
+    this.status,
+    this.profileEmoji,
+    this.course,
+    this.instagramUsername,
+    this.registrationNumber,
+    this.stats,
+    this.badges,
+    this.badgeProgress,
+  });
+
+  factory UserModel.fromJson(Map<String, dynamic> json) =>
+      _$UserModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserModelToJson(this);
+
+  // ═══════════════════════════════════════════════
+  // GETTERS
+  // ═══════════════════════════════════════════════
+
+  bool get isProfileComplete =>
+      firstName != null &&
+          lastName != null &&
+          university != null &&
+          faculty != null &&
+          sector != null;
+
+  bool get canInteract => blockStatus?.canInteract ?? true;
+  bool get isBlocked => blockStatus?.isBlocked ?? false;
+  bool get isBlockedBy => blockStatus?.isBlockedBy ?? false;
+
+  bool get isOG => registrationNumber != null && registrationNumber! <= 1000;
+
+  String? get ogTier {
+    if (registrationNumber == null) return null;
+    if (registrationNumber! <= 100) return 'gold';
+    if (registrationNumber! <= 500) return 'silver';
+    if (registrationNumber! <= 1000) return 'bronze';
+    return null;
+  }
+
+  String get displayName {
+    final name = [firstName, lastName].whereType<String>().join(' ');
+    if (profileEmoji != null && profileEmoji!.isNotEmpty) {
+      return '$name $profileEmoji';
+    }
+    return name;
+  }
+
+  String? get instagramUrl {
+    if (instagramUsername == null || instagramUsername!.isEmpty) return null;
+    return 'https://instagram.com/$instagramUsername';
+  }
+
+  int get earnedBadgesCount => badges?.length ?? 0;
+
+  bool hasBadge(String badgeId) {
+    return badges?.any((b) => b.id == badgeId) ?? false;
+  }
+
+  UserModel copyWith({
+    String? id,
+    String? email,
+    String? photoUrl,
+    String? firstName,
+    String? lastName,
+    UniversityModel? university,
+    FacultyModel? faculty,
+    Sector? sector,
+    bool? isVerified,
+    VerificationModel? verification,
+    BlockStatusModel? blockStatus,
+    int? friendsCount,
+    int? pendingRequestsCount,
+    String? language,
+    String? bio,
+    String? status,
+    String? profileEmoji,
+    Course? course,
+    String? instagramUsername,
+    int? registrationNumber,
+    UserStatsModel? stats,
+    List<BadgeModel>? badges,
+    Map<String, BadgeProgressModel>? badgeProgress,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      photoUrl: photoUrl ?? this.photoUrl,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      university: university ?? this.university,
+      faculty: faculty ?? this.faculty,
+      sector: sector ?? this.sector,
+      isVerified: isVerified ?? this.isVerified,
+      verification: verification ?? this.verification,
+      blockStatus: blockStatus ?? this.blockStatus,
+      friendsCount: friendsCount ?? this.friendsCount,
+      pendingRequestsCount: pendingRequestsCount ?? this.pendingRequestsCount,
+      language: language ?? this.language,
+      bio: bio ?? this.bio,
+      status: status ?? this.status,
+      profileEmoji: profileEmoji ?? this.profileEmoji,
+      course: course ?? this.course,
+      instagramUsername: instagramUsername ?? this.instagramUsername,
+      registrationNumber: registrationNumber ?? this.registrationNumber,
+      stats: stats ?? this.stats,
+      badges: badges ?? this.badges,
+      badgeProgress: badgeProgress ?? this.badgeProgress,
+    );
+  }
+}// lib/features/auth/domain/repository/user_repository.dart
+
+import 'dart:io';
+import 'package:dartz/dartz.dart';
+import 'package:unitalk/core/failure/failure.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+
+abstract class UserRepository {
+  Future<Either<Failure, UserModel>> getCurrentUser();
+
+  Future<Either<Failure, UserModel>> getUserById(String userId);
+
+  Future<Either<Failure, UserModel>> updateProfile({
+    required String firstName,
+    required String lastName,
+    required String universityId,
+    required String facultyId,
+    required Sector sector,
+    String? bio,
+    String? status,
+    String? profileEmoji,
+    Course? course,
+    String? instagramUsername,
+  });
+
+  Future<Either<Failure, String>> updateAvatar(File file);
+
+  Future<Either<Failure, void>> deleteProfile();
+}// lib/features/auth/data/repository/user_repository_impl.dart
+
+import 'dart:io';
+import 'package:dartz/dartz.dart';
+import 'package:unitalk/core/failure/failure.dart';
+import 'package:unitalk/features/auth/data/datasource/user_remote_datasource.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:unitalk/features/auth/domain/repository/user_repository.dart';
+
+class UserRepositoryImpl implements UserRepository {
+  final UserRemoteDataSource remoteDataSource;
+
+  UserRepositoryImpl(this.remoteDataSource);
+
+  @override
+  Future<Either<Failure, UserModel>> getCurrentUser() async {
+    try {
+      final user = await remoteDataSource.getCurrentUser();
+      return Right(user);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserModel>> getUserById(String userId) async {
+    try {
+      final user = await remoteDataSource.getUserById(userId);
+      return Right(user);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserModel>> updateProfile({
+    required String firstName,
+    required String lastName,
+    required String universityId,
+    required String facultyId,
+    required Sector sector,
+    // НОВЫЕ ПОЛЯ
+    String? bio,
+    String? status,
+    String? profileEmoji,
+    Course? course,
+    String? instagramUsername,
+  }) async {
+    try {
+      final user = await remoteDataSource.updateProfile(
+        firstName: firstName,
+        lastName: lastName,
+        universityId: universityId,
+        facultyId: facultyId,
+        sector: sector.code,
+        bio: bio,
+        status: status,
+        profileEmoji: profileEmoji,
+        course: course?.code,
+        instagramUsername: instagramUsername,
+      );
+      return Right(user);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> updateAvatar(File file) async {
+    try {
+      final photoUrl = await remoteDataSource.updateAvatar(file: file);
+      return Right(photoUrl);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteProfile() async {
+    try {
+      await remoteDataSource.deleteProfile();
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+}// lib/features/auth/presentation/bloc/auth_bloc.dart
+
+import 'dart:io';
+import 'package:unitalk/features/auth/domain/repository/auth_repository.dart';
+import 'package:unitalk/features/auth/domain/repository/user_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:unitalk/features/auth/domain/repository/verification_repository.dart';
+import 'auth_event.dart';
+import 'auth_state.dart';
+
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  final AuthRepository authRepository;
+  final UserRepository userRepository;
+  final VerificationRepository verificationRepository;
+
+  AuthBloc({
+    required this.authRepository,
+    required this.userRepository,
+    required this.verificationRepository,
+  }) : super(AuthState.initial()) {
+    on<SignInWithGoogleEvent>(_onSignInWithGoogle);
+    on<SignInWithAppleEvent>(_onSignInWithApple);
+    on<SignInWithDemoEvent>(_onSignInWithDemo);
+    on<GetCurrentUserEvent>(_onGetCurrentUser);
+    on<UpdateProfileEvent>(_onUpdateProfile);
+    on<UpdateAvatarEvent>(_onUpdateAvatar);
+    on<UploadStudentCardEvent>(_onUploadStudentCard);
+    on<DeleteProfileEvent>(_onDeleteProfile);
+    on<SignOutEvent>(_onSignOut);
+  }
+
+  Future<void> _onSignInWithGoogle(
+      SignInWithGoogleEvent event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(state.copyWith(status: AuthStatus.loading, errorMessage: null));
+
+    final authResult = await authRepository.signInWithGoogle();
+
+    await authResult.fold(
+          (failure) async {
+        emit(state.copyWith(
+          status: AuthStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (userCredential) async {
+        final userResult = await userRepository.getCurrentUser();
+        userResult.fold(
+              (failure) => emit(state.copyWith(
+            status: AuthStatus.failure,
+            errorMessage: failure.message,
+          )),
+              (user) => emit(state.copyWith(
+            status: AuthStatus.authenticated,
+            user: user,
+          )),
+        );
+      },
+    );
+  }
+
+  Future<void> _onSignInWithApple(
+      SignInWithAppleEvent event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(state.copyWith(status: AuthStatus.loading, errorMessage: null));
+
+    final authResult = await authRepository.signInWithApple();
+
+    await authResult.fold(
+          (failure) async {
+        emit(state.copyWith(
+          status: AuthStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (userCredential) async {
+        final userResult = await userRepository.getCurrentUser();
+        userResult.fold(
+              (failure) => emit(state.copyWith(
+            status: AuthStatus.failure,
+            errorMessage: failure.message,
+          )),
+              (user) => emit(state.copyWith(
+            status: AuthStatus.authenticated,
+            user: user,
+          )),
+        );
+      },
+    );
+  }
+
+  Future<void> _onSignInWithDemo(
+      SignInWithDemoEvent event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(state.copyWith(status: AuthStatus.loading, errorMessage: null));
+
+    final authResult = await authRepository.signInWithDemo();
+
+    await authResult.fold(
+          (failure) async {
+        emit(state.copyWith(
+          status: AuthStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (userCredential) async {
+        final userResult = await userRepository.getCurrentUser();
+        userResult.fold(
+              (failure) => emit(state.copyWith(
+            status: AuthStatus.failure,
+            errorMessage: failure.message,
+          )),
+              (user) => emit(state.copyWith(
+            status: AuthStatus.authenticated,
+            user: user,
+          )),
+        );
+      },
+    );
+  }
+
+  Future<void> _onGetCurrentUser(
+      GetCurrentUserEvent event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(state.copyWith(status: AuthStatus.loading, errorMessage: null));
+
+    final firebaseUserResult = await authRepository.getCurrentFirebaseUser();
+
+    await firebaseUserResult.fold(
+          (failure) async {
+        emit(state.copyWith(
+          status: AuthStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (firebaseUser) async {
+        if (firebaseUser == null) {
+          emit(state.copyWith(
+            status: AuthStatus.unauthenticated,
+            user: null,
+          ));
+          return;
+        }
+
+        final userResult = await userRepository.getCurrentUser();
+        userResult.fold(
+              (failure) => emit(state.copyWith(
+            status: AuthStatus.failure,
+            errorMessage: failure.message,
+          )),
+              (user) => emit(state.copyWith(
+            status: AuthStatus.authenticated,
+            user: user,
+          )),
+        );
+      },
+    );
+  }
+
+  Future<void> _onUpdateProfile(
+      UpdateProfileEvent event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(state.copyWith(status: AuthStatus.loading, errorMessage: null));
+
+    if (state.user == null) {
+      emit(state.copyWith(
+        status: AuthStatus.failure,
+        errorMessage: 'User not loaded',
+      ));
+      return;
+    }
+
+    final firstName = event.firstName ?? state.user!.firstName;
+    final lastName = event.lastName ?? state.user!.lastName;
+    final universityId = event.universityId ?? state.user!.university?.id;
+    final facultyId = event.facultyId ?? state.user!.faculty?.id;
+    final sector = event.sector ?? state.user!.sector;
+
+    if (firstName == null ||
+        lastName == null ||
+        universityId == null ||
+        facultyId == null ||
+        sector == null) {
+      emit(state.copyWith(
+        status: AuthStatus.failure,
+        errorMessage: 'All required fields must be filled',
+      ));
+      return;
+    }
+
+    final result = await userRepository.updateProfile(
+      firstName: firstName,
+      lastName: lastName,
+      universityId: universityId,
+      facultyId: facultyId,
+      sector: sector,
+      // НОВЫЕ ПОЛЯ
+      bio: event.bio,
+      status: event.status,
+      profileEmoji: event.profileEmoji,
+      course: event.course,
+      instagramUsername: event.instagramUsername,
+    );
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: AuthStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (updatedUser) => emit(state.copyWith(
+        status: AuthStatus.authenticated,
+        user: updatedUser,
+      )),
+    );
+  }
+
+  Future<void> _onUpdateAvatar(
+      UpdateAvatarEvent event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(state.copyWith(status: AuthStatus.loading, errorMessage: null));
+
+    final result = await userRepository.updateAvatar(event.file);
+
+    await result.fold(
+          (failure) async => emit(state.copyWith(
+        status: AuthStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (photoUrl) async {
+        final userResult = await userRepository.getCurrentUser();
+        userResult.fold(
+              (failure) => emit(state.copyWith(
+            status: AuthStatus.failure,
+            errorMessage: failure.message,
+          )),
+              (user) => emit(state.copyWith(
+            status: AuthStatus.authenticated,
+            user: user,
+          )),
+        );
+      },
+    );
+  }
+
+  Future<void> _onUploadStudentCard(
+      UploadStudentCardEvent event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(state.copyWith(status: AuthStatus.loading, errorMessage: null));
+
+    final result = await verificationRepository.uploadStudentCard(event.file);
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: AuthStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (_) async {
+        add(GetCurrentUserEvent());
+      },
+    );
+  }
+
+  Future<void> _onDeleteProfile(
+      DeleteProfileEvent event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(state.copyWith(status: AuthStatus.loading, errorMessage: null));
+
+    final result = await userRepository.deleteProfile();
+
+    await result.fold(
+          (failure) async {
+        emit(state.copyWith(
+          status: AuthStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+          (_) async {
+        final signOutResult = await authRepository.signOut();
+        signOutResult.fold(
+              (failure) => emit(state.copyWith(
+            status: AuthStatus.failure,
+            errorMessage: failure.message,
+          )),
+              (_) => emit(AuthState.initial().copyWith(
+            status: AuthStatus.logout,
+          )),
+        );
+      },
+    );
+  }
+
+  Future<void> _onSignOut(
+      SignOutEvent event,
+      Emitter<AuthState> emit,
+      ) async {
+    emit(state.copyWith(status: AuthStatus.loading, errorMessage: null));
+
+    final result = await authRepository.signOut();
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: AuthStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (_) => emit(AuthState.initial().copyWith(status: AuthStatus.logout)),
+    );
+  }
+}import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:equatable/equatable.dart';
+
+enum AuthStatus {
+  initial,
+  loading,
+  authenticated,
+  unauthenticated,
+  logout,
+  failure,
+}
+
+class AuthState extends Equatable{
+  final AuthStatus status;
+  final UserModel? user;
+  final String? errorMessage;
+
+  const AuthState._({
+    required this.status,
+    this.user,
+    this.errorMessage,
+  });
+
+  factory AuthState.initial() => AuthState._(status: AuthStatus.initial);
+
+  AuthState copyWith({
+    AuthStatus? status,
+    UserModel? user,
+    String? errorMessage,
+  }) {
+    return AuthState._(
+      status: status ?? this.status,
+      user: user ?? this.user,
+      errorMessage: errorMessage,
+    );
+  }
+
+  @override
+  List<Object?> get props => [status,errorMessage,user];
+}
+import 'package:equatable/equatable.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'post_model.g.dart';
+
+enum MediaType {
+  @JsonValue('none')
+  none,
+  @JsonValue('image')
+  image,
+  @JsonValue('video')
+  video,
+}
+
+@JsonSerializable()
+class PostModel extends Equatable {
+  final String id;
+  @JsonKey(name: 'authorId')
+  final UserModel? author;
+  final String content;
+  final String? imageUrl;
+  final String? videoUrl;
+  final MediaType mediaType;
+  final int? videoDuration;
+  final List<UserModel>? topLikers;
+  final bool isAnonymous;
+  final int likesCount;
+  final int commentsCount;
+  final bool isLikedByCurrentUser;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final bool isPinned;
+  final DateTime? pinnedAt;
+
+  const PostModel({
+    required this.id,
+    required this.author,
+    required this.content,
+    this.imageUrl,
+    this.videoUrl,
+    this.mediaType = MediaType.none,
+    this.videoDuration,
+    required this.isAnonymous,
+    required this.likesCount,
+    this.topLikers,
+    required this.commentsCount,
+    required this.isLikedByCurrentUser,
+    required this.createdAt,
+    required this.updatedAt,
+    this.isPinned = false,
+    this.pinnedAt,
+  });
+
+  factory PostModel.fromJson(Map<String, dynamic> json) =>
+      _$PostModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PostModelToJson(this);
+
+  PostModel copyWith({
+    String? id,
+    UserModel? author,
+    String? content,
+    String? imageUrl,
+    String? videoUrl,
+    MediaType? mediaType,
+    int? videoDuration,
+    bool? isAnonymous,
+    int? likesCount,
+    int? commentsCount,
+    bool? isLikedByCurrentUser,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? isPinned,
+    DateTime? pinnedAt,
+  }) {
+    return PostModel(
+      id: id ?? this.id,
+      author: author ?? this.author,
+      content: content ?? this.content,
+      imageUrl: imageUrl ?? this.imageUrl,
+      videoUrl: videoUrl ?? this.videoUrl,
+      mediaType: mediaType ?? this.mediaType,
+      videoDuration: videoDuration ?? this.videoDuration,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
+      likesCount: likesCount ?? this.likesCount,
+      commentsCount: commentsCount ?? this.commentsCount,
+      isLikedByCurrentUser: isLikedByCurrentUser ?? this.isLikedByCurrentUser,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isPinned: isPinned ?? this.isPinned,
+      pinnedAt: pinnedAt ?? this.pinnedAt,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    id,
+    author,
+    content,
+    imageUrl,
+    videoUrl,
+    mediaType,
+    videoDuration,
+    isAnonymous,
+    likesCount,
+    commentsCount,
+    isLikedByCurrentUser,
+    createdAt,
+    updatedAt,
+    isPinned,
+    pinnedAt,
+  ];
+}// features/feed/presentation/bloc/post/post_bloc.dart
+import 'dart:async';
+import 'dart:io';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:unitalk/core/services/post_syns_service.dart';
+import 'package:unitalk/features/feed/data/model/post_model.dart';
+import 'package:unitalk/features/feed/domain/repository/like_repository.dart';
+import 'package:unitalk/features/feed/domain/repository/posts_repository.dart';
+
+import 'post_event.dart';
+import 'post_state.dart';
+
+class PostBloc extends Bloc<PostEvent, PostState> {
+  final PostRepository postRepository;
+  final LikeRepository likeRepository;
+  final PostSyncService postSyncService;
+  StreamSubscription? _syncSubscription;
+
+  PostBloc({
+    required this.postRepository,
+    required this.likeRepository,
+    required this.postSyncService,
+  }) : super(PostState.initial()) {
+    on<CreatePostEvent>(_onCreatePost);
+    on<GetPostsEvent>(_onGetPosts);
+    on<GetPostEvent>(_onGetPost);
+    on<DeletePostEvent>(_onDeletePost);
+    on<ToggleLikeEvent>(_onToggleLike);
+    on<SyncPostUpdateEvent>(_onSyncPostUpdate);
+
+    // Подписываемся на обновления из PostSyncService
+    _syncSubscription = postSyncService.updates.listen((update) {
+      print(
+        'PostBloc: Received sync update - type: ${update.type}, postId: ${update.postId}',
+      );
+      add(SyncPostUpdateEvent(update));
+    });
+  }
+
+  // === Создание поста ===
+  Future<void> _onCreatePost(
+      CreatePostEvent event,
+      Emitter<PostState> emit,
+      ) async {
+    emit(state.copyWith(status: PostStatus.loading, errorMessage: null));
+
+    final result = await postRepository.createPost(
+      content: event.content,
+      isAnonymous: event.isAnonymous,
+      mediaFile: event.mediaFile,
+    );
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: PostStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (post) {
+        final updatedPosts = [post, ...state.posts];
+        emit(state.copyWith(
+          status: PostStatus.success,
+          posts: updatedPosts,
+          currentPost: post,
+        ));
+
+        postSyncService.notifyPostUpdated(
+          PostUpdate(
+            postId: post.id,
+            type: PostUpdateType.create,
+            updatedPost: post,
+          ),
+        );
+      },
+    );
+  }
+
+  // === Получение списка постов ===
+// features/feed/presentation/bloc/post/post_bloc.dart
+
+  // features/feed/presentation/bloc/post/post_bloc.dart
+
+  Future<void> _onGetPosts(
+      GetPostsEvent event,
+      Emitter<PostState> emit,
+      ) async {
+    // Защита от повторных вызовов
+    if (event.page > 1 && state.isLoadingMore) {
+      print('⚠️ Already loading more, skipping...');
+      return;
+    }
+
+    if (event.page == 1) {
+      emit(state.copyWith(
+        status: PostStatus.loading,
+        errorMessage: null,
+        isLoadingMore: false,
+      ));
+    } else {
+      emit(state.copyWith(
+        isLoadingMore: true,
+        errorMessage: null,
+      ));
+    }
+
+    final result = await postRepository.getPosts(
+      universityId: event.universityId,
+      authorId: event.authorId,
+      sortBy: event.sortBy,
+      sector: event.sector,
+      facultyId: event.facultyId,
+      page: event.page,
+      limit: event.limit,
+    );
+
+    result.fold(
+          (failure) {
+        print('❌ PostBloc failure: ${failure.message}');
+        emit(state.copyWith(
+          status: PostStatus.failure,
+          errorMessage: failure.message,
+          isLoadingMore: false,
+        ));
+      },
+          (response) {
+        final posts = response.posts;
+        final pagination = response.pagination;
+
+        print('📊 Page ${event.page}: received ${posts.length} posts');
+
+        List<PostModel> updatedPosts;
+
+        if (event.page == 1) {
+          // Первая страница - заменяем полностью
+          updatedPosts = posts;
+        } else {
+          // ✅ ДЕДУПЛИКАЦИЯ: добавляем только новые посты
+          final existingIds = state.posts.map((p) => p.id).toSet();
+          final newPosts = posts.where((p) => !existingIds.contains(p.id)).toList();
+
+          print('📊 New unique posts: ${newPosts.length} (filtered ${posts.length - newPosts.length} duplicates)');
+
+          updatedPosts = [...state.posts, ...newPosts];
+        }
+
+        final nextPage = event.page + 1;
+        final isLastPage = posts.length < event.limit ||
+            pagination.page >= pagination.pages;
+
+        emit(state.copyWith(
+          status: PostStatus.success,
+          posts: updatedPosts,
+          postsPage: nextPage,
+          postsLastPage: isLastPage,
+          totalPostsCount: pagination.total,
+          isLoadingMore: false,
+        ));
+
+        print('✅ Total posts: ${updatedPosts.length}, nextPage: $nextPage, isLast: $isLastPage');
+      },
+    );
+  }
+
+  // === Получение одного поста ===
+  Future<void> _onGetPost(
+      GetPostEvent event,
+      Emitter<PostState> emit,
+      ) async {
+    emit(state.copyWith(status: PostStatus.loading, errorMessage: null));
+
+    final result = await postRepository.getPost(event.postId);
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: PostStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (post) => emit(state.copyWith(
+        status: PostStatus.success,
+        currentPost: post,
+      )),
+    );
+  }
+
+  // === Удаление поста ===
+  Future<void> _onDeletePost(
+      DeletePostEvent event,
+      Emitter<PostState> emit,
+      ) async {
+    emit(state.copyWith(status: PostStatus.loading, errorMessage: null));
+
+    final result = await postRepository.deletePost(event.postId);
+
+    result.fold(
+          (failure) => emit(state.copyWith(
+        status: PostStatus.failure,
+        errorMessage: failure.message,
+      )),
+          (_) {
+        final updatedPosts =
+        state.posts.where((post) => post.id != event.postId).toList();
+
+        emit(state.copyWith(
+          status: PostStatus.deleted,
+          posts: updatedPosts,
+          currentPost:
+          state.currentPost?.id == event.postId ? null : state.currentPost,
+        ));
+        postSyncService.notifyPostUpdated(
+          PostUpdate(
+            postId: event.postId,
+            type: PostUpdateType.delete,
+          ),
+        );
+      },
+    );
+  }
+
+  // === Лайк поста ===
+  Future<void> _onToggleLike(
+      ToggleLikeEvent event,
+      Emitter<PostState> emit,
+      ) async {
+    final postIndex = state.posts.indexWhere((p) => p.id == event.postId);
+
+    List<PostModel>? updatedPosts;
+    PostModel? optimisticPost;
+
+    if (postIndex != -1) {
+      final post = state.posts[postIndex];
+      final newIsLiked = !post.isLikedByCurrentUser;
+      final newLikesCount =
+      newIsLiked ? post.likesCount + 1 : post.likesCount - 1;
+
+      optimisticPost = post.copyWith(
+        isLikedByCurrentUser: newIsLiked,
+        likesCount: newLikesCount,
+      );
+
+      updatedPosts = List<PostModel>.from(state.posts);
+      updatedPosts[postIndex] = optimisticPost;
+    }
+
+    PostModel? updatedCurrentPost = state.currentPost;
+    if (state.currentPost?.id == event.postId) {
+      final newIsLiked = !state.currentPost!.isLikedByCurrentUser;
+      final newLikesCount = newIsLiked
+          ? state.currentPost!.likesCount + 1
+          : state.currentPost!.likesCount - 1;
+
+      updatedCurrentPost = state.currentPost!.copyWith(
+        isLikedByCurrentUser: newIsLiked,
+        likesCount: newLikesCount,
+      );
+      optimisticPost ??= updatedCurrentPost;
+    }
+
+    emit(state.copyWith(
+      posts: updatedPosts ?? state.posts,
+      currentPost: updatedCurrentPost,
+    ));
+
+    final result = await likeRepository.toggleLike(event.postId);
+
+    result.fold(
+          (failure) {
+        // Откат
+        List<PostModel>? revertedPosts;
+        if (postIndex != -1) {
+          final post = state.posts[postIndex];
+          final revertedPost = post.copyWith(
+            isLikedByCurrentUser: !post.isLikedByCurrentUser,
+            likesCount: post.isLikedByCurrentUser
+                ? post.likesCount - 1
+                : post.likesCount + 1,
+          );
+
+          revertedPosts = List<PostModel>.from(state.posts);
+          revertedPosts[postIndex] = revertedPost;
+        }
+
+        PostModel? revertedCurrentPost = state.currentPost;
+        if (state.currentPost?.id == event.postId) {
+          revertedCurrentPost = state.currentPost!.copyWith(
+            isLikedByCurrentUser: !state.currentPost!.isLikedByCurrentUser,
+            likesCount: state.currentPost!.isLikedByCurrentUser
+                ? state.currentPost!.likesCount - 1
+                : state.currentPost!.likesCount + 1,
+          );
+        }
+
+        emit(state.copyWith(
+          posts: revertedPosts ?? state.posts,
+          currentPost: revertedCurrentPost,
+        ));
+      },
+          (response) {
+        List<PostModel>? syncedPosts;
+        PostModel? syncedPost;
+
+        if (postIndex != -1) {
+          final post = state.posts[postIndex];
+          syncedPost = post.copyWith(
+            likesCount: response.likesCount,
+            isLikedByCurrentUser: response.isLiked,
+          );
+
+          syncedPosts = List<PostModel>.from(state.posts);
+          syncedPosts[postIndex] = syncedPost;
+        }
+
+        PostModel? syncedCurrentPost = state.currentPost;
+        if (state.currentPost?.id == event.postId) {
+          syncedCurrentPost = state.currentPost!.copyWith(
+            likesCount: response.likesCount,
+            isLikedByCurrentUser: response.isLiked,
+          );
+          syncedPost ??= syncedCurrentPost;
+        }
+
+        emit(state.copyWith(
+          posts: syncedPosts ?? state.posts,
+          currentPost: syncedCurrentPost,
+        ));
+
+        if (syncedPost != null) {
+          postSyncService.notifyPostLiked(event.postId, syncedPost);
+        }
+      },
+    );
+  }
+
+  // === Обработка синхронизации ===
+  void _onSyncPostUpdate(
+      SyncPostUpdateEvent event,
+      Emitter<PostState> emit,
+      ) {
+    final update = event.update;
+    print(
+      'PostBloc: Processing sync update - type: ${update.type}, postId: ${update.postId}',
+    );
+
+    switch (update.type) {
+      case PostUpdateType.create:
+        if (update.updatedPost != null) {
+          final exists = state.posts.any((p) => p.id == update.postId);
+          if (!exists) {
+            final updatedPosts = [update.updatedPost!, ...state.posts];
+            emit(state.copyWith(posts: updatedPosts));
+          }
+        }
+        break;
+
+      case PostUpdateType.delete:
+        final updatedPosts =
+        state.posts.where((post) => post.id != update.postId).toList();
+        emit(state.copyWith(
+          posts: updatedPosts,
+          currentPost:
+          state.currentPost?.id == update.postId ? null : state.currentPost,
+        ));
+        break;
+
+      case PostUpdateType.like:
+        if (update.updatedPost != null) {
+          _updatePostInLists(emit, update.postId, update.updatedPost!);
+        }
+        break;
+
+      case PostUpdateType.comment:
+        final postIndex = state.posts.indexWhere((p) => p.id == update.postId);
+        PostModel? updatedPost;
+
+        if (postIndex != -1) {
+          final post = state.posts[postIndex];
+          int newCount = post.commentsCount;
+
+          // ✅ Новый способ: commentDelta
+          if (update.commentDelta != null) {
+            newCount += update.commentDelta!;
+          }
+          // ✅ Старый способ: newCommentsCount (абсолютное значение)
+          else if (update.newCommentsCount != null) {
+            newCount = update.newCommentsCount!;
+          }
+
+          // Без отрицательных чисел
+          newCount = newCount < 0 ? 0 : newCount;
+
+          updatedPost = post.copyWith(commentsCount: newCount);
+
+          final updatedPosts = List<PostModel>.from(state.posts);
+          updatedPosts[postIndex] = updatedPost;
+
+          emit(state.copyWith(
+            posts: updatedPosts,
+            currentPost: state.currentPost?.id == update.postId
+                ? updatedPost
+                : state.currentPost,
+          ));
+        } else if (state.currentPost?.id == update.postId) {
+          int newCount = state.currentPost!.commentsCount;
+
+          if (update.commentDelta != null) {
+            newCount += update.commentDelta!;
+          } else if (update.newCommentsCount != null) {
+            newCount = update.newCommentsCount!;
+          }
+
+          newCount = newCount < 0 ? 0 : newCount;
+
+          final updatedCurrentPost =
+          state.currentPost!.copyWith(commentsCount: newCount);
+          emit(state.copyWith(currentPost: updatedCurrentPost));
+        }
+        break;
+
+      case PostUpdateType.edit:
+        if (update.updatedPost != null) {
+          _updatePostInLists(emit, update.postId, update.updatedPost!);
+        }
+        break;
+    }
+  }
+
+  void _updatePostInLists(
+      Emitter<PostState> emit,
+      String postId,
+      PostModel updatedPost,
+      ) {
+    final index = state.posts.indexWhere((p) => p.id == postId);
+
+    List<PostModel>? updatedPosts;
+    if (index != -1) {
+      updatedPosts = List<PostModel>.from(state.posts);
+      updatedPosts[index] = updatedPost;
+    }
+
+    final updatedCurrentPost =
+    state.currentPost?.id == postId ? updatedPost : state.currentPost;
+
+    emit(state.copyWith(
+      posts: updatedPosts ?? state.posts,
+      currentPost: updatedCurrentPost,
+    ));
+  }
+
+  @override
+  Future<void> close() {
+    _syncSubscription?.cancel();
+    return super.close();
+  }
+}
+import 'dart:io';
+import 'package:unitalk/core/services/post_syns_service.dart';
+import 'package:unitalk/features/university/data/models/university_model.dart';
+
+abstract class PostEvent {
+  const PostEvent();
+}
+
+class InitializeFeedEvent extends PostEvent {
+  final UniversityModel university;
+
+  const InitializeFeedEvent(this.university);
+}
+
+class ChangeUniversityEvent extends PostEvent {
+  final UniversityModel university;
+
+  const ChangeUniversityEvent(this.university);
+}
+
+class RefreshFeedEvent extends PostEvent {
+  const RefreshFeedEvent();
+}
+
+class CreatePostEvent extends PostEvent {
+  final String content;
+  final bool isAnonymous;
+  final File? mediaFile; // Изменено с imageFile на mediaFile
+
+  const CreatePostEvent({
+    required this.content,
+    required this.isAnonymous,
+    this.mediaFile,
+  });
+}
+
+class GetPostsEvent extends PostEvent {
+  final String? universityId;
+  final String? authorId;
+  final String sortBy;
+  final String? sector;
+  final String? facultyId;
+  final int page;
+  final int limit;
+
+  const GetPostsEvent({
+    this.universityId,
+    this.authorId,
+    this.sortBy = 'new',
+    this.sector,
+    this.facultyId,
+    this.page = 1,
+    this.limit = 20,
+  });
+
+  @override
+  List<Object?> get props => [
+    universityId,
+    authorId,
+    sortBy,
+    sector,
+    facultyId,
+    page,
+    limit
+  ];
+}
+
+class GetPostEvent extends PostEvent {
+  final String postId;
+
+  const GetPostEvent(this.postId);
+}
+
+class DeletePostEvent extends PostEvent {
+  final String postId;
+
+  const DeletePostEvent(this.postId);
+}
+
+class ToggleLikeEvent extends PostEvent {
+  final String postId;
+
+  const ToggleLikeEvent(this.postId);
+}
+
+class SyncPostUpdateEvent extends PostEvent {
+  final PostUpdate update;
+
+  const SyncPostUpdateEvent(this.update);
+}import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:unitalk/core/ui/common/anonymous_toggle.dart';
+import 'package:unitalk/core/ui/common/image_source_picker.dart';
+import 'package:unitalk/core/ui/common/media_preview.dart';
+import 'package:unitalk/core/ui/common/user_avatar.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_state.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:video_player/video_player.dart';
+
+class CreatePostPage extends StatefulWidget {
+  const CreatePostPage({Key? key}) : super(key: key);
+
+  @override
+  State<CreatePostPage> createState() => _CreatePostPageState();
+}
+
+class _CreatePostPageState extends State<CreatePostPage> {
+  final _contentController = TextEditingController();
+  final _focusNode = FocusNode();
+  File? _selectedMedia;
+  bool _isVideo = false;
+  bool _isAnonymous = false;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _contentController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _dismissKeyboard() {
+    FocusScope.of(context).unfocus();
+  }
+
+  Future<void> _pickMedia() async {
+    _dismissKeyboard();
+    final l10n = AppLocalizations.of(context)!;
+
+    final media = await MediaSourcePicker.show(
+      context,
+      galleryText: l10n.gallery,
+      cameraText: l10n.camera,
+      videoText: l10n.video,
+      removeText: l10n.removePhoto,
+      canRemove: _selectedMedia != null,
+      allowVideo: true,
+      onRemove: () => _removeMedia(),
+    );
+
+    if (media != null) {
+      final isVideo = media.path.toLowerCase().endsWith('.mp4') ||
+          media.path.toLowerCase().endsWith('.mov');
+
+      await _removeMedia(); // Очистить предыдущее
+
+      setState(() {
+        _selectedMedia = File(media.path);
+        _isVideo = isVideo;
+      });
+
+    }
+  }
+
+  Future<void> _removeMedia() async {
+    setState(() {
+      _selectedMedia = null;
+      _isVideo = false;
+    });
+  }
+
+  Future<void> _submitPost() async {
+    _dismissKeyboard();
+    final l10n = AppLocalizations.of(context)!;
+
+    if (_contentController.text.trim().isEmpty && _selectedMedia == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.pleaseAddContent),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    context.read<PostBloc>().add(
+      CreatePostEvent(
+        content: _contentController.text.trim(),
+        isAnonymous: _isAnonymous,
+        mediaFile: _selectedMedia,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final authState = context.watch<AuthBloc>().state;
+    final user = authState.user;
+    final l10n = AppLocalizations.of(context)!;
+
+    return BlocListener<PostBloc, PostState>(
+      listener: (context, state) {
+        if (state.status == PostStatus.success && _isSubmitting) {
+          context.pop(true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.postCreatedSuccessfully),
+              behavior: SnackBarBehavior.floating,
+              shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+            ),
+          );
+        } else if (state.status == PostStatus.failure) {
+          setState(() => _isSubmitting = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage ?? l10n.failedToCreatePost),
+              backgroundColor: theme.colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+              shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+            ),
+          );
+        }
+      },
+      child: GestureDetector(
+        onTap: _dismissKeyboard,
+        child: Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          appBar: AppBar(
+            backgroundColor: theme.scaffoldBackgroundColor,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.close, size: 24),
+              onPressed: () {
+                _dismissKeyboard();
+                context.pop();
+              },
+            ),
+            centerTitle: false,
+            title: Text(
+              l10n.newPost,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.5,
+              ),
+            ),
+            actions: [
+              Padding(
+                padding: EdgeInsets.only(right: 12, top: 8, bottom: 8),
+                child: TextButton(
+                  onPressed: _isSubmitting ? null : _submitPost,
+                  style: TextButton.styleFrom(
+                    backgroundColor: _isSubmitting
+                        ? theme.colorScheme.onSurface.withOpacity(0.1)
+                        : theme.colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: _isSubmitting
+                      ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.white70),
+                    ),
+                  )
+                      : Text(
+                    l10n.post,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          body: Column(
+            children: [
+              Container(
+                height: 1,
+                color: theme.colorScheme.onSurface.withOpacity(0.08),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                  ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // User Info Section
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(20, 24, 20, 20),
+                        child: Row(
+                          children: [
+                            UserAvatar(
+                              photoUrl:
+                              _isAnonymous ? null : user?.photoUrl,
+                              firstName:
+                              _isAnonymous ? null : user?.firstName,
+                              lastName:
+                              _isAnonymous ? null : user?.lastName,
+                              size: 44,
+                            ),
+                            SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _isAnonymous
+                                        ? l10n.anonymous
+                                        : (user?.firstName ?? l10n.user),
+                                    style:
+                                    theme.textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0,
+                                    ),
+                                  ),
+                                  if (user?.university != null &&
+                                      !_isAnonymous)
+                                    Padding(
+                                      padding: EdgeInsets.only(top: 2),
+                                      child: Text(
+                                        user!.university!.getLocalizedName(
+                                            Localizations.localeOf(context)
+                                                .languageCode),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                          color: theme.colorScheme.onSurface
+                                              .withOpacity(0.5),
+                                          letterSpacing: 0.1,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Content Input
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: TextField(
+                          controller: _contentController,
+                          focusNode: _focusNode,
+                          maxLines: null,
+                          minLines: 8,
+                          maxLength: 500,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            height: 1.5,
+                            letterSpacing: 0.1,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: l10n.whatsOnYourMind,
+                            hintStyle: TextStyle(
+                              color: theme.colorScheme.onSurface
+                                  .withOpacity(0.3),
+                              letterSpacing: 0.1,
+                            ),
+                            border: InputBorder.none,
+                            counterText: '',
+                          ),
+                          onChanged: (value) => setState(() {}),
+                        ),
+                      ),
+
+                      // Character Count
+                      Padding(
+                        padding:
+                        EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        child: Text(
+                          l10n.characterCount(
+                              _contentController.text.length, 500),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color:
+                            theme.colorScheme.onSurface.withOpacity(0.4),
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+
+                      // Media Preview
+                      if (_selectedMedia != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          child: MediaPreview(
+                            mediaFile: _selectedMedia!,
+                            isVideo: _isVideo,
+                            onRemove: _removeMedia,
+                          ),
+                        ),
+
+
+                      SizedBox(height: 24),
+
+                      // Divider
+                      Container(
+                        height: 8,
+                        color: theme.colorScheme.onSurface.withOpacity(0.04),
+                      ),
+
+                      SizedBox(height: 20),
+
+                      // Action Buttons
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.actions,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurface
+                                    .withOpacity(0.5),
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            _buildActionTile(
+                              icon: _isVideo ? Icons.videocam : Icons.image,
+                              title: l10n.addMedia,
+                              onTap: _pickMedia,
+                              theme: theme,
+                            ),
+                            Container(
+                              height: 1,
+                              margin: EdgeInsets.symmetric(vertical: 0),
+                              color: theme.colorScheme.onSurface
+                                  .withOpacity(0.08),
+                            ),
+                            _buildActionTile(
+                              icon: _isAnonymous
+                                  ? Icons.person_off
+                                  : Icons.person,
+                              title: _isAnonymous
+                                  ? l10n.anonymousMode
+                                  : l10n.publicMode,
+                              subtitle: _isAnonymous
+                                  ? l10n.yourIdentityIsHidden
+                                  : l10n.yourNameIsVisible,
+                              trailing: AnonymousToggle(
+                                isAnonymous: _isAnonymous,
+                                onChanged: (value) {
+                                  _dismissKeyboard();
+                                  setState(() => _isAnonymous = value);
+                                },
+                                size: 40,
+                              ),
+                              onTap: () {
+                                _dismissKeyboard();
+                                setState(() => _isAnonymous = !_isAnonymous);
+                              },
+                              theme: theme,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionTile({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+    required VoidCallback onTap,
+    required ThemeData theme,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 18, horizontal: 0),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              size: 22,
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Padding(
+                      padding: EdgeInsets.only(top: 2),
+                      child: Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color:
+                          theme.colorScheme.onSurface.withOpacity(0.5),
+                          letterSpacing: 0.1,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (trailing != null) trailing,
+          ],
+        ),
+      ),
+    );
+  }
+}// lib/features/auth/presentation/profile_page.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_event.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:unitalk/features/auth/presentation/widget/badges_section.dart';
+import 'package:unitalk/features/auth/presentation/widget/profile_drawer.dart';
+import 'package:unitalk/features/auth/presentation/widget/profile_info_section.dart';
+import 'package:unitalk/features/auth/presentation/widget/student_id_card_widget.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_state.dart';
+import 'package:unitalk/features/feed/presentation/widget/post_item.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friends_count_button.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friends_stat_button.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+
+import 'widget/verification_status_widget.dart';
+
+const double _kDrawerBreakpoint = 600.0;
+const double _kDrawerWidth = 300.0;
+const int _kPostsLimit = 20;
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProfilePageContent();
+  }
+}
+
+class _ProfilePageContent extends StatefulWidget {
+  @override
+  State<_ProfilePageContent> createState() => _ProfilePageContentState();
+}
+
+class _ProfilePageContentState extends State<_ProfilePageContent> {
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+    _loadInitialData();
+  }
+
+  void _loadInitialData() {
+    final userId = context.read<AuthBloc>().state.user?.id;
+    if (userId != null) {
+      context.read<PostBloc>().add(
+        GetPostsEvent(authorId: userId, page: 1, limit: _kPostsLimit),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    final threshold = maxScroll * 0.9; // Load more at 90%
+
+    if (currentScroll >= threshold) {
+      _loadMorePosts();
+    }
+  }
+
+  void _loadMorePosts() {
+    final userId = context.read<AuthBloc>().state.user?.id;
+    if (userId == null) return;
+
+    final postState = context.read<PostBloc>().state;
+    if (!postState.postsLastPage && !postState.isLoadingMore) {
+      context.read<PostBloc>().add(
+        GetPostsEvent(
+          authorId: userId,
+          page: postState.postsPage,
+          limit: _kPostsLimit,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    final userId = context.read<AuthBloc>().state.user?.id;
+    if (userId == null) return;
+
+    context.read<PostBloc>().add(
+      GetPostsEvent(authorId: userId, page: 1, limit: _kPostsLimit),
+    );
+    context.read<AuthBloc>().add(GetCurrentUserEvent());
+
+    // Wait for loading to complete
+    await Future.any([
+      context.read<PostBloc>().stream.firstWhere(
+            (state) => state.status != PostStatus.loading,
+      ),
+      Future.delayed(const Duration(seconds: 3)),
+    ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWide = screenWidth >= _kDrawerBreakpoint;
+
+    if (isWide) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(width: _kDrawerWidth, child: ProfileDrawer()),
+            VerticalDivider(
+              width: 1,
+              thickness: 1,
+              color: Theme.of(context).dividerColor.withOpacity(0.1),
+            ),
+            Expanded(child: _buildContent(context, isWide: true)),
+          ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      endDrawer: ProfileDrawer(),
+      body: _buildContent(context, isWide: false),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, {required bool isWide}) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, authState) {
+        final user = authState.user;
+
+        if (user == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return RefreshIndicator(
+          onRefresh: _onRefresh,
+          color: theme.colorScheme.primary,
+          backgroundColor: theme.colorScheme.surface,
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // ─── AppBar ─────────────────────────────────────
+              SliverAppBar(
+                pinned: false,
+                floating: true,
+                backgroundColor: theme.scaffoldBackgroundColor,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: false,
+                title: Text(
+                  l10n.profile,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 22),
+                    tooltip: l10n.editProfile,
+                    onPressed: () => context.push('/edit-profile'),
+                  ),
+                  if (!isWide)
+                    IconButton(
+                      icon: const Icon(Icons.menu, size: 22),
+                      onPressed: () => Scaffold.of(context).openEndDrawer(),
+                    ),
+                  const SizedBox(width: 4),
+                ],
+              ),
+
+              // ─── Profile Content ────────────────────────────
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    // Student Card
+                    StudentIdCardWidget(user: user),
+                    const SizedBox(height: 24),
+
+                    // Bio, Instagram, Likes, Registration Number
+                    ProfileInfoSection(user: user),
+                    if (_hasProfileInfo(user)) const SizedBox(height: 10),
+
+                    // Stats Row
+                    FriendsStatButton(
+                      friendsCount: user.friendsCount ?? 0,
+                      pendingRequestsCount: user.pendingRequestsCount ?? 0,
+                      onTap: () => context.push('/friends'),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Badges
+                    BadgesSection(user: user),
+                    const SizedBox(height: 12),
+
+                    // Verification
+                    VerificationStatusWidget(user: user),
+                    const SizedBox(height: 32),
+
+                    // Posts Header
+                    BlocBuilder<PostBloc, PostState>(
+                      builder: (context, postState) {
+                        return _PostsHeader(
+                          postState: postState,
+                          l10n: l10n,
+                          theme: theme,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ]),
+                ),
+              ),
+
+              // ─── Posts ──────────────────────────────────────
+              BlocBuilder<PostBloc, PostState>(
+                builder: (context, state) {
+                  // Initial loading
+                  if (state.status == PostStatus.loading && state.posts.isEmpty) {
+                    return const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.all(40),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                    );
+                  }
+
+                  // Empty state
+                  if (state.posts.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: _EmptyPostsPlaceholder(l10n: l10n, theme: theme),
+                    );
+                  }
+
+                  // Posts list
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                        return PostItem(post: state.posts[index]);
+                      },
+                      childCount: state.posts.length,
+                    ),
+                  );
+                },
+              ),
+
+              // ─── Loading More Indicator ─────────────────────
+              BlocBuilder<PostBloc, PostState>(
+                builder: (context, state) {
+                  if (state.isLoadingMore) {
+                    return const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  // End of list indicator
+                  if (state.postsLastPage && state.posts.isNotEmpty) {
+                    return SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Center(
+                          child: Text(
+                            l10n.noMorePosts,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: theme.hintColor.withOpacity(0.6),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return const SliverToBoxAdapter(child: SizedBox.shrink());
+                },
+              ),
+
+              // Bottom padding
+              const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  bool _hasProfileInfo(user) {
+    final hasBio = user.bio != null && user.bio!.isNotEmpty;
+    final hasInstagram = user.instagramUsername != null && user.instagramUsername!.isNotEmpty;
+    final hasLikes = user.stats?.totalLikesReceived != null && user.stats!.totalLikesReceived > 0;
+    final hasRegistrationNumber = user.registrationNumber != null;
+    return hasBio || hasInstagram || hasLikes || hasRegistrationNumber;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POSTS HEADER
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _PostsHeader extends StatelessWidget {
+  final PostState postState;
+  final AppLocalizations l10n;
+  final ThemeData theme;
+
+  const _PostsHeader({
+    required this.postState,
+    required this.l10n,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          l10n.myPosts,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            '${postState.totalPostsCount}',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: theme.hintColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EMPTY POSTS PLACEHOLDER
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _EmptyPostsPlaceholder extends StatelessWidget {
+  final AppLocalizations l10n;
+  final ThemeData theme;
+
+  const _EmptyPostsPlaceholder({required this.l10n, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 60),
+      child: Column(
+        children: [
+          Icon(
+            Icons.article_outlined,
+            size: 48,
+            color: theme.hintColor.withOpacity(0.4),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.noPostsYet,
+            style: TextStyle(
+              fontSize: 15,
+              color: theme.hintColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart' hide ActionChip;
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/core/di/service_locator.dart';
+import 'package:unitalk/core/ui/common/action_chip.dart';
+import 'package:unitalk/core/ui/common/confirm_delete_dialog.dart';
+import 'package:unitalk/core/ui/common/fullscreen_image_viewer.dart';
+import 'package:unitalk/core/ui/common/fullscreen_video_player.dart';
+import 'package:unitalk/core/ui/common/user_avatar.dart';
+import 'package:unitalk/core/ui/common/user_meta_info.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:unitalk/features/auth/presentation/bloc/auth_state.dart';
+import 'package:unitalk/features/feed/data/model/post_model.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
+import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:timeago/timeago.dart' as timeago;
+import 'package:unitalk/features/report/presentation/content_moderation_menu.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:video_player/video_player.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
+import 'package:translator/translator.dart';
+
+class PostItem extends StatefulWidget {
+  final PostModel post;
+  final bool showDeleteOption;
+  final bool enableNavigation;
+
+  const PostItem({
+    super.key,
+    required this.post,
+    this.showDeleteOption = true,
+    this.enableNavigation = true,
+  });
+
+  @override
+  State<PostItem> createState() => _PostItemState();
+}
+
+class _PostItemState extends State<PostItem> {
+  VideoPlayerController? _videoController;
+  bool _isVideoInitialized = false;
+  bool _videoInitializationStarted = false;
+
+  // Translation state
+  bool _isTranslated = false;
+  String? _translatedContent;
+  bool _isTranslating = false;
+  final GoogleTranslator _translator = GoogleTranslator();
+
+  static final RegExp _urlRegex = RegExp(
+    r'https?://[^\s]+',
+    caseSensitive: false,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.post.mediaType == MediaType.video &&
+        widget.post.videoUrl != null &&
+        !_videoInitializationStarted) {
+      _initializeVideo();
+    }
+  }
+
+  @override
+  void didUpdateWidget(PostItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.post.videoUrl != widget.post.videoUrl &&
+        widget.post.mediaType == MediaType.video &&
+        widget.post.videoUrl != null) {
+      _videoController?.dispose();
+      _isVideoInitialized = false;
+      _videoInitializationStarted = false;
+      _initializeVideo();
+    }
+
+    // Reset translation if post content changed
+    if (oldWidget.post.content != widget.post.content) {
+      _isTranslated = false;
+      _translatedContent = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
+  }
+
+  void _initializeVideo() {
+    if (_videoInitializationStarted) return;
+    _videoInitializationStarted = true;
+
+    try {
+      _videoController = VideoPlayerController.networkUrl(
+        Uri.parse(widget.post.videoUrl!),
+        videoPlayerOptions: VideoPlayerOptions(
+          allowBackgroundPlayback: false,
+          mixWithOthers: true,
+        ),
+      );
+
+      _videoController!
+          .initialize()
+          .then((_) {
+        if (mounted) {
+          setState(() {
+            _isVideoInitialized = true;
+          });
+        }
+      })
+          .catchError((error) {
+        if (mounted) {
+          print('Ошибка инициализации видео: $error');
+          setState(() {
+            _videoInitializationStarted = false;
+          });
+        }
+      });
+    } catch (e) {
+      print('Ошибка при создании контроллера видео: $e');
+      if (mounted) {
+        setState(() {
+          _videoInitializationStarted = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleTranslation() async {
+    if (_isTranslated) {
+      setState(() {
+        _isTranslated = false;
+      });
+      return;
+    }
+
+    if (_translatedContent != null) {
+      setState(() {
+        _isTranslated = true;
+      });
+      return;
+    }
+
+    setState(() {
+      _isTranslating = true;
+    });
+
+    try {
+      final userLocale = Localizations.localeOf(context).languageCode;
+      final translation = await _translator.translate(
+        widget.post.content,
+        to: userLocale,
+      );
+
+      if (mounted) {
+        setState(() {
+          _translatedContent = translation.text;
+          _isTranslated = true;
+          _isTranslating = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isTranslating = false;
+        });
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.translationFailed)),
+        );
+      }
+    }
+  }
+
+  bool _isOwner(String? currentUserId) {
+    return currentUserId != null && currentUserId == widget.post.author?.id;
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    ConfirmDeleteDialog.show(
+      context,
+      title: l10n.deletePost,
+      content: l10n.deletePostConfirmation,
+      onConfirm: () {
+        context.read<PostBloc>().add(DeletePostEvent(widget.post.id));
+        context.pop();
+      },
+    );
+  }
+
+  void _navigateToLikers(BuildContext context) {
+    context.push('/post/${widget.post.id}/likers');
+  }
+
+  void _navigateToPostDetail(BuildContext context) {
+    context.push('/post/${widget.post.id}');
+  }
+
+  void _navigateToUserProfile(BuildContext context) {
+    if (widget.post.isAnonymous || widget.post.author?.id == null) {
+      return;
+    }
+    context.push('/user/${widget.post.author!.id}');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    timeago.setLocaleMessages('ru', timeago.RuMessages());
+    timeago.setLocaleMessages('az', timeago.AzMessages());
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.surface,
+          border: Border(
+            bottom: BorderSide(
+              color: colors.outlineVariant.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Pinned indicator
+              if (widget.post.isPinned) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.push_pin,
+                        size: 14,
+                        color: colors.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        l10n.pinnedPost,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // Header
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () => _navigateToUserProfile(context),
+                    child: UserAvatar(
+                      photoUrl: widget.post.isAnonymous
+                          ? null
+                          : widget.post.author?.photoUrl,
+                      firstName: widget.post.isAnonymous
+                          ? null
+                          : widget.post.author?.firstName,
+                      lastName: widget.post.isAnonymous
+                          ? null
+                          : widget.post.author?.lastName,
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => _navigateToUserProfile(context),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    widget.post.isAnonymous
+                                        ? l10n.anonymous
+                                        : '${widget.post.author?.firstName ?? 'Deleted account'} ${widget.post.author?.lastName ?? ''}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      color: colors.onSurface,
+                                      letterSpacing: -0.2,
+                                    ),
+                                  ),
+                                  if (!widget.post.isAnonymous &&
+                                      widget.post.author?.isVerified ==
+                                          true) ...[
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      Icons.verified,
+                                      size: 16,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(width: 6,),
+                                  Container(
+                                    width: 3,
+                                    height: 3,
+                                    decoration: BoxDecoration(
+                                      color: colors.onSurface.withOpacity(0.3),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    timeago.format(
+                                      widget.post.createdAt,
+                                      locale: Localizations.localeOf(
+                                        context,
+                                      ).languageCode,
+                                    ),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: colors.onSurface.withOpacity(0.5),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          UserMetaInfo(
+                            faculty: widget.post.isAnonymous
+                                ? null
+                                : widget.post.author?.faculty?.getLocalizedName(
+                              Localizations.localeOf(
+                                context,
+                              ).languageCode,
+                            ),
+                            sector: widget.post.isAnonymous
+                                ? null
+                                : widget.post.author?.sector,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (widget.showDeleteOption)
+                    BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, authState) {
+                        final isOwner = _isOwner(authState.user?.id);
+                        return IconButton(
+                          icon: Icon(
+                            Icons.more_vert,
+                            color: colors.onSurface.withOpacity(0.6),
+                            size: 20,
+                          ),
+                          onPressed: () => ContentModerationMenu.showPostMenu(
+                            context: context,
+                            postId: widget.post.id,
+                            isOwner: isOwner,
+                            onDelete: isOwner
+                                ? () => _showDeleteDialog(context)
+                                : null,
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Content
+              if (widget.post.content.trim().isNotEmpty) ...[
+                InkWell(
+                  onTap: widget.enableNavigation
+                      ? () => _navigateToPostDetail(context)
+                      : null,
+                  child: _buildContentWithLinks(context, colors),
+                ),
+
+                // Translation button
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: _isTranslating ? null : _toggleTranslation,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.translate,
+                        size: 14,
+                        color: colors.primary.withOpacity(0.8),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _isTranslating
+                            ? l10n.translating
+                            : _isTranslated
+                            ? l10n.showOriginal
+                            : l10n.translate,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colors.primary.withOpacity(0.8),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // Media (Image)
+              if (widget.post.mediaType == MediaType.image &&
+                  widget.post.imageUrl != null &&
+                  widget.post.imageUrl!.isNotEmpty) ...[
+                if (widget.post.content.trim().isNotEmpty)
+                  const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: () => FullscreenImageViewer.show(
+                    context,
+                    widget.post.imageUrl!,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: widget.post.imageUrl!,
+                      fit: BoxFit.contain,
+                      placeholder: (context, url) => Container(
+                        width: double.infinity,
+                        height: 200,
+                        color: colors.surfaceContainerHighest.withOpacity(0.3),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: colors.primary,
+                          ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        width: double.infinity,
+                        height: 200,
+                        color: colors.surfaceContainerHighest.withOpacity(0.3),
+                        child: Center(
+                          child: Icon(
+                            Icons.broken_image_outlined,
+                            size: 48,
+                            color: colors.error.withOpacity(0.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+
+              // Video Player
+              if (widget.post.mediaType == MediaType.video &&
+                  widget.post.videoUrl != null &&
+                  widget.post.videoUrl!.isNotEmpty) ...[
+                if (widget.post.content.trim().isNotEmpty)
+                  const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: () => FullscreenVideoPlayer.show(
+                    context,
+                    widget.post.videoUrl!,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child:
+                    _isVideoInitialized &&
+                        _videoController != null &&
+                        _videoController!.value.isInitialized
+                        ? AspectRatio(
+                      aspectRatio: _videoController!.value.aspectRatio,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          VideoPlayer(_videoController!),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.3),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.6),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.play_arrow,
+                                size: 48,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                        : Container(
+                      width: double.infinity,
+                      height: 200,
+                      color: colors.surfaceContainerHighest.withOpacity(
+                        0.3,
+                      ),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: colors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 16),
+
+              // Actions
+              Row(
+                children: [
+                  ActionChip(
+                    icon: widget.post.isLikedByCurrentUser
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                    label: '${widget.post.likesCount}',
+                    isActive: widget.post.isLikedByCurrentUser,
+                    activeColor: colors.error,
+                    onTap: () {
+                      context.read<PostBloc>().add(
+                        ToggleLikeEvent(widget.post.id),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  ActionChip(
+                    icon: Icons.chat_bubble_outline,
+                    label: '${widget.post.commentsCount}',
+                    onTap: widget.enableNavigation
+                        ? () => _navigateToPostDetail(context)
+                        : null,
+                  ),
+                ],
+              ),
+
+              // Top Likers Section
+              if (widget.post.likesCount > 0) ...[
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () => _navigateToLikers(context),
+                  child: Row(
+                    children: [
+                      if (widget.post.topLikers != null &&
+                          widget.post.topLikers!.isNotEmpty) ...[
+                        SizedBox(
+                          height: 27,
+                          width: widget.post.topLikers!.length >= 2 ? 40 : 28,
+                          child: Stack(
+                            children: [
+                              for (
+                              int i = 0;
+                              i <
+                                  (widget.post.topLikers!.length >= 2
+                                      ? 2
+                                      : 1);
+                              i++
+                              )
+                                Positioned(
+                                  left: i * 12.0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: colors.surface,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: ClipOval(
+                                      child: UserAvatar(
+                                        photoUrl:
+                                        widget.post.topLikers![i].photoUrl,
+                                        firstName:
+                                        widget.post.topLikers![i].firstName,
+                                        lastName:
+                                        widget.post.topLikers![i].lastName,
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      Expanded(
+                        child: RichText(
+                          text: TextSpan(
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colors.onSurface,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            children: _buildLikesTextSpans(context, colors),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<TextSpan> _buildLikesTextSpans(
+      BuildContext context,
+      ColorScheme colors,
+      ) {
+    final l10n = AppLocalizations.of(context)!;
+    final topLikers = widget.post.topLikers ?? [];
+
+    if (topLikers.isEmpty) {
+      return [
+        TextSpan(
+          text: l10n.likesCount(widget.post.likesCount),
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ];
+    }
+
+    final firstName = topLikers[0].firstName ?? '';
+
+    if (widget.post.likesCount == 1) {
+      return [
+        TextSpan(text: l10n.likedByPrefix + ' '),
+        TextSpan(
+          text: firstName,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: colors.onSurface,
+          ),
+        ),
+      ];
+    } else if (widget.post.likesCount == 2 && topLikers.length >= 2) {
+      final secondName = topLikers[1].firstName ?? '';
+      return [
+        TextSpan(text: l10n.likedByPrefix + ' '),
+        TextSpan(
+          text: firstName,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: colors.onSurface,
+          ),
+        ),
+        TextSpan(text: ' ${l10n.and} '),
+        TextSpan(
+          text: secondName,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: colors.onSurface,
+          ),
+        ),
+      ];
+    } else {
+      final othersCount = widget.post.likesCount - 1;
+      return [
+        TextSpan(text: l10n.likedByPrefix + ' '),
+        TextSpan(
+          text: firstName,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: colors.onSurface,
+          ),
+        ),
+        TextSpan(text: ' ${l10n.andOthers(othersCount)}'),
+      ];
+    }
+  }
+
+  Widget _buildContentWithLinks(BuildContext context, ColorScheme colors) {
+    final text = _isTranslated ? (_translatedContent ?? widget.post.content) : widget.post.content;
+    final matches = _urlRegex.allMatches(text).toList();
+
+    if (matches.isEmpty) {
+      return Text(
+        text,
+        style: TextStyle(
+          fontSize: 15,
+          height: 1.5,
+          color: colors.onSurface,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.1,
+        ),
+      );
+    }
+
+    final spans = <TextSpan>[];
+    int lastEnd = 0;
+
+    for (final match in matches) {
+      if (match.start > lastEnd) {
+        spans.add(
+          TextSpan(
+            text: text.substring(lastEnd, match.start),
+            style: TextStyle(
+              fontSize: 15,
+              height: 1.5,
+              color: colors.onSurface,
+              fontWeight: FontWeight.w400,
+              letterSpacing: -0.1,
+            ),
+          ),
+        );
+      }
+
+      final url = match.group(0)!;
+      spans.add(
+        TextSpan(
+          text: url,
+          style: TextStyle(
+            fontSize: 15,
+            height: 1.5,
+            color: colors.primary,
+            fontWeight: FontWeight.w500,
+            letterSpacing: -0.1,
+            decoration: TextDecoration.underline,
+          ),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () async {
+              if (await canLaunchUrl(Uri.parse(url))) {
+                await launchUrl(
+                  Uri.parse(url),
+                  mode: LaunchMode.externalApplication,
+                );
+              }
+            },
+        ),
+      );
+
+      lastEnd = match.end;
+    }
+
+    if (lastEnd < text.length) {
+      spans.add(
+        TextSpan(
+          text: text.substring(lastEnd),
+          style: TextStyle(
+            fontSize: 15,
+            height: 1.5,
+            color: colors.onSurface,
+            fontWeight: FontWeight.w400,
+            letterSpacing: -0.1,
+          ),
+        ),
+      );
+    }
+
+    return RichText(text: TextSpan(children: spans));
+  }
+}// lib/core/ui/common/avatar_with_badges.dart
+
+import 'package:flutter/material.dart';
+import 'package:unitalk/core/ui/common/user_avatar.dart';
+import 'package:unitalk/features/auth/data/model/badge_helper.dart';
+import 'package:unitalk/features/auth/data/model/user_model.dart';
+
+class AvatarWithBadges extends StatelessWidget {
+  final UserModel user;
+  final double size;
+  final VoidCallback? onTap;
+  final String? heroTag;
+
+  const AvatarWithBadges({
+    super.key,
+    required this.user,
+    this.size = 80,
+    this.onTap,
+    this.heroTag,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final badges = user.badges ?? [];
+    final bestTier = _getBestTier(badges);
+    final ringColor = _getTierColor(bestTier);
+    final hasRing = bestTier != null;
+
+    // Показываем максимум 3 бейджа
+    final displayBadges = badges.take(3).toList();
+
+    Widget avatar = Container(
+      padding: EdgeInsets.all(hasRing ? 3 : 0),
+      decoration: hasRing
+          ? BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: ringColor,
+          width: 2.5,
+        ),
+      )
+          : null,
+      child: UserAvatar(
+        photoUrl: user.photoUrl,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        size: hasRing ? size - 6 : size,
+        borderRadius: size,
+      ),
+    );
+
+    if (heroTag != null) {
+      avatar = Hero(tag: heroTag!, child: avatar);
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: size + 12,
+        height: size + 12,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Аватар по центру
+            Positioned(
+              left: 6,
+              top: 6,
+              child: avatar,
+            ),
+
+            // Бейджи справа внизу
+            if (displayBadges.isNotEmpty)
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: _BadgesCluster(
+                  badges: displayBadges,
+                  theme: theme,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String? _getBestTier(List<BadgeModel> badges) {
+    if (badges.isEmpty) return null;
+
+    const tierPriority = {'gold': 3, 'silver': 2, 'bronze': 1};
+    String? bestTier;
+    int bestPriority = 0;
+
+    for (final badge in badges) {
+      final priority = tierPriority[badge.tier] ?? 0;
+      if (priority > bestPriority) {
+        bestPriority = priority;
+        bestTier = badge.tier;
+      }
+    }
+
+    return bestTier;
+  }
+
+  Color _getTierColor(String? tier) {
+    switch (tier) {
+      case 'gold':
+        return const Color(0xFFD4A017);
+      case 'silver':
+        return const Color(0xFF9CA3AF);
+      case 'bronze':
+        return const Color(0xFFB87333);
+      default:
+        return const Color(0xFF3B82F6);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BADGES CLUSTER - группа бейджей в углу
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _BadgesCluster extends StatelessWidget {
+  final List<BadgeModel> badges;
+  final ThemeData theme;
+
+  const _BadgesCluster({
+    required this.badges,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (badges.isEmpty) return const SizedBox.shrink();
+
+    // Один бейдж - просто круг
+    if (badges.length == 1) {
+      return _SingleBadge(badge: badges[0], theme: theme);
+    }
+
+    // Несколько бейджей - стек
+    return SizedBox(
+      width: 20 + (badges.length - 1) * 10.0,
+      height: 24,
+      child: Stack(
+        children: [
+          for (int i = badges.length - 1; i >= 0; i--)
+            Positioned(
+              left: i * 10.0,
+              child: _SingleBadge(badge: badges[i], theme: theme, size: 24),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SingleBadge extends StatelessWidget {
+  final BadgeModel badge;
+  final ThemeData theme;
+  final double size;
+
+  const _SingleBadge({
+    required this.badge,
+    required this.theme,
+    this.size = 26,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = BadgeHelper.getIcon(badge.id);
+    final tierColor = _getTierColor(badge.tier);
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: tierColor,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: theme.scaffoldBackgroundColor,
+          width: 2,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          icon,
+          style: TextStyle(fontSize: size * 0.5),
+        ),
+      ),
+    );
+  }
+
+  Color _getTierColor(String? tier) {
+    switch (tier) {
+      case 'gold':
+        return const Color(0xFFFFF3CD);
+      case 'silver':
+        return const Color(0xFFE8E9EB);
+      case 'bronze':
+        return const Color(0xFFF5E6D3);
+      default:
+        return const Color(0xFFE3F2FD);
+    }
+  }
+}

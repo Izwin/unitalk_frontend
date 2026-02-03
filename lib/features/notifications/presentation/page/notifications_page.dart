@@ -454,7 +454,7 @@ class NotificationTile extends StatelessWidget {
 
     // ✅ ДОБАВЛЕНО: навигация для друзей
       case 'friend_request':
-        context.push('/friend-requests');
+        context.push('/friends');
         break;
 
       case 'friend_request_accepted':

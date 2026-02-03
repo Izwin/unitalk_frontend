@@ -1583,5 +1583,12 @@
     }
   },
   "allBadgesEarned": "All badges collected! 🎉",
-  "nextBadge": "Next"
+  "nextBadge": "Next",
+
+  "aboutFeatureChat": "Chat with students from your faculty",
+  "aboutFeatureFriends": "Add friends and stay connected",
+  "aboutFeatureBadges": "Earn badges by being active",
+  "aboutFeatureFeed": "Share posts and moments",
+  "aboutFeatureVerification": "Verify your student status",
+  "aboutWhatCanYouDo": "What can you do?"
 }

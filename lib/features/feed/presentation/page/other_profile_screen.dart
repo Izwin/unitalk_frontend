@@ -12,6 +12,7 @@ import 'package:unitalk/features/auth/presentation/widget/profile_info_section.d
 import 'package:unitalk/features/auth/presentation/widget/student_id_card_widget.dart';
 import 'package:unitalk/features/block/presentation/bloc/block_bloc.dart';
 import 'package:unitalk/features/block/presentation/bloc/block_event.dart';
+import 'package:unitalk/features/block/presentation/bloc/block_state.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post/post_bloc.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post/post_event.dart';
 import 'package:unitalk/features/feed/presentation/bloc/post/post_state.dart';
@@ -22,6 +23,7 @@ import 'package:unitalk/features/feed/presentation/widget/post_item.dart';
 import 'package:unitalk/features/friendship/presentation/bloc/friendship_bloc.dart';
 import 'package:unitalk/features/friendship/presentation/bloc/friendship_event.dart';
 import 'package:unitalk/features/friendship/presentation/widgets/friends_count_button.dart';
+import 'package:unitalk/features/friendship/presentation/widgets/friends_stat_button.dart';
 import 'package:unitalk/features/friendship/presentation/widgets/friendship_button.dart';
 import 'package:unitalk/features/report/data/model/report_model.dart';
 import 'package:unitalk/l10n/app_localizations.dart';
@@ -31,7 +33,8 @@ const int _kPostsLimit = 20;
 class OtherUserProfileScreen extends StatefulWidget {
   final String userId;
 
-  const OtherUserProfileScreen({Key? key, required this.userId}) : super(key: key);
+  const OtherUserProfileScreen({Key? key, required this.userId})
+    : super(key: key);
 
   @override
   State<OtherUserProfileScreen> createState() => _OtherUserProfileScreenState();
@@ -53,7 +56,9 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
     context.read<PostBloc>().add(
       GetPostsEvent(authorId: widget.userId, page: 1, limit: _kPostsLimit),
     );
-    context.read<FriendshipBloc>().add(LoadFriendshipStatusEvent(widget.userId));
+    context.read<FriendshipBloc>().add(
+      LoadFriendshipStatusEvent(widget.userId),
+    );
     context.read<BlockBloc>().add(CheckBlockStatusEvent(widget.userId));
   }
 
@@ -95,10 +100,14 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
     context.read<PostBloc>().add(
       GetPostsEvent(authorId: widget.userId, page: 1, limit: _kPostsLimit),
     );
-    context.read<FriendshipBloc>().add(LoadFriendshipStatusEvent(widget.userId));
+    context.read<FriendshipBloc>().add(
+      LoadFriendshipStatusEvent(widget.userId),
+    );
 
     await Future.any([
-      context.read<UserProfileBloc>().stream.firstWhere((state) => !state.isLoading),
+      context.read<UserProfileBloc>().stream.firstWhere(
+        (state) => !state.isLoading,
+      ),
       Future.delayed(const Duration(seconds: 3)),
     ]);
   }
@@ -181,7 +190,9 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(l10n.blockUser),
-        content: Text(l10n.blockUserConfirmation('${user.firstName} ${user.lastName}')),
+        content: Text(
+          l10n.blockUserConfirmation('${user.firstName} ${user.lastName}'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -195,11 +206,15 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                 SnackBar(
                   content: Text(l10n.userBlocked),
                   behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               );
             },
-            style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
+            style: FilledButton.styleFrom(
+              backgroundColor: theme.colorScheme.error,
+            ),
             child: Text(l10n.block),
           ),
         ],
@@ -215,7 +230,9 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(l10n.unblockUser),
-        content: Text(l10n.unblockUserConfirmation('${user.firstName} ${user.lastName}')),
+        content: Text(
+          l10n.unblockUserConfirmation('${user.firstName} ${user.lastName}'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -229,7 +246,9 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                 SnackBar(
                   content: Text(l10n.userUnblocked),
                   behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               );
             },
@@ -292,9 +311,13 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                             if (authState.user?.id == widget.userId) {
                               return const SizedBox.shrink();
                             }
+                            if(profileState.user?.blockStatus == null){
+                              return const CircularProgressIndicator.adaptive();
+                            }
                             return IconButton(
                               icon: const Icon(Icons.more_horiz_rounded),
-                              onPressed: () => _showModerationMenu(context, user),
+                              onPressed: () =>
+                                  _showModerationMenu(context, user),
                             );
                           },
                         ),
@@ -313,15 +336,16 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
 
                           // Bio, Instagram, Likes, Registration Number
                           ProfileInfoSection(user: user),
-                          if (_hasProfileInfo(user)) const SizedBox(height: 20),
+                          if (_hasProfileInfo(user))
+                            const SizedBox(height: 10),
 
                           // Friends count
-                          if (user.friendsCount != null && user.friendsCount! > 0) ...[
-                            StatCountButton(
-                              count: user.friendsCount ?? 0,
-                              label: l10n.friends,
-                              icon: Icons.people_outline_rounded,
-                              onTap: () => context.push('/user/${user.id}/friends'),
+                          if (user.friendsCount != null &&
+                              user.friendsCount! > 0) ...[
+                            FriendsStatButton(
+                              friendsCount: user.friendsCount ?? 0,
+                              onTap: () =>
+                                  context.push('/user/${user.id}/friends'),
                             ),
                             const SizedBox(height: 12),
                           ],
@@ -335,21 +359,27 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                           const SizedBox(height: 32),
 
                           // Posts header
-                          _PostsHeader(postState: postState, l10n: l10n, theme: theme),
+                          _PostsHeader(
+                            postState: postState,
+                            l10n: l10n,
+                            theme: theme,
+                          ),
                           const SizedBox(height: 16),
                         ]),
                       ),
                     ),
 
                     // Posts
-                    if (postState.posts.isEmpty && postState.status != PostStatus.loading)
+                    if (postState.posts.isEmpty &&
+                        postState.status != PostStatus.loading)
                       SliverToBoxAdapter(
                         child: _EmptyPostsState(l10n: l10n, theme: theme),
                       )
                     else
                       SliverList(
                         delegate: SliverChildBuilderDelegate(
-                              (context, index) => PostItem(post: postState.posts[index]),
+                          (context, index) =>
+                              PostItem(post: postState.posts[index]),
                           childCount: postState.posts.length,
                         ),
                       ),
@@ -363,14 +393,17 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                             child: SizedBox(
                               width: 24,
                               height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
                             ),
                           ),
                         ),
                       ),
 
                     // End of list
-                    if (postState.postsLastPage && postState.posts.isNotEmpty)
+                    if (postState.postsLastPage &&
+                        postState.posts.isNotEmpty)
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 24),
@@ -386,7 +419,9 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
                         ),
                       ),
 
-                    const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+                    const SliverPadding(
+                      padding: EdgeInsets.only(bottom: 100),
+                    ),
                   ],
                 ),
               );
@@ -399,8 +434,11 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
 
   bool _hasProfileInfo(user) {
     final hasBio = user.bio != null && user.bio!.isNotEmpty;
-    final hasInstagram = user.instagramUsername != null && user.instagramUsername!.isNotEmpty;
-    final hasLikes = user.stats?.totalLikesReceived != null && user.stats!.totalLikesReceived > 0;
+    final hasInstagram =
+        user.instagramUsername != null && user.instagramUsername!.isNotEmpty;
+    final hasLikes =
+        user.stats?.totalLikesReceived != null &&
+        user.stats!.totalLikesReceived > 0;
     final hasRegistrationNumber = user.registrationNumber != null;
     return hasBio || hasInstagram || hasLikes || hasRegistrationNumber;
   }
@@ -431,10 +469,7 @@ class _ActionTile extends StatelessWidget {
       leading: Icon(icon, color: iconColor ?? theme.iconTheme.color),
       title: Text(
         label,
-        style: TextStyle(
-          color: iconColor,
-          fontWeight: FontWeight.w500,
-        ),
+        style: TextStyle(color: iconColor, fontWeight: FontWeight.w500),
       ),
     );
   }
@@ -457,10 +492,7 @@ class _PostsHeader extends StatelessWidget {
       children: [
         Text(
           l10n.posts,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
         ),
         const Spacer(),
         Container(
@@ -516,10 +548,7 @@ class _ErrorState extends StatelessWidget {
               style: TextStyle(color: theme.hintColor),
             ),
             const SizedBox(height: 24),
-            FilledButton.tonal(
-              onPressed: onRetry,
-              child: Text(l10n.tryAgain),
-            ),
+            FilledButton.tonal(onPressed: onRetry, child: Text(l10n.tryAgain)),
           ],
         ),
       ),
@@ -545,10 +574,7 @@ class _UserNotFoundState extends StatelessWidget {
             color: theme.hintColor.withOpacity(0.5),
           ),
           const SizedBox(height: 16),
-          Text(
-            l10n.userNotFound,
-            style: TextStyle(color: theme.hintColor),
-          ),
+          Text(l10n.userNotFound, style: TextStyle(color: theme.hintColor)),
         ],
       ),
     );
@@ -575,10 +601,7 @@ class _EmptyPostsState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             l10n.userHasNoPosts,
-            style: TextStyle(
-              fontSize: 15,
-              color: theme.hintColor,
-            ),
+            style: TextStyle(fontSize: 15, color: theme.hintColor),
           ),
         ],
       ),

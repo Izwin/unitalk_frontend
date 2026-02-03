@@ -1684,4 +1684,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nextBadge => 'Next';
+
+  @override
+  String get aboutFeatureChat => 'Chat with students from your faculty';
+
+  @override
+  String get aboutFeatureFriends => 'Add friends and stay connected';
+
+  @override
+  String get aboutFeatureBadges => 'Earn badges by being active';
+
+  @override
+  String get aboutFeatureFeed => 'Share posts and moments';
+
+  @override
+  String get aboutFeatureVerification => 'Verify your student status';
+
+  @override
+  String get aboutWhatCanYouDo => 'What can you do?';
 }

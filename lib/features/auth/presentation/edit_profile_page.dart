@@ -120,15 +120,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => Container(
-        margin: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: SafeArea(
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        builder: (_, scrollController) => Container(
+          margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: BorderRadius.circular(24),
+          ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 8),
               Container(
@@ -168,25 +170,32 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
               ),
               const SizedBox(height: 12),
-              ...Course.values.map((course) {
-                final isSelected = _selectedCourse == course;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                  child: RadioSelectorItem(
-                    title: course.getLocalizedName(l10n),
-                    isSelected: isSelected,
-                    icon: Icons.school_outlined,
-                    onTap: () {
-                      setState(() {
-                        _selectedCourse = course;
-                        _isModified = true;
-                      });
-                      Navigator.pop(ctx);
-                    },
-                  ),
-                );
-              }),
-              const SizedBox(height: 20),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+                  itemCount: Course.values.length,
+                  itemBuilder: (context, index) {
+                    final course = Course.values[index];
+                    final isSelected = _selectedCourse == course;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: RadioSelectorItem(
+                        title: course.getLocalizedName(l10n),
+                        isSelected: isSelected,
+                        icon: Icons.school_outlined,
+                        onTap: () {
+                          setState(() {
+                            _selectedCourse = course;
+                            _isModified = true;
+                          });
+                          Navigator.pop(ctx);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -285,15 +294,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        margin: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: SafeArea(
+      isScrollControlled: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.85,
+        builder: (_, scrollController) => Container(
+          margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: BorderRadius.circular(24),
+          ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 8),
               Container(
@@ -322,25 +334,32 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
               ),
               const SizedBox(height: 12),
-              ...Sector.values.map((sector) {
-                final isSelected = _selectedSector == sector;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                  child: RadioSelectorItem(
-                    title: sector.displayName,
-                    isSelected: isSelected,
-                    icon: Icons.language,
-                    onTap: () {
-                      setState(() {
-                        _selectedSector = sector;
-                        _isModified = true;
-                      });
-                      Navigator.pop(ctx);
-                    },
-                  ),
-                );
-              }),
-              const SizedBox(height: 20),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+                  itemCount: Sector.values.length,
+                  itemBuilder: (context, index) {
+                    final sector = Sector.values[index];
+                    final isSelected = _selectedSector == sector;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: RadioSelectorItem(
+                        title: sector.displayName,
+                        isSelected: isSelected,
+                        icon: Icons.language,
+                        onTap: () {
+                          setState(() {
+                            _selectedSector = sector;
+                            _isModified = true;
+                          });
+                          Navigator.pop(ctx);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),

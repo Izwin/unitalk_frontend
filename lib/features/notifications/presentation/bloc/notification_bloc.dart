@@ -271,7 +271,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
           notifications: response.notifications,
           unreadCount: response.unreadCount,
           currentPage: 1,
-          hasMore: response.notifications.length < 20,
+          hasMore: response.notifications.length >= 20,
         ));
       },
     );

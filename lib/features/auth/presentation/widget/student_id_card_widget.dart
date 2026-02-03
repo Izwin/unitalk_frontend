@@ -74,7 +74,7 @@ class StudentIdCardWidget extends StatelessWidget {
                     clipBehavior: Clip.antiAlias,
                     child: CachedNetworkImage(
                       imageUrl: user.university!.logoUrl!,
-                      fit: BoxFit.contain,
+                      fit: BoxFit.cover,
                       errorWidget: (_, __, ___) => Icon(
                         Icons.school_outlined,
                         color: theme.hintColor,
@@ -85,6 +85,7 @@ class StudentIdCardWidget extends StatelessWidget {
                 const SizedBox(width: 12),
 
                 // University name
+// University name
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,13 +107,12 @@ class StudentIdCardWidget extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                           color: theme.textTheme.bodyLarge?.color,
                         ),
-                        maxLines: 1,
+                        maxLines: 3, // Изменено с 1 на 2
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-
                 // Verified badge
                 if (user.isVerified == true)
                   Container(
@@ -301,7 +301,7 @@ class _InfoRow extends StatelessWidget {
               fontWeight: FontWeight.w500,
               color: theme.textTheme.bodyMedium?.color,
             ),
-            maxLines: 2,
+            maxLines: 3, // Изменено с 2 на 3
             overflow: TextOverflow.ellipsis,
           ),
         ),

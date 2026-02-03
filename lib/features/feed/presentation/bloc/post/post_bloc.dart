@@ -83,7 +83,12 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       GetPostsEvent event,
       Emitter<PostState> emit,
       ) async {
-    // ✅ Разные состояния для первой загрузки и подгрузки
+    // Защита от повторных вызовов
+    if (event.page > 1 && state.isLoadingMore) {
+      print('⚠️ Already loading more, skipping...');
+      return;
+    }
+
     if (event.page == 1) {
       emit(state.copyWith(
         status: PostStatus.loading,
@@ -120,17 +125,24 @@ class PostBloc extends Bloc<PostEvent, PostState> {
         final posts = response.posts;
         final pagination = response.pagination;
 
-        print('📊 Page ${event.page}: received ${posts.length} posts, total: ${pagination.total}');
+        print('📊 Page ${event.page}: received ${posts.length} posts');
 
-        // ✅ Для первой страницы заменяем список, для остальных добавляем
-        final updatedPosts = event.page == 1
-            ? posts
-            : [...state.posts, ...posts];
+        List<PostModel> updatedPosts;
 
-        // ✅ Следующая страница для загрузки
+        if (event.page == 1) {
+          // Первая страница - заменяем полностью
+          updatedPosts = posts;
+        } else {
+          // ✅ ДЕДУПЛИКАЦИЯ: добавляем только новые посты
+          final existingIds = state.posts.map((p) => p.id).toSet();
+          final newPosts = posts.where((p) => !existingIds.contains(p.id)).toList();
+
+          print('📊 New unique posts: ${newPosts.length} (filtered ${posts.length - newPosts.length} duplicates)');
+
+          updatedPosts = [...state.posts, ...newPosts];
+        }
+
         final nextPage = event.page + 1;
-
-        // ✅ Проверяем достигли ли последней страницы
         final isLastPage = posts.length < event.limit ||
             pagination.page >= pagination.pages;
 
@@ -143,7 +155,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
           isLoadingMore: false,
         ));
 
-        print('✅ Updated: ${updatedPosts.length} posts, nextPage: $nextPage, isLast: $isLastPage');
+        print('✅ Total posts: ${updatedPosts.length}, nextPage: $nextPage, isLast: $isLastPage');
       },
     );
   }

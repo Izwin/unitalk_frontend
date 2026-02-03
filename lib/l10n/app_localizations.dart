@@ -3141,6 +3141,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next'**
   String get nextBadge;
+
+  /// No description provided for @aboutFeatureChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with students from your faculty'**
+  String get aboutFeatureChat;
+
+  /// No description provided for @aboutFeatureFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'Add friends and stay connected'**
+  String get aboutFeatureFriends;
+
+  /// No description provided for @aboutFeatureBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'Earn badges by being active'**
+  String get aboutFeatureBadges;
+
+  /// No description provided for @aboutFeatureFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Share posts and moments'**
+  String get aboutFeatureFeed;
+
+  /// No description provided for @aboutFeatureVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your student status'**
+  String get aboutFeatureVerification;
+
+  /// No description provided for @aboutWhatCanYouDo.
+  ///
+  /// In en, this message translates to:
+  /// **'What can you do?'**
+  String get aboutWhatCanYouDo;
 }
 
 class _AppLocalizationsDelegate

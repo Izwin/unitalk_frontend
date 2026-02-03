@@ -647,11 +647,14 @@
       "count": {"type": "int"}
     }
   },
-  "badges": "Nişanlar",
-  "noBadgesYet": "İlk nişanınızı qazanın!",
-  "earnBadgesHint": "qazanılıb",
   "allBadgesEarned": "Bütün nişanlar toplandı! 🎉",
-  "nextBadge": "Növbəti"
+  "nextBadge": "Növbəti",
+  "aboutFeatureChat": "Fakültənizin tələbələri ilə söhbət edin",
+  "aboutFeatureFriends": "Dostlar əlavə edin və əlaqədə qalın",
+  "aboutFeatureBadges": "Aktiv olaraq nişanlar qazanın",
+  "aboutFeatureFeed": "Yazılar və anlar paylaşın",
+  "aboutFeatureVerification": "Tələbə statusunuzu təsdiq edin",
+  "aboutWhatCanYouDo": "Nə edə bilərsiniz?"
 
 
 }

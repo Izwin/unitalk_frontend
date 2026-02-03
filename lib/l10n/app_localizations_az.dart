@@ -1518,10 +1518,10 @@ class AppLocalizationsAz extends AppLocalizations {
   String get nextBadges => 'Növbəti nişanlar';
 
   @override
-  String get noBadgesYet => 'İlk nişanınızı qazanın!';
+  String get noBadgesYet => 'Hələ nişan yoxdur';
 
   @override
-  String get earnBadgesHint => 'qazanılıb';
+  String get earnBadgesHint => 'Nişan qazanmaq üçün aktiv olun!';
 
   @override
   String get selectEmoji => 'Emoji seçin';
@@ -1687,4 +1687,22 @@ class AppLocalizationsAz extends AppLocalizations {
 
   @override
   String get nextBadge => 'Növbəti';
+
+  @override
+  String get aboutFeatureChat => 'Fakültənizin tələbələri ilə söhbət edin';
+
+  @override
+  String get aboutFeatureFriends => 'Dostlar əlavə edin və əlaqədə qalın';
+
+  @override
+  String get aboutFeatureBadges => 'Aktiv olaraq nişanlar qazanın';
+
+  @override
+  String get aboutFeatureFeed => 'Yazılar və anlar paylaşın';
+
+  @override
+  String get aboutFeatureVerification => 'Tələbə statusunuzu təsdiq edin';
+
+  @override
+  String get aboutWhatCanYouDo => 'Nə edə bilərsiniz?';
 }

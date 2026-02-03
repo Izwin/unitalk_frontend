@@ -1697,4 +1697,22 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get nextBadge => 'Следующий';
+
+  @override
+  String get aboutFeatureChat => 'Общайтесь со студентами вашего факультета';
+
+  @override
+  String get aboutFeatureFriends => 'Добавляйте друзей и оставайтесь на связи';
+
+  @override
+  String get aboutFeatureBadges => 'Зарабатывайте значки, будучи активными';
+
+  @override
+  String get aboutFeatureFeed => 'Делитесь постами и моментами';
+
+  @override
+  String get aboutFeatureVerification => 'Подтвердите статус студента';
+
+  @override
+  String get aboutWhatCanYouDo => 'Что вы можете делать?';
 }

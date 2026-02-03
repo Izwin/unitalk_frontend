@@ -42,7 +42,6 @@ class FeedPage extends StatefulWidget {
 class FeedPageState extends State<FeedPage> {
   final _scrollController = ScrollController();
   UniversityModel? _selectedUniversity;
-  bool _isLoadingMore = false;
   FeedFilters _filters = FeedFilters.empty();
 
   @override
@@ -94,23 +93,35 @@ class FeedPageState extends State<FeedPage> {
     _loadPosts(page: 1);
     _loadAnnouncements();
 
-    // Ждем завершения загрузки
-    await context.read<PostBloc>().stream.firstWhere(
-          (state) => state.status != PostStatus.loading,
-    );
+    // ✅ ИСПРАВЛЕНИЕ: ждем когда статус станет НЕ loading ИЛИ завершится isLoadingMore
+    await Future.any([
+      context.read<PostBloc>().stream.firstWhere(
+            (state) => state.status != PostStatus.loading && !state.isLoadingMore,
+      ),
+      // Таймаут на случай непредвиденных ситуаций
+      Future.delayed(Duration(seconds: 5)),
+    ]);
   }
 
   void _onScroll() {
-    if (_isLoadingMore) return;
+    if (!_scrollController.hasClients) return;
 
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      final postState = context.read<PostBloc>().state;
-      if (!postState.postsLastPage && postState.status != PostStatus.loading) {
-        setState(() => _isLoadingMore = true);
-        _loadPosts(page: postState.postsPage);
-      }
-    }
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+
+    // Проверяем достигли ли порога для загрузки
+    if (currentScroll < maxScroll - 200) return;
+
+    // ✅ Используем состояние из блока
+    final postState = context.read<PostBloc>().state;
+
+    // Все проверки в одном месте
+    if (postState.isLoadingMore) return;
+    if (postState.postsLastPage) return;
+    if (postState.status == PostStatus.loading) return;
+
+    print('🔄 Loading page ${postState.postsPage}...');
+    _loadPosts(page: postState.postsPage);
   }
 
   void _navigateToNotifications() {
@@ -306,12 +317,7 @@ class FeedPageState extends State<FeedPage> {
 
             BlocBuilder<AnnouncementBloc, AnnouncementState>(
               builder: (context, announcementState) {
-                return BlocConsumer<PostBloc, PostState>(
-                  listener: (context, state) {
-                    if (state.status == PostStatus.success) {
-                      setState(() => _isLoadingMore = false);
-                    }
-                  },
+                return BlocBuilder<PostBloc, PostState>(
                   builder: (context, postState) {
                     if (postState.status == PostStatus.loading && postState.posts.isEmpty) {
                       return SliverFillRemaining(
@@ -351,7 +357,7 @@ class FeedPageState extends State<FeedPage> {
                       delegate: SliverChildBuilderDelegate(
                             (context, index) {
                           if (index == mergedItems.length) {
-                            if (_isLoadingMore) {
+                            if (postState.isLoadingMore) {
                               return Padding(
                                 padding: EdgeInsets.all(16),
                                 child: Center(child: CircularProgressIndicator()),
@@ -381,7 +387,7 @@ class FeedPageState extends State<FeedPage> {
                             return PostItem(post: item);
                           }
                         },
-                        childCount: mergedItems.length + (_isLoadingMore ? 1 : 0),
+                        childCount: mergedItems.length + (postState.isLoadingMore ? 1 : 0),
                       ),
                     );
                   },

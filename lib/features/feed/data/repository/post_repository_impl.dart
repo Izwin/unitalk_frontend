@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:unitalk/core/failure/failure.dart';
 import 'package:unitalk/features/feed/data/datasource/post_remote_datasource.dart';
 import 'package:unitalk/features/feed/data/model/post_model.dart';
@@ -52,10 +53,12 @@ class PostRepositoryImpl implements PostRepository {
         limit: limit,
       );
 
-      // ✅ Используем fromJson для парсинга всего ответа
       final response = PostsResponseModel.fromJson(data);
       return Right(response);
-    } catch (e) {
+    } on DioException catch (e){
+      return Left(ServerFailure(message: e.response?.data['error']));
+    }
+    catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
   }

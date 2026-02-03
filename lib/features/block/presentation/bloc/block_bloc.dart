@@ -119,6 +119,7 @@ class BlockBloc extends Bloc<BlockEvent, BlockState> {
       Emitter<BlockState> emit,
       ) async {
     final result = await blockRepository.getBlockStatus(event.userId);
+    await Future.delayed(const Duration(milliseconds: 3300));
 
     result.fold(
           (failure) => emit(state.copyWith(

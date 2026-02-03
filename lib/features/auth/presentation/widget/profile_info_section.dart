@@ -50,36 +50,39 @@ class ProfileInfoSection extends StatelessWidget {
         // STATS ROW (OG номер и лайки)
         // ═══════════════════════════════════════════════
         if (hasLikes || hasRegistrationNumber)
-          Row(
-            children: [
-              // Registration Number (OG Badge)
-              if (hasRegistrationNumber)
-                Expanded(
-                  child: _StatCard(
-                    icon: '🏆',
-                    label: l10n.userNumber,
-                    value: '#${user.registrationNumber}',
-                    tier: user.ogTier,
-                    theme: theme,
-                    l10n: l10n,
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Registration Number (OG Badge)
+                if (hasRegistrationNumber)
+                  Expanded(
+                    child: _StatCard(
+                      icon: '🏆',
+                      label: l10n.userNumber,
+                      value: '#${user.registrationNumber}',
+                      tier: user.ogTier,
+                      theme: theme,
+                      l10n: l10n,
+                    ),
                   ),
-                ),
 
-              if (hasRegistrationNumber && hasLikes)
-                const SizedBox(width: 12),
+                if (hasRegistrationNumber && hasLikes)
+                  const SizedBox(width: 12),
 
-              // Total Likes
-              if (hasLikes)
-                Expanded(
-                  child: _StatCard(
-                    icon: '❤️',
-                    label: l10n.totalLikes,
-                    value: _formatNumber(user.stats!.totalLikesReceived),
-                    theme: theme,
-                    l10n: l10n,
+                // Total Likes
+                if (hasLikes)
+                  Expanded(
+                    child: _StatCard(
+                      icon: '❤️',
+                      label: l10n.totalLikes,
+                      value: _formatNumber(user.stats!.totalLikesReceived),
+                      theme: theme,
+                      l10n: l10n,
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
       ],
     );
@@ -323,6 +326,7 @@ class _StatCard extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   label,
@@ -331,26 +335,41 @@ class _StatCard extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     color: theme.hintColor,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: hasSpecialTier
-                            ? tierColor
-                            : theme.textTheme.bodyLarge?.color,
+                if (tier != null)
+                // Вертикальная компоновка для значения с tier badge
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        value,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: tierColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    if (tier != null) ...[
-                      const SizedBox(width: 8),
+                      const SizedBox(height: 4),
                       _TierBadge(tier: tier!, color: tierColor, l10n: l10n),
                     ],
-                  ],
-                ),
+                  )
+                else
+                // Простой текст без tier badge
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: theme.textTheme.bodyLarge?.color,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
               ],
             ),
           ),

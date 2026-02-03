@@ -1,0 +1,3347 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:unitalk/l10n/app_localizations.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+class AboutPage extends StatefulWidget {
+  const AboutPage({super.key});
+
+  @override
+  State<AboutPage> createState() => _AboutPageState();
+}
+
+class _AboutPageState extends State<AboutPage> {
+  String _version = '';
+  String _buildNumber = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPackageInfo();
+  }
+
+  Future<void> _loadPackageInfo() async {
+    PackageInfo;
+    final packageInfo = await PackageInfo.fromPlatform();
+    setState(() {
+      _version = packageInfo.version;
+      _buildNumber = packageInfo.buildNumber;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+          ),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          l10n.aboutApp,
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // App Icon and Name
+            Center(
+              child: Column(
+                children: [
+                  Image.asset('assets/icon/icon.png',height: 80,width: 80,),
+                  const SizedBox(height: 16),
+                  Text(
+                    'UniTalky',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _version.isEmpty
+                        ? l10n.appVersion
+                        : _version,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Project Description
+            _buildSection(
+              context: context,
+              icon: Icons.info_outline,
+              title: l10n.projectDescription,
+              content: l10n.aboutProjectText,
+              isDark: isDark,
+            ),
+            const SizedBox(height: 24),
+
+            // University Information
+            _buildSection(
+              context: context,
+              icon: Icons.account_balance,
+              title: l10n.universityInformation,
+              isDark: isDark,
+              customContent: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoRow(
+                    context: context,
+                    label: '${l10n.university}:',
+                    value: l10n.universityName,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoRow(
+                    context: context,
+                    label: '${l10n.faculty}:',
+                    value: l10n.facultyName,
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Course Information
+            _buildSection(
+              context: context,
+              icon: Icons.book_outlined,
+              title: l10n.courseInformation,
+              isDark: isDark,
+              customContent: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoRow(
+                    context: context,
+                    label: l10n.subject,
+                    value: l10n.brandAndAdvertising,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoRow(
+                    context: context,
+                    label: l10n.group,
+                    value: '787',
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoRow(
+                    context: context,
+                    label: l10n.teacher,
+                    value: l10n.teacherName,
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Team Members
+            _buildSection(
+              context: context,
+              icon: Icons.people_outline,
+              title: l10n.projectTeam,
+              isDark: isDark,
+              customContent: Column(
+                children: [
+                  _buildTeamMember(
+                    context: context,
+                    name: l10n.studentName1,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTeamMember(
+                    context: context,
+                    name: l10n.studentName2,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTeamMember(
+                    context: context,
+                    name: l10n.studentName3,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTeamMember(
+                    context: context,
+                    name: l10n.studentName4,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTeamMember(
+                    context: context,
+                    name: l10n.studentName5,
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Purpose
+            _buildSection(
+              context: context,
+              icon: Icons.flag_outlined,
+              title: l10n.projectPurpose,
+              content: l10n.purposeText,
+              isDark: isDark,
+            ),
+            const SizedBox(height: 32),
+
+            // Footer
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    l10n.madeWithLove,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '© 2025 UniTalky',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSection({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    String? content,
+    Widget? customContent,
+    required bool isDark,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Theme.of(context).cardColor
+            : Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? Theme.of(context).dividerColor.withOpacity(0.3)
+              : Colors.grey[200]!,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (content != null)
+            Text(
+              content,
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.8),
+                height: 1.6,
+              ),
+            ),
+          if (customContent != null) customContent,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow({
+    required BuildContext context,
+    required String label,
+    required String value,
+    required bool isDark,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTeamMember({
+    required BuildContext context,
+    required String name,
+    required bool isDark,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withOpacity(0.05)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? Theme.of(context).dividerColor.withOpacity(0.2)
+              : Colors.grey[200]!,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.person,
+              size: 20,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}{
+  "@@locale": "en",
+  "continueWithApple": "Continue with Apple",
+  "appName": "UniTalky",
+  "@appName": {
+    "description": "Application name"
+  },
+  "back": "Back",
+  "@back": {
+    "description": "Back button label"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button label"
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Save button label"
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "Delete button label"
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Retry button label"
+  },
+  "continueButton": "Continue",
+  "@continueButton": {
+    "description": "Continue button label"
+  },
+  "close": "Close",
+  "@close": {
+    "description": "Close button label"
+  },
+  "complete": "Complete",
+  "@complete": {
+    "description": "Complete button label"
+  },
+  "welcome": "Welcome",
+  "@welcome": {
+    "description": "Welcome message"
+  },
+  "introSubtitle": "Connect with your university community",
+  "@introSubtitle": {
+    "description": "Intro subtitle on welcome screen"
+  },
+  "introDescription": "Stay up to date with your university life",
+  "@introDescription": {
+    "description": "Introduction description"
+  },
+  "signInWithGoogle": "Sign in with Google",
+  "@signInWithGoogle": {
+    "description": "Google sign in button"
+  },
+  "continueWithGoogle": "Continue with Google",
+  "@continueWithGoogle": {
+    "description": "Continue with Google button"
+  },
+  "byContinuingYouAgree": "By continuing, you agree to our",
+  "@byContinuingYouAgree": {
+    "description": "Terms agreement prefix"
+  },
+  "and": "and",
+  "@and": {
+    "description": "Conjunction 'and'"
+  },
+  "termsOfService": "Terms of Service",
+  "@termsOfService": {
+    "description": "Terms of Service link text"
+  },
+  "privacyPolicy": "Privacy Policy",
+  "@privacyPolicy": {
+    "description": "Privacy Policy link text"
+  },
+  "errorOccurred": "Oops! Something went wrong",
+  "@errorOccurred": {
+    "description": "Generic error message"
+  },
+  "anErrorOccurred": "An error occurred",
+  "@anErrorOccurred": {
+    "description": "Generic error message alternative"
+  },
+  "profileSetup": "Profile Setup",
+  "@profileSetup": {
+    "description": "Profile setup page title"
+  },
+  "completeProfile": "Complete Your Profile",
+  "@completeProfile": {
+    "description": "Complete profile page title"
+  },
+  "completeProfileTitle": "Welcome aboard!",
+  "@completeProfileTitle": {
+    "description": "Complete profile welcome title"
+  },
+  "completeProfileSubtitle": "Let's get you set up in just a few steps",
+  "@completeProfileSubtitle": {
+    "description": "Complete profile subtitle"
+  },
+  "whatsYourName": "What's your name?",
+  "@whatsYourName": {
+    "description": "Name setup question"
+  },
+  "realNameRequired": "Use your real name to get verified and build trust in the community",
+  "@realNameRequired": {
+    "description": "Real name requirement explanation"
+  },
+  "personalInformation": "Personal Info",
+  "@personalInformation": {
+    "description": "Personal information section header"
+  },
+  "firstName": "First Name",
+  "@firstName": {
+    "description": "First name field label"
+  },
+  "firstNameHint": "Enter your first name",
+  "@firstNameHint": {
+    "description": "First name field hint"
+  },
+  "enterFirstName": "Enter your first name",
+  "@enterFirstName": {
+    "description": "First name field placeholder"
+  },
+  "firstNameRequired": "First name is required",
+  "@firstNameRequired": {
+    "description": "First name validation error"
+  },
+  "firstNameTooShort": "First name must be at least 2 characters",
+  "@firstNameTooShort": {
+    "description": "First name length validation"
+  },
+  "lastName": "Last Name",
+  "@lastName": {
+    "description": "Last name field label"
+  },
+  "lastNameHint": "Enter your last name",
+  "@lastNameHint": {
+    "description": "Last name field hint"
+  },
+  "enterLastName": "Enter your last name",
+  "@enterLastName": {
+    "description": "Last name field placeholder"
+  },
+  "lastNameRequired": "Last name is required",
+  "@lastNameRequired": {
+    "description": "Last name validation error"
+  },
+  "lastNameTooShort": "Last name must be at least 2 characters",
+  "@lastNameTooShort": {
+    "description": "Last name length validation"
+  },
+  "fillAllFields": "Please fill in all required fields",
+  "@fillAllFields": {
+    "description": "Form validation error"
+  },
+  "academicInformation": "Academic Info",
+  "@academicInformation": {
+    "description": "Academic information section header"
+  },
+  "university": "University",
+  "@university": {
+    "description": "University field label"
+  },
+  "selectUniversity": "Select University",
+  "@selectUniversity": {
+    "description": "Select university page title"
+  },
+  "selectYourUniversity": "Select your university",
+  "@selectYourUniversity": {
+    "description": "Select university header"
+  },
+  "chooseUniversityYouAttend": "Choose the university you attend",
+  "@chooseUniversityYouAttend": {
+    "description": "Select university description"
+  },
+  "selectUniversityPrompt": "Select university",
+  "@selectUniversityPrompt": {
+    "description": "Select university dropdown prompt"
+  },
+  "selectUniversitySubtitle": "Choose a university to view its feed",
+  "@selectUniversitySubtitle": {
+    "description": "University selection bottom sheet subtitle"
+  },
+  "selectUniversityFirst": "Select a university first",
+  "@selectUniversityFirst": {
+    "description": "Error when faculty selected before university"
+  },
+  "searchUniversity": "Search university...",
+  "@searchUniversity": {
+    "description": "University search placeholder"
+  },
+  "searchUniversities": "Search universities...",
+  "@searchUniversities": {
+    "description": "Universities search placeholder"
+  },
+  "universityRequired": "Please select a university",
+  "@universityRequired": {
+    "description": "University validation error"
+  },
+  "failedToLoadUniversities": "Failed to load universities",
+  "@failedToLoadUniversities": {
+    "description": "University loading error"
+  },
+  "noUniversitiesFound": "No universities found",
+  "@noUniversitiesFound": {
+    "description": "Empty state for university search"
+  },
+  "yourUniversity": "Your University",
+  "@yourUniversity": {
+    "description": "Your university label"
+  },
+  "tapToChangeUniversity": "Tap to change university",
+  "@tapToChangeUniversity": {
+    "description": "Change university hint"
+  },
+  "faculty": "Faculty",
+  "@faculty": {
+    "description": "Faculty field label"
+  },
+  "selectFaculty": "Select Faculty",
+  "@selectFaculty": {
+    "description": "Select faculty page title"
+  },
+  "selectYourFaculty": "Select your faculty",
+  "@selectYourFaculty": {
+    "description": "Select faculty header"
+  },
+  "chooseYourFieldOfStudy": "Choose your field of study",
+  "@chooseYourFieldOfStudy": {
+    "description": "Select faculty description"
+  },
+  "selectFacultyPrompt": "Select faculty",
+  "@selectFacultyPrompt": {
+    "description": "Select faculty dropdown prompt"
+  },
+  "searchFaculty": "Search faculty...",
+  "@searchFaculty": {
+    "description": "Faculty search placeholder"
+  },
+  "searchFaculties": "Search faculties...",
+  "@searchFaculties": {
+    "description": "Faculties search placeholder"
+  },
+  "facultyRequired": "Please select a faculty",
+  "@facultyRequired": {
+    "description": "Faculty validation error"
+  },
+  "failedToLoadFaculties": "Failed to load faculties",
+  "@failedToLoadFaculties": {
+    "description": "Faculty loading error"
+  },
+  "noFacultiesFound": "No faculties found",
+  "@noFacultiesFound": {
+    "description": "Empty state for faculty search"
+  },
+  "sector": "Sector",
+  "@sector": {
+    "description": "Sector field label"
+  },
+  "selectSector": "Select Sector",
+  "@selectSector": {
+    "description": "Select sector page title"
+  },
+  "selectSectorPrompt": "Select sector",
+  "@selectSectorPrompt": {
+    "description": "Select sector dropdown prompt"
+  },
+  "sectorAzerbaijani": "Azerbaijani",
+  "@sectorAzerbaijani": {
+    "description": "Azerbaijani sector"
+  },
+  "sectorRussian": "Russian",
+  "@sectorRussian": {
+    "description": "Russian sector"
+  },
+  "sectorEnglish": "English",
+  "@sectorEnglish": {
+    "description": "English sector"
+  },
+  "select": "Select {item}",
+  "@select": {
+    "description": "Generic select placeholder",
+    "placeholders": {
+      "item": {
+        "type": "String",
+        "example": "option"
+      }
+    }
+  },
+  "notSelected": "Not selected",
+  "@notSelected": {
+    "description": "Semantic label when nothing is selected"
+  },
+  "tryDifferentSearchTerm": "Try a different search term",
+  "@tryDifferentSearchTerm": {
+    "description": "Empty search state subtitle"
+  },
+  "accountVerification": "Get Verified",
+  "@accountVerification": {
+    "description": "Account verification page title"
+  },
+  "getVerified": "Get Verified",
+  "@getVerified": {
+    "description": "Get verified button"
+  },
+  "verifyStudentStatus": "Verify your student status",
+  "@verifyStudentStatus": {
+    "description": "Verification call to action"
+  },
+  "verified": "Verified",
+  "@verified": {
+    "description": "Verified status badge"
+  },
+  "verificationPending": "Verification Pending",
+  "@verificationPending": {
+    "description": "Verification pending status"
+  },
+  "verificationUnderReview": "Your verification is under review",
+  "@verificationUnderReview": {
+    "description": "Verification under review message"
+  },
+  "verificationPendingTitle": "Under Review",
+  "@verificationPendingTitle": {
+    "description": "Verification pending title"
+  },
+  "verificationPendingMessage": "We're checking your document. You'll be notified when it's done (usually 1-3 days).",
+  "@verificationPendingMessage": {
+    "description": "Verification pending message"
+  },
+  "verificationRejected": "Verification Rejected",
+  "@verificationRejected": {
+    "description": "Verification rejected status"
+  },
+  "pleaseTryAgain": "Please try again",
+  "@pleaseTryAgain": {
+    "description": "Try again message"
+  },
+  "verificationRejectedTitle": "Verification Rejected",
+  "@verificationRejectedTitle": {
+    "description": "Verification rejected title"
+  },
+  "reason": "Reason:",
+  "@reason": {
+    "description": "Reason label"
+  },
+  "uploadNewScreenshot": "Please upload a new screenshot from the MyGov app Education section",
+  "@uploadNewScreenshot": {
+    "description": "Upload new screenshot instruction"
+  },
+  "tryAgain": "Try Again",
+  "@tryAgain": {
+    "description": "Try again button"
+  },
+  "accountVerifiedTitle": "You're Verified! 🎉",
+  "@accountVerifiedTitle": {
+    "description": "Account verified title"
+  },
+  "accountVerifiedMessage": "Your account is verified! You now have full access to all features.",
+  "@accountVerifiedMessage": {
+    "description": "Account verified message"
+  },
+  "verificationWarningTitle": "Heads Up!",
+  "@verificationWarningTitle": {
+    "description": "Verification warning title"
+  },
+  "verificationWarningMessage": "Changing your university or faculty will reset your verification. You'll need to verify again.",
+  "@verificationWarningMessage": {
+    "description": "Verification warning message"
+  },
+  "verificationWarning": "Important: Only screenshots from MyGov app Education section are accepted. Student ID cards won't work.",
+  "@verificationWarning": {
+    "description": "Verification document warning"
+  },
+  "verificationTimeline": "Verification usually takes 1-3 business days. We'll notify you when it's complete.",
+  "@verificationTimeline": {
+    "description": "Verification timeline info"
+  },
+  "myGovDocumentUpload": "MyGov Document Upload",
+  "@myGovDocumentUpload": {
+    "description": "MyGov upload section title"
+  },
+  "myGovUploadInstruction": "Upload a screenshot of the Education section from your MyGov app",
+  "@myGovUploadInstruction": {
+    "description": "MyGov upload instruction"
+  },
+  "howToPrepare": "How to prepare?",
+  "@howToPrepare": {
+    "description": "How to prepare section"
+  },
+  "verificationStep1": "1. Open the MyGov mobile app",
+  "@verificationStep1": {
+    "description": "Verification step 1"
+  },
+  "verificationStep2": "2. Go to the 'Education' section",
+  "@verificationStep2": {
+    "description": "Verification step 2"
+  },
+  "verificationStep3": "3. Take a screenshot showing your student info",
+  "@verificationStep3": {
+    "description": "Verification step 3"
+  },
+  "verificationStep4": "4. Make sure the image is clear and readable",
+  "@verificationStep4": {
+    "description": "Verification step 4"
+  },
+  "noScreenshotSelected": "No screenshot selected",
+  "@noScreenshotSelected": {
+    "description": "No screenshot selected message"
+  },
+  "pleaseSelectImage": "Please select an image",
+  "@pleaseSelectImage": {
+    "description": "Select image prompt"
+  },
+  "uploadFailed": "Upload failed",
+  "@uploadFailed": {
+    "description": "Upload failed error"
+  },
+  "documentUploadedSuccessfully": "Document uploaded successfully!",
+  "@documentUploadedSuccessfully": {
+    "description": "Document upload success"
+  },
+  "uploadAndSend": "Upload and Send",
+  "@uploadAndSend": {
+    "description": "Upload and send button"
+  },
+  "fromGallery": "From Gallery",
+  "@fromGallery": {
+    "description": "From gallery option"
+  },
+  "gallery": "Gallery",
+  "@gallery": {
+    "description": "Gallery option"
+  },
+  "camera": "Camera",
+  "@camera": {
+    "description": "Camera option"
+  },
+  "chooseFromGallery": "Choose from Gallery",
+  "@chooseFromGallery": {
+    "description": "Choose from gallery button"
+  },
+  "takePhoto": "Take a Photo",
+  "@takePhoto": {
+    "description": "Take photo button"
+  },
+  "removePhoto": "Remove Photo",
+  "@removePhoto": {
+    "description": "Remove photo button"
+  },
+  "addImage": "Add Image",
+  "@addImage": {
+    "description": "Add image button"
+  },
+  "attachImage": "Attach Image",
+  "@attachImage": {
+    "description": "Attach image button"
+  },
+  "changeImage": "Change Image",
+  "@changeImage": {
+    "description": "Change image button"
+  },
+  "errorPickingImage": "Error picking image: {error}",
+  "@errorPickingImage": {
+    "description": "Error picking image message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errorTakingPhoto": "Error taking photo: {error}",
+  "@errorTakingPhoto": {
+    "description": "Error taking photo message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "imageLoadError": "Failed to load image",
+  "@imageLoadError": {
+    "description": "Image load error message"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings page title"
+  },
+  "darkMode": "Dark Mode",
+  "@darkMode": {
+    "description": "Dark mode setting"
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Language setting"
+  },
+  "selectLanguage": "Select Language",
+  "@selectLanguage": {
+    "description": "Select language title"
+  },
+  "notifications": "Notifications",
+  "@notifications": {
+    "description": "Notifications setting and page title"
+  },
+  "notificationSettings": "Notification Settings",
+  "@notificationSettings": {
+    "description": "Notification settings page title"
+  },
+  "enableNotifications": "Enable Notifications",
+  "@enableNotifications": {
+    "description": "Enable notifications toggle"
+  },
+  "enableNotificationsDescription": "Turn on/off all notifications",
+  "@enableNotificationsDescription": {
+    "description": "Enable notifications description"
+  },
+  "noNotifications": "No notifications yet",
+  "@noNotifications": {
+    "description": "Empty notifications state"
+  },
+  "errorLoadingNotifications": "Failed to load notifications",
+  "@errorLoadingNotifications": {
+    "description": "Notifications loading error"
+  },
+  "errorLoadingSettings": "Failed to load settings",
+  "@errorLoadingSettings": {
+    "description": "Settings loading error"
+  },
+  "markAllAsRead": "Mark all as read",
+  "@markAllAsRead": {
+    "description": "Mark all notifications as read"
+  },
+  "deleteAll": "Delete all",
+  "@deleteAll": {
+    "description": "Delete all button"
+  },
+  "deleteNotification": "Delete notification",
+  "@deleteNotification": {
+    "description": "Delete notification title"
+  },
+  "deleteNotificationConfirm": "Delete this notification?",
+  "@deleteNotificationConfirm": {
+    "description": "Delete notification confirmation"
+  },
+  "deleteAllNotifications": "Delete all notifications",
+  "@deleteAllNotifications": {
+    "description": "Delete all notifications title"
+  },
+  "deleteAllNotificationsConfirm": "Delete all notifications? This can't be undone.",
+  "@deleteAllNotificationsConfirm": {
+    "description": "Delete all notifications confirmation"
+  },
+  "notificationDeleted": "Notification deleted",
+  "@notificationDeleted": {
+    "description": "Notification deleted success"
+  },
+  "posts": "Posts",
+  "@posts": {
+    "description": "Posts label"
+  },
+  "newPosts": "New Posts",
+  "@newPosts": {
+    "description": "New posts notification setting"
+  },
+  "newPostsDescription": "Get notified when someone posts",
+  "@newPostsDescription": {
+    "description": "New posts notification description"
+  },
+  "newComments": "New Comments",
+  "@newComments": {
+    "description": "New comments notification setting"
+  },
+  "newCommentsDescription": "Get notified when someone comments on your posts",
+  "@newCommentsDescription": {
+    "description": "New comments notification description"
+  },
+  "newLikes": "New Likes",
+  "@newLikes": {
+    "description": "New likes notification setting"
+  },
+  "newLikesDescription": "Get notified when someone likes your posts",
+  "@newLikesDescription": {
+    "description": "New likes notification description"
+  },
+  "comments": "Comments",
+  "@comments": {
+    "description": "Comments label"
+  },
+  "commentReplies": "Comment Replies",
+  "@commentReplies": {
+    "description": "Comment replies notification setting"
+  },
+  "commentRepliesDescription": "Get notified when someone replies to your comments",
+  "@commentRepliesDescription": {
+    "description": "Comment replies notification description"
+  },
+  "mentions": "Mentions",
+  "@mentions": {
+    "description": "Mentions notification setting"
+  },
+  "mentionsDescription": "Get notified when someone mentions you",
+  "@mentionsDescription": {
+    "description": "Mentions notification description"
+  },
+  "chatMessages": "Chat Messages",
+  "@chatMessages": {
+    "description": "Chat messages notification setting"
+  },
+  "chatMessagesDescription": "Get notified about new messages in faculty chat",
+  "@chatMessagesDescription": {
+    "description": "Chat messages notification description"
+  },
+  "chatMentions": "Chat Mentions",
+  "@chatMentions": {
+    "description": "Chat mentions notification setting"
+  },
+  "chatMentionsDescription": "Get notified when someone mentions you in chat",
+  "@chatMentionsDescription": {
+    "description": "Chat mentions notification description"
+  },
+  "privacySecurity": "Privacy & Security",
+  "@privacySecurity": {
+    "description": "Privacy and security setting"
+  },
+  "helpSupport": "Help & Support",
+  "@helpSupport": {
+    "description": "Help and support setting and page title"
+  },
+  "about": "About",
+  "@about": {
+    "description": "About setting"
+  },
+  "logout": "Logout",
+  "@logout": {
+    "description": "Logout button"
+  },
+  "areYouSureLogout": "Are you sure you want to logout?",
+  "@areYouSureLogout": {
+    "description": "Logout confirmation"
+  },
+  "profile": "Profile",
+  "@profile": {
+    "description": "Profile page title and nav label"
+  },
+  "editProfile": "Edit Profile",
+  "@editProfile": {
+    "description": "Edit profile button"
+  },
+  "failedToUpdateProfile": "Failed to update profile",
+  "@failedToUpdateProfile": {
+    "description": "Profile update error"
+  },
+  "myPosts": "My Posts",
+  "@myPosts": {
+    "description": "My posts section"
+  },
+  "postsCount": "{count, plural, =0{No posts} =1{1 post} other{{count} posts}}",
+  "@postsCount": {
+    "description": "Posts count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noPostsYet": "No posts yet",
+  "@noPostsYet": {
+    "description": "Empty posts state"
+  },
+  "userHasNoPosts": "This user hasn't posted anything yet",
+  "@userHasNoPosts": {
+    "description": "Empty user posts state"
+  },
+  "studentIdCard": "Student ID Card",
+  "@studentIdCard": {
+    "description": "Student ID card title"
+  },
+  "idLabel": "ID",
+  "@idLabel": {
+    "description": "ID label"
+  },
+  "notAvailable": "N/A",
+  "@notAvailable": {
+    "description": "Not available placeholder"
+  },
+  "verificationRequired": "Verification Required",
+  "@verificationRequired": {
+    "description": "Verification required message"
+  },
+  "verificationRequiredTitle": "Get Verified First",
+  "@verificationRequiredTitle": {
+    "description": "Verification required title"
+  },
+  "chatAccessVerifiedOnly": "Only verified students can chat. Complete verification to join the conversation.",
+  "@chatAccessVerifiedOnly": {
+    "description": "Chat verification required message"
+  },
+  "verifiedUsersOnly": "Only verified students can chat",
+  "@verifiedUsersOnly": {
+    "description": "Verified users only notice"
+  },
+  "facultyStudentsOnly": "Students from your faculty only",
+  "@facultyStudentsOnly": {
+    "description": "Faculty students only notice"
+  },
+  "privateAndSecure": "Private and secure communication",
+  "@privateAndSecure": {
+    "description": "Privacy notice"
+  },
+  "canOnlyPostInOwnUniversity": "You can only post in your own university",
+  "@canOnlyPostInOwnUniversity": {
+    "description": "Post restriction message"
+  },
+  "chat": "Chat",
+  "@chat": {
+    "description": "Chat page title and nav label"
+  },
+  "connecting": "Connecting...",
+  "@connecting": {
+    "description": "Connecting status"
+  },
+  "connectionError": "Connection Error",
+  "@connectionError": {
+    "description": "Connection error message"
+  },
+  "chatDescription": "This is the {facultyName} faculty chat. Only verified students can participate.",
+  "@chatDescription": {
+    "description": "Chat description",
+    "placeholders": {
+      "facultyName": {
+        "type": "String"
+      }
+    }
+  },
+  "noMessages": "No messages yet",
+  "@noMessages": {
+    "description": "Empty chat state"
+  },
+  "noMessagesYet": "No Messages Yet",
+  "@noMessagesYet": {
+    "description": "Empty messages state title"
+  },
+  "startConversation": "Be the first to start the conversation!",
+  "@startConversation": {
+    "description": "Empty chat call to action"
+  },
+  "createFirstSupportMessage": "Create your first support message to get help from our team",
+  "@createFirstSupportMessage": {
+    "description": "Empty support messages state"
+  },
+  "typeMessage": "Type a message...",
+  "@typeMessage": {
+    "description": "Message input placeholder"
+  },
+  "userIsTyping": "{name} is typing...",
+  "@userIsTyping": {
+    "description": "User typing indicator",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "participants": "Participants",
+  "@participants": {
+    "description": "Participants label"
+  },
+  "participantsCount": "{count, plural, =0{No participants} =1{1 participant} other{{count} participants}}",
+  "@participantsCount": {
+    "description": "Participants count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "totalParticipants": "{count, plural, =0{No participants} =1{1 participant} other{{count} participants}}",
+  "@totalParticipants": {
+    "description": "Total participants count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noParticipants": "No Participants",
+  "@noParticipants": {
+    "description": "No participants title"
+  },
+  "noParticipantsDescription": "There are no participants in this chat yet",
+  "@noParticipantsDescription": {
+    "description": "No participants description"
+  },
+  "loadingParticipants": "Loading participants...",
+  "@loadingParticipants": {
+    "description": "Loading participants status"
+  },
+  "yesterday": "Yesterday",
+  "@yesterday": {
+    "description": "Yesterday time label"
+  },
+  "weekday": "{day, select, 1{Mon} 2{Tue} 3{Wed} 4{Thu} 5{Fri} 6{Sat} 7{Sun} other{}}",
+  "@weekday": {
+    "description": "Weekday abbreviation",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "daysAgo": "{count}d ago",
+  "@daysAgo": {
+    "description": "Days ago time label",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "newPost": "New Post",
+  "@newPost": {
+    "description": "New post page title"
+  },
+  "post": "POST",
+  "@post": {
+    "description": "Post button"
+  },
+  "postTitle": "Post",
+  "@postTitle": {
+    "description": "Title for the post detail page shown in the app bar"
+  },
+  "anonymous": "Anonymous",
+  "@anonymous": {
+    "description": "Anonymous user label"
+  },
+  "user": "User",
+  "@user": {
+    "description": "Default user label"
+  },
+  "whatsOnYourMind": "What's on your mind?",
+  "@whatsOnYourMind": {
+    "description": "Post content placeholder"
+  },
+  "characterCount": "{current} / {max}",
+  "@characterCount": {
+    "description": "Character count display",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "actions": "ACTIONS",
+  "@actions": {
+    "description": "Actions section header"
+  },
+  "anonymousMode": "Anonymous Mode",
+  "@anonymousMode": {
+    "description": "Anonymous mode label"
+  },
+  "publicMode": "Public Mode",
+  "@publicMode": {
+    "description": "Public mode label"
+  },
+  "yourIdentityIsHidden": "Your identity is hidden",
+  "@yourIdentityIsHidden": {
+    "description": "Anonymous mode description"
+  },
+  "yourNameIsVisible": "Your name is visible",
+  "@yourNameIsVisible": {
+    "description": "Public mode description"
+  },
+  "anonymousToggleEnable": "Post anonymously",
+  "@anonymousToggleEnable": {
+    "description": "Enable anonymous mode tooltip"
+  },
+  "anonymousToggleDisable": "Post with your name",
+  "@anonymousToggleDisable": {
+    "description": "Disable anonymous mode tooltip"
+  },
+  "anonymousToggleLabelOn": "Anonymous mode is on",
+  "@anonymousToggleLabelOn": {
+    "description": "Anonymous mode active label"
+  },
+  "anonymousToggleLabelOff": "Anonymous mode is off",
+  "@anonymousToggleLabelOff": {
+    "description": "Anonymous mode inactive label"
+  },
+  "pleaseAddContent": "Add some content or an image to post",
+  "@pleaseAddContent": {
+    "description": "Empty post error"
+  },
+  "postCreatedSuccessfully": "Posted! 🎉",
+  "@postCreatedSuccessfully": {
+    "description": "Post created success"
+  },
+  "failedToCreatePost": "Failed to create post",
+  "@failedToCreatePost": {
+    "description": "Post creation error"
+  },
+  "failedToLoadPosts": "Failed to load posts",
+  "@failedToLoadPosts": {
+    "description": "Posts loading error"
+  },
+  "beTheFirstToShare": "Be the first to share something!",
+  "@beTheFirstToShare": {
+    "description": "Empty feed call to action"
+  },
+  "postNotFound": "Post not found",
+  "@postNotFound": {
+    "description": "Post not found error"
+  },
+  "postMayHaveBeenDeleted": "This post may have been deleted",
+  "@postMayHaveBeenDeleted": {
+    "description": "Post deleted message"
+  },
+  "deletePost": "Delete Post",
+  "@deletePost": {
+    "description": "Delete post title"
+  },
+  "deletePostConfirmation": "Delete this post?",
+  "@deletePostConfirmation": {
+    "description": "Delete post confirmation"
+  },
+  "like": "Like",
+  "@like": {
+    "description": "Like button label"
+  },
+  "likes": "Likes",
+  "@likes": {
+    "description": "Likes label"
+  },
+  "failedToLoadLikes": "Failed to load likes",
+  "@failedToLoadLikes": {
+    "description": "Likes loading error"
+  },
+  "noLikesYet": "No likes yet",
+  "@noLikesYet": {
+    "description": "Empty likes state"
+  },
+  "beTheFirstToLike": "Be the first to like this post",
+  "@beTheFirstToLike": {
+    "description": "Empty likes call to action"
+  },
+  "comment": "Comment",
+  "@comment": {
+    "description": "Comment button label"
+  },
+  "noCommentsYet": "No comments yet",
+  "@noCommentsYet": {
+    "description": "Empty comments state"
+  },
+  "startTheConversation": "Start the conversation",
+  "@startTheConversation": {
+    "description": "Empty comments call to action"
+  },
+  "commentAnonymously": "Comment anonymously...",
+  "@commentAnonymously": {
+    "description": "Anonymous comment placeholder"
+  },
+  "writeComment": "Write a comment...",
+  "@writeComment": {
+    "description": "Comment input placeholder"
+  },
+  "deleteComment": "Delete Comment",
+  "@deleteComment": {
+    "description": "Delete comment title"
+  },
+  "deleteCommentConfirmation": "Delete this comment?",
+  "@deleteCommentConfirmation": {
+    "description": "Delete comment confirmation"
+  },
+  "reply": "Reply",
+  "@reply": {
+    "description": "Reply button label"
+  },
+  "repliesCount": "{count, plural, =0{No replies} =1{1 reply} other{{count} replies}}",
+  "@repliesCount": {
+    "description": "Replies count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "replyAnonymously": "Reply anonymously...",
+  "@replyAnonymously": {
+    "description": "Anonymous reply placeholder"
+  },
+  "writeReply": "Write a reply...",
+  "@writeReply": {
+    "description": "Reply input placeholder"
+  },
+  "deleteReply": "Delete Reply",
+  "@deleteReply": {
+    "description": "Delete reply title"
+  },
+  "deleteReplyConfirmation": "Delete this reply?",
+  "@deleteReplyConfirmation": {
+    "description": "Delete reply confirmation"
+  },
+  "share": "Share",
+  "@share": {
+    "description": "Share button label"
+  },
+  "repost": "Repost",
+  "@repost": {
+    "description": "Repost button label"
+  },
+  "navFeed": "Feed",
+  "@navFeed": {
+    "description": "Feed navigation label"
+  },
+  "navSearch": "Search",
+  "@navSearch": {
+    "description": "Search navigation label"
+  },
+  "navChat": "Chat",
+  "@navChat": {
+    "description": "Chat navigation label"
+  },
+  "navProfile": "Profile",
+  "@navProfile": {
+    "description": "Profile navigation label"
+  },
+  "searchUsers": "Search Users",
+  "@searchUsers": {
+    "description": "Search users page title"
+  },
+  "searchUsersByName": "Search users by name...",
+  "@searchUsersByName": {
+    "description": "Search users placeholder"
+  },
+  "searchForUsers": "Search for users by name",
+  "@searchForUsers": {
+    "description": "Search users description"
+  },
+  "typeToStartSearching": "Type at least 2 characters to start searching",
+  "@typeToStartSearching": {
+    "description": "Search minimum characters message"
+  },
+  "noUsersFound": "No users found",
+  "@noUsersFound": {
+    "description": "Empty search results"
+  },
+  "tryDifferentName": "Try searching with a different name",
+  "@tryDifferentName": {
+    "description": "Empty search hint"
+  },
+  "usersFound": "{count, plural, =0{No users found} =1{1 user found} other{{count} users found}}",
+  "@usersFound": {
+    "description": "Search results count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "userNotFound": "User not found",
+  "@userNotFound": {
+    "description": "User not found error"
+  },
+  "errorMessage": "Error: {error}",
+  "@errorMessage": {
+    "description": "Error message with details",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createMessage": "Create Message",
+  "@createMessage": {
+    "description": "Create support message button"
+  },
+  "newMessage": "New Message",
+  "@newMessage": {
+    "description": "New message FAB label"
+  },
+  "filterByStatus": "Filter by Status",
+  "@filterByStatus": {
+    "description": "Filter by status title"
+  },
+  "clearFilter": "Clear",
+  "@clearFilter": {
+    "description": "Clear filter button"
+  },
+  "allMessages": "All Messages",
+  "@allMessages": {
+    "description": "All messages filter option"
+  },
+  "pending": "Pending",
+  "@pending": {
+    "description": "Pending status"
+  },
+  "inProgress": "In Progress",
+  "@inProgress": {
+    "description": "In progress status"
+  },
+  "resolved": "Resolved",
+  "@resolved": {
+    "description": "Resolved status"
+  },
+  "closed": "Closed",
+  "@closed": {
+    "description": "Closed status"
+  },
+  "newSupportMessage": "New Support Message",
+  "@newSupportMessage": {
+    "description": "New support message page title"
+  },
+  "supportTeamResponse": "Our support team typically responds within 24 hours",
+  "@supportTeamResponse": {
+    "description": "Support response time info"
+  },
+  "category": "Category",
+  "@category": {
+    "description": "Category field label"
+  },
+  "selectCategory": "Select Category",
+  "@selectCategory": {
+    "description": "Select category title"
+  },
+  "technicalIssue": "Technical Issue",
+  "@technicalIssue": {
+    "description": "Technical issue category"
+  },
+  "accountIssue": "Account Issue",
+  "@accountIssue": {
+    "description": "Account issue category"
+  },
+  "verificationCategory": "Verification",
+  "@verificationCategory": {
+    "description": "Verification category"
+  },
+  "contentIssue": "Content Issue",
+  "@contentIssue": {
+    "description": "Content issue category"
+  },
+  "other": "Other",
+  "@other": {
+    "description": "Other category"
+  },
+  "@subject": {
+    "description": "Subject field label"
+  },
+  "subjectHint": "Brief description of your issue",
+  "@subjectHint": {
+    "description": "Subject field hint"
+  },
+  "subjectRequired": "Subject is required",
+  "@subjectRequired": {
+    "description": "Subject validation error"
+  },
+  "subjectTooLong": "Subject must be less than 200 characters",
+  "@subjectTooLong": {
+    "description": "Subject length validation"
+  },
+  "message": "Message",
+  "@message": {
+    "description": "Message field label"
+  },
+  "messageHint": "Message...",
+  "@messageHint": {
+    "description": "Message field hint"
+  },
+  "messageRequired": "Message is required",
+  "@messageRequired": {
+    "description": "Message validation error"
+  },
+  "messageTooLong": "Message must be less than 2000 characters",
+  "@messageTooLong": {
+    "description": "Message length validation"
+  },
+  "submitMessage": "Submit Message",
+  "@submitMessage": {
+    "description": "Submit message button"
+  },
+  "messageSentSuccess": "Support message sent successfully!",
+  "@messageSentSuccess": {
+    "description": "Message sent success"
+  },
+  "messageDetails": "Message Details",
+  "@messageDetails": {
+    "description": "Message details page title"
+  },
+  "allCaughtUp": "You're all caught up!",
+  "@allCaughtUp": {
+    "description": "Empty state message when user has seen all content"
+  },
+  "categoryTechnical": "Technical",
+  "@categoryTechnical": {
+    "description": "Technical support category"
+  },
+  "categoryAccount": "Account",
+  "@categoryAccount": {
+    "description": "Account support category"
+  },
+  "categoryVerification": "Verification",
+  "@categoryVerification": {
+    "description": "Verification support category"
+  },
+  "categoryContent": "Content",
+  "@categoryContent": {
+    "description": "Content support category"
+  },
+  "categoryOther": "Other",
+  "@categoryOther": {
+    "description": "Other support category"
+  },
+  "statusPending": "Pending",
+  "@statusPending": {
+    "description": "Pending status label"
+  },
+  "statusInProgress": "In Progress",
+  "@statusInProgress": {
+    "description": "In progress status label"
+  },
+  "statusResolved": "Resolved",
+  "@statusResolved": {
+    "description": "Resolved status label"
+  },
+  "statusClosed": "Closed",
+  "@statusClosed": {
+    "description": "Closed status label"
+  },
+  "clear": "Clear",
+  "@clear": {
+    "description": "Clear filter button"
+  },
+  "dateTimeFormat": "{day}/{month}/{year} at {hour}:{minute}",
+  "@dateTimeFormat": {
+    "description": "Date and time format",
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "month": {
+        "type": "int"
+      },
+      "year": {
+        "type": "int"
+      },
+      "hour": {
+        "type": "String"
+      },
+      "minute": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryTechnicalIssue": "Technical Issue",
+  "@categoryTechnicalIssue": {
+    "description": "Technical issue category label"
+  },
+  "categoryAccountIssue": "Account Issue",
+  "@categoryAccountIssue": {
+    "description": "Account issue category label"
+  },
+  "categoryContentIssue": "Content Issue",
+  "@categoryContentIssue": {
+    "description": "Content issue category label"
+  },
+  "supportResponseTime": "Our support team typically responds within 24 hours",
+  "@supportResponseTime": {
+    "description": "Info message about response time"
+  },
+  "supportMessageSentSuccess": "Support message sent successfully",
+  "@supportMessageSentSuccess": {
+    "description": "Success message after sending support message"
+  },
+  "deleteAccount": "Delete Account",
+  "deleteAccountWarning": "⚠️ Warning: This action is permanent!",
+  "deleteAccountDescription": "Deleting your account will permanently remove all your data from our servers. This includes:",
+  "willBeDeleted": "What will be deleted:",
+  "allPosts": "All your posts",
+  "allComments": "All your comments",
+  "profileData": "Your profile and personal data",
+  "thisActionCannotBeUndone": "This action cannot be undone!",
+  "finalConfirmation": "Final Confirmation",
+  "typeDeleteToConfirm": "Type DELETE to confirm account deletion:",
+  "pleaseTypeDeleteCorrectly": "Please type DELETE correctly to confirm",
+  "deleteForever": "Delete Forever",
+  "termsOfUse": "Terms of Use",
+  "verificationRequiredMessage": "You need to be verified to access the chat. Please complete your verification first.",
+  "goToProfile": "Go to Profile",
+  "edit": "Edit",
+  "editMessage": "Edit Message",
+  "deleteMessage": "Delete Message",
+  "deleteMessageConfirm": "Are you sure you want to delete this message?",
+  "enterMessage": "Enter message",
+  "failedToLoadMessages": "Failed to load messages",
+  "unknown": "Unknown",
+  "photo": "Photo",
+  "messageDeleted": "Message deleted",
+  "edited": "(edited)",
+  "replyTo": "Reply to",
+  "aboutApp": "About App",
+  "appVersion": "Version 1.0.0",
+  "projectDescription": "Project Description",
+  "aboutProjectText": "UniTalk is a modern mobile application developed as part of a student project for the 'Brand and Advertising' course. The app is designed to improve communication between university students.",
+  "courseInformation": "Course Information",
+  "subject": "Subject:",
+  "brandAndAdvertising": "Brand and Advertising",
+  "group": "Group:",
+  "teacher": "Teacher:",
+  "teacherName": "Lydia Safronova",
+  "projectTeam": "Project Team",
+  "studentName1": "Rauf Khalilov",
+  "studentName2": "Taleh Badalov",
+  "studentName3": "Gunay Mirzayeva",
+  "studentName4": "Anastasia Lobastova",
+  "studentName5": "Ismayil Nagiyev",
+  "projectPurpose": "Project Purpose",
+  "purposeText": "Creating a convenient platform for student communication, information sharing, and collaborative work on educational projects.",
+  "madeWithLove": "Made with ❤️ by Group 787 students",
+  "universityInformation": "University Information",
+  "universityName": "Azerbaijan State University of Economics (UNEC)",
+  "facultyName": "Design",
+  "blockUser": "Block User",
+  "unblockUser": "Unblock User",
+  "blockedUsers": "Blocked Users",
+  "noBlockedUsers": "No blocked users",
+  "blockUserConfirmation": "Are you sure you want to block {name}?",
+  "unblockUserConfirmation": "Are you sure you want to unblock {name}?",
+  "youBlockedThisUser": "You blocked this user",
+  "thisUserBlockedYou": "This user blocked you",
+  "userBlocked": "User blocked successfully",
+  "userUnblocked": "User unblocked successfully",
+  "block": "Block",
+  "unblock": "Unblock",
+  "reportTitle": "Report",
+  "reportPost": "Report Post",
+  "reportComment": "Report Comment",
+  "reportMessage": "Report Message",
+  "reportUser": "Report User",
+  "myReports": "My Reports",
+  "noReports": "No reports yet",
+  "selectReportCategory": "Please select a category",
+  "selectReportReason": "Please select a reason for reporting",
+  "reportSubmitted": "Report submitted successfully",
+  "submitReport": "Submit Report",
+  "cancelReport": "Cancel Report",
+  "cancelReportConfirmation": "Are you sure you want to cancel this report?",
+  "spam": "Spam",
+  "harassment": "Harassment",
+  "hateSpeech": "Hate Speech",
+  "violence": "Violence",
+  "nudity": "Nudity",
+  "falseInformation": "False Information",
+  "impersonation": "Impersonation",
+  "underReview": "Under Review",
+  "rejected": "Rejected",
+  "additionalDetails": "Additional Details (Optional)",
+  "describeIssue": "Describe the issue...",
+  "all": "All",
+  "filter": "Filter",
+  "report": "Report",
+  "yes": "Yes",
+  "no": "No",
+  "likedByPrefix": "Liked by",
+  "andOthers": "and {count} others",
+  "@andOthers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "likesCount": "{count} likes",
+  "@likesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filters": "Filters",
+  "@filters": {
+    "description": "Filters title"
+  },
+  "active": "active",
+  "@active": {
+    "description": "Active filters count suffix"
+  },
+  "sortBy": "Sort By",
+  "@sortBy": {
+    "description": "Sort by section title"
+  },
+  "newest": "Newest",
+  "@newest": {
+    "description": "Sort by newest option"
+  },
+  "popular": "Popular",
+  "@popular": {
+    "description": "Sort by popular option"
+  },
+  "sectorAz": "Azerbaijani",
+  "@sectorAz": {
+    "description": "Azerbaijani sector filter"
+  },
+  "sectorRu": "Russian",
+  "@sectorRu": {
+    "description": "Russian sector filter"
+  },
+  "sectorEn": "English",
+  "@sectorEn": {
+    "description": "English sector filter"
+  },
+  "allFaculties": "All Faculties",
+  "@allFaculties": {
+    "description": "All faculties filter option"
+  },
+  "clearAll": "Clear All",
+  "@clearAll": {
+    "description": "Clear all filters button"
+  },
+  "apply": "Apply",
+  "@apply": {
+    "description": "Apply filters button"
+  },
+  "replyingTo": "Replying to",
+  "noInternetConnection": "No internet connection",
+  "checkConnectionAndRetry": "Please check your connection and try again",
+  "announcement": "Announcement",
+  "advertisement": "Advertisement",
+  "event": "Event",
+  "information": "Information",
+  "featured": "Featured",
+  "learnMore": "Learn More",
+  "video": "Video",
+  "addMedia": "Add media",
+  "typeToConfirm": "Type to confirm",
+  "loadingImage": "Loading image...",
+  "imageLoadFailed": "Failed to load image",
+  "translate": "Translate",
+  "showOriginal": "Show original",
+  "translating": "Translating...",
+  "translationFailed": "Translation failed",
+  "pinnedPost": "Pinned post",
+  "resubmissionInfo": "Please upload a new screenshot following the guidelines below.",
+  "friends": "Friends",
+  "friendRequests": "Friend Requests",
+  "addFriend": "Add Friend",
+  "add": "Add",
+  "removeFriend": "Remove Friend",
+  "cancelRequest": "Cancel Request",
+  "accept": "Accept",
+  "reject": "Reject",
+  "remove": "Remove",
+  "removeFriendConfirmation": "Are you sure you want to remove this friend?",
+  "noFriendsYet": "No friends yet",
+  "startAddingFriends": "Start adding friends to connect with them",
+  "noIncomingRequests": "No incoming requests",
+  "noIncomingRequestsSubtitle": "You don't have any pending friend requests",
+  "noOutgoingRequests": "No sent requests",
+  "noOutgoingRequestsSubtitle": "You haven't sent any friend requests yet",
+  "incoming": "Incoming",
+  "outgoing": "Outgoing",
+  "sentAt": "Sent",
+  "friendsCount": "{count, plural, =0{No friends} =1{1 friend} other{{count} friends}}",
+  "@friendsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "postNotificationFilter": "Filter post notifications",
+  "allUniversities": "All universities",
+  "allUniversitiesDescription": "Receive notifications from all universities",
+  "selectedUniversities": "Selected universities",
+  "selectedUniversitiesDescription": "Choose specific universities",
+  "universitiesSelected": "{count} universities selected",
+  "friendsOnly": "Friends only",
+  "friendsOnlyDescription": "Only from people you follow",
+  "selectUniversities": "Select Universities",
+  "errorLoadingUniversities": "Error loading universities",
+  "done": "Done",
+  "myUniversity": "My university",
+  "myUniversityDescription": "Only from students at my university",
+  "badges": "Badges",
+  "viewAll": "View All",
+  "nextBadges": "Next badges to earn",
+  "noBadgesYet": "No badges yet",
+  "earnBadgesHint": "Be active to earn badges!",
+  "selectEmoji": "Select Emoji",
+  "noEmoji": "No emoji",
+  "aboutMe": "About Me",
+  "bio": "Bio",
+  "bioHint": "Tell about yourself...",
+  "status": "Status",
+  "statusHint": "What are you up to?",
+  "profileEmoji": "Profile Emoji",
+  "course": "Course",
+  "selectCourse": "Select Course",
+  "removeEmoji": "Remove",
+  "badgeOgName": "OG",
+  "badgeOgDescription": "User #{value}",
+  "@badgeOgDescription": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "badgeOgRequirement": "Be among first 1000 users",
+  "badgeAuthorName": "Author",
+  "badgeAuthorDescription": "{value} posts",
+  "@badgeAuthorDescription": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "badgeAuthorRequirement": "Write 10 or more posts",
+  "badgePopularName": "Popular",
+  "badgePopularDescription": "{value} likes received",
+  "@badgePopularDescription": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "badgePopularRequirement": "Receive 100 or more likes",
+  "badgeTalkativeName": "Talkative",
+  "badgeTalkativeDescription": "{value} comments",
+  "@badgeTalkativeDescription": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "badgeTalkativeRequirement": "Write 50 or more comments",
+  "badgeSocialName": "Social",
+  "badgeSocialDescription": "{value} friends",
+  "@badgeSocialDescription": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "badgeSocialRequirement": "Have 20 or more friends",
+  "tierGold": "Gold",
+  "tierSilver": "Silver",
+  "tierBronze": "Bronze",
+  "year1": "1st Year",
+  "year2": "2nd Year",
+  "year3": "3rd Year",
+  "year4": "4th Year",
+  "master1": "Master 1",
+  "master2": "Master 2",
+  "phd": "PhD",
+  "graduate": "Graduate",
+  "totalLikesReceived": "Likes received",
+  "phdCourse": "PhD",
+  "graduateCourse": "Graduate",
+  "likesReceived": "Likes",
+  "badgesOverviewSubtitle": "Earn badges by being active in the community",
+  "userNumber": "User #",
+  "totalLikes": "Total likes",
+  "copiedToClipboard": "Copied {text}",
+  "@copiedToClipboard": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "noMorePosts": "No more posts",
+  "ogUser": "OG User",
+  "newFriendRequests": "{count, plural, =1{1 new request} other{{count} new requests}}",
+  "@newFriendRequests": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "allBadgesEarned": "All badges collected! 🎉",
+  "nextBadge": "Next"
+}{
+  "@@locale": "az",
+
+  "appName": "UniTalky",
+  "continueWithApple": "Apple ilə davam et",
+  "@appName": {
+    "description": "Application name"
+  },
+
+  "back": "Geri",
+  "cancel": "Ləğv et",
+  "save": "Yadda saxla",
+  "delete": "Sil",
+  "retry": "Yenidən cəhd et",
+  "continueButton": "Davam et",
+  "close": "Bağla",
+  "complete": "Tamamla",
+  "welcome": "Xoş gəlmisiniz",
+  "introSubtitle": "Universitet icması ilə əlaqə qurun",
+  "introDescription": "Universitet həyatından xəbərdar ol",
+  "signInWithGoogle": "Google ilə daxil olun",
+  "continueWithGoogle": "Google ilə davam et",
+  "byContinuingYouAgree": "Davam etməklə siz bizim",
+  "and": "və",
+  "termsOfService": "İstifadə Şərtlərimiz",
+  "privacyPolicy": "Məxfilik Siyasətimiz",
+  "errorOccurred": "Xəta baş verdi",
+  "anErrorOccurred": "Xəta baş verdi",
+
+  "profileSetup": "Profil quraşdırılması",
+  "completeProfile": "Profilinizi tamamlayın",
+  "completeProfileTitle": "Xoş gəldiniz!",
+  "completeProfileSubtitle": "Gəlin bir neçə addımda profilinizi quraşdıraq",
+  "whatsYourName": "Adınız nədir?",
+  "realNameRequired": "Yoxlanılmaq və icmada etibar qazanmaq üçün real adınızdan istifadə edin",
+
+  "personalInformation": "Şəxsi məlumat",
+  "firstName": "Ad",
+  "firstNameHint": "Adınızı daxil edin",
+  "enterFirstName": "Adınızı daxil edin",
+  "firstNameRequired": "Ad vacibdir",
+  "firstNameTooShort": "Ad ən azı 2 simvoldan ibarət olmalıdır",
+  "lastName": "Soyad",
+  "lastNameHint": "Soyadınızı daxil edin",
+  "enterLastName": "Soyadınızı daxil edin",
+  "lastNameRequired": "Soyad vacibdir",
+  "lastNameTooShort": "Soyad ən azı 2 simvoldan ibarət olmalıdır",
+  "fillAllFields": "Zəhmət olmasa bütün vacib sahələri doldurun",
+
+  "academicInformation": "Təhsil məlumatı",
+  "university": "Universitet",
+  "selectUniversity": "Universitet seçin",
+  "selectYourUniversity": "Universitetinizi seçin",
+  "chooseUniversityYouAttend": "Oxuduğunuz universiteti seçin",
+  "selectUniversityPrompt": "Universitet seçin",
+  "selectUniversitySubtitle": "Lenti görmək üçün universitet seçin",
+  "selectUniversityFirst": "Əvvəlcə universitet seçin",
+  "searchUniversity": "Universitet axtar...",
+  "searchUniversities": "Universitetləri axtar...",
+  "universityRequired": "Zəhmət olmasa universitet seçin",
+  "failedToLoadUniversities": "Universitetlər yüklənə bilmədi",
+  "noUniversitiesFound": "Universitet tapılmadı",
+  "yourUniversity": "Universitetiniz",
+  "tapToChangeUniversity": "Universiteti dəyişmək üçün toxunun",
+
+  "faculty": "Fakültə",
+  "selectFaculty": "Fakültə seçin",
+  "selectYourFaculty": "Fakültənizi seçin",
+  "chooseYourFieldOfStudy": "Təhsil sahənizi seçin",
+  "selectFacultyPrompt": "Fakültə seçin",
+  "searchFaculty": "Fakültə axtar...",
+  "searchFaculties": "Fakültələri axtar...",
+  "facultyRequired": "Zəhmət olmasa fakültə seçin",
+  "failedToLoadFaculties": "Fakültələr yüklənə bilmədi",
+  "noFacultiesFound": "Fakültə tapılmadı",
+
+  "sector": "Sektor",
+  "selectSector": "Sektor seçin",
+  "selectSectorPrompt": "Sektor seçin",
+  "sectorAzerbaijani": "Azərbaycan",
+  "sectorRussian": "Rus",
+  "sectorEnglish": "İngilis",
+
+  "select": "{item} seçin",
+  "notSelected": "Seçilməyib",
+  "tryDifferentSearchTerm": "Başqa axtarış sorğusu yoxlayın",
+
+  "accountVerification": "Yoxlanılma",
+  "getVerified": "Yoxlanılın",
+  "verifyStudentStatus": "Tələbə statusunuzu təsdiq edin",
+  "verified": "Yoxlanılıb",
+  "verificationPending": "Yoxlanılır",
+  "verificationUnderReview": "Yoxlanılmanız nəzərdən keçirilir",
+  "verificationPendingTitle": "Yoxlanılır",
+  "verificationPendingMessage": "Sənədiniz yoxlanılır. Proses bitdikdə bildiriş alacaqsınız (adətən 1-3 gün).",
+  "verificationRejected": "Yoxlanılma rədd edildi",
+  "pleaseTryAgain": "Yenidən cəhd edin",
+  "verificationRejectedTitle": "Yoxlanılma rədd edildi",
+  "reason": "Səbəb:",
+  "uploadNewScreenshot": "Zəhmət olmasa MyGov tətbiqinin Təhsil bölməsindən yeni skrinşot yükləyin",
+  "tryAgain": "Yenidən cəhd et",
+  "accountVerifiedTitle": "Yoxlanıldınız! 🎉",
+  "accountVerifiedMessage": "Hesabınız yoxlanıldı! İndi bütün funksiyalara girişiniz var.",
+  "verificationWarningTitle": "Diqqət!",
+  "verificationWarningMessage": "Universitet və ya fakültəni dəyişdirmək yoxlanılmanızı sıfırlayacaq. Yenidən yoxlanılmaq lazımdır.",
+  "verificationWarning": "Önəmli: Yalnız MyGov tətbiqinin Təhsil bölməsindən skrinşotlar qəbul edilir. Tələbə biletləri uyğun deyil.",
+  "verificationTimeline": "Yoxlanılma adətən 1-3 iş günü çəkir. Tamamlandıqda sizə bildiriş göndərəcəyik.",
+
+  "myGovDocumentUpload": "MyGov sənəd yükləmə",
+  "myGovUploadInstruction": "MyGov tətbiqindən Təhsil bölməsinin skrinşotunu yükləyin",
+  "howToPrepare": "Necə hazırlamaq olar?",
+  "verificationStep1": "1. MyGov mobil tətbiqini açın",
+  "verificationStep2": "2. 'Təhsil' bölməsinə keçin",
+  "verificationStep3": "3. Tələbə məlumatınızın göründüyü skrinşot çəkin",
+  "verificationStep4": "4. Şəklin aydın və oxunaqlı olduğundan əmin olun",
+  "noScreenshotSelected": "Skrinşot seçilməyib",
+  "pleaseSelectImage": "Zəhmət olmasa şəkil seçin",
+  "uploadFailed": "Yükləmə uğursuz oldu",
+  "documentUploadedSuccessfully": "Sənəd uğurla yükləndi!",
+  "uploadAndSend": "Yüklə və göndər",
+
+  "fromGallery": "Qalereya",
+  "gallery": "Qalereya",
+  "camera": "Kamera",
+  "chooseFromGallery": "Qalereyadan seç",
+  "takePhoto": "Foto çək",
+  "removePhoto": "Fotonu sil",
+  "addImage": "Şəkil əlavə et",
+  "addMedia": "Media əlavə et",
+  "attachImage": "Şəkil əlavə et",
+  "changeImage": "Şəkli dəyiş",
+  "errorPickingImage": "Şəkil seçilərkən xəta: {error}",
+  "errorTakingPhoto": "Foto çəkilərkən xəta: {error}",
+  "imageLoadError": "Şəkil yüklənə bilmədi",
+
+  "settings": "Parametrlər",
+  "darkMode": "Qaranlıq tema",
+  "language": "Dil",
+  "selectLanguage": "Dil seçin",
+  "notifications": "Bildirişlər",
+  "notificationSettings": "Bildiriş parametrləri",
+  "enableNotifications": "Bildirişləri aktivləşdir",
+  "enableNotificationsDescription": "Bütün bildirişləri açın/bağlayın",
+  "noNotifications": "Hələ bildiriş yoxdur",
+  "errorLoadingNotifications": "Bildirişlər yüklənə bilmədi",
+  "errorLoadingSettings": "Parametrlər yüklənə bilmədi",
+  "markAllAsRead": "Hamısını oxunmuş kimi işarələ",
+  "deleteAll": "Hamısını sil",
+  "deleteNotification": "Bildirişi sil",
+  "deleteNotificationConfirm": "Bu bildirişi silmək istədiyinizə əminsiniz?",
+  "deleteAllNotifications": "Bütün bildirişləri sil",
+  "deleteAllNotificationsConfirm": "Bütün bildirişləri silmək istəyirsiniz? Bu əməliyyat geri qaytarıla bilməz.",
+  "notificationDeleted": "Bildiriş silindi",
+
+  "posts": "Yazılar",
+  "newPosts": "Yeni yazılar",
+  "newPostsDescription": "Yeni yazılar haqqında bildiriş alın",
+  "newComments": "Yeni şərhlər",
+  "newCommentsDescription": "Yazılarınıza şərhlər haqqında bildiriş alın",
+  "newLikes": "Yeni bəyənmələr",
+  "newLikesDescription": "Yazılarınıza bəyənmələr haqqında bildiriş alın",
+
+  "comments": "Şərhlər",
+  "commentReplies": "Şərh cavabları",
+  "commentRepliesDescription": "Şərhlərinizə cavablar haqqında bildiriş alın",
+  "mentions": "Qeydlər",
+  "mentionsDescription": "Sizi qeyd edəndə bildiriş alın",
+
+  "chatMessages": "Çat mesajları",
+  "chatMessagesDescription": "Fakültə çatında yeni mesajlar haqqında bildiriş alın",
+  "chatMentions": "Çatda qeydlər",
+  "chatMentionsDescription": "Çatda sizi qeyd edəndə bildiriş alın",
+
+  "privacySecurity": "Məxfilik və təhlükəsizlik",
+  "helpSupport": "Kömək və dəstək",
+  "about": "Haqqında",
+  "logout": "Çıxış",
+  "areYouSureLogout": "Çıxış etmək istədiyinizə əminsiniz?",
+
+  "profile": "Profil",
+  "editProfile": "Profili redaktə et",
+  "failedToUpdateProfile": "Profil yenilənə bilmədi",
+  "myPosts": "Yazılarım",
+  "postsCount": "{count, plural, =0{Yazı yoxdur} =1{1 yazı} other{{count} yazı}}",
+  "noPostsYet": "Hələ yazı yoxdur",
+  "userHasNoPosts": "Bu istifadəçi hələ heç nə paylaşmayıb",
+
+  "studentIdCard": "Tələbə bileti",
+  "idLabel": "ID",
+  "notAvailable": "M/Y",
+
+  "verificationRequired": "Yoxlanılma tələb olunur",
+  "verificationRequiredTitle": "Yoxlanılın",
+  "chatAccessVerifiedOnly": "Yalnız yoxlanılmış tələbələr çatda iştirak edə bilər. Qoşulmaq üçün yoxlanılma prosesini tamamlayın.",
+  "verifiedUsersOnly": "Yalnız yoxlanılmış tələbələr",
+  "facultyStudentsOnly": "Yalnız sizin fakültənin tələbələri",
+  "privateAndSecure": "Məxfi və təhlükəsiz ünsiyyət",
+  "canOnlyPostInOwnUniversity": "Yalnız öz universitetinizdə paylaşım edə bilərsiniz",
+
+  "chat": "Çat",
+  "connecting": "Qoşulur...",
+  "connectionError": "Əlaqə xətası",
+  "chatDescription": "Bu {facultyName} fakültəsinin çatıdır. Yalnız yoxlanılmış tələbələr iştirak edə bilər.",
+  "noMessages": "Hələ mesaj yoxdur",
+  "noMessagesYet": "Hələ mesaj yoxdur",
+  "startConversation": "Söhbətə başlayan ilk şəxs olun!",
+  "createFirstSupportMessage": "Komandamızdan kömək almaq üçün ilk mesajı yaradın",
+  "typeMessage": "Mesaj yazın...",
+  "userIsTyping": "{name} yazır...",
+
+  "participants": "İştirakçılar",
+  "participantsCount": "{count, plural, =0{İştirakçı yoxdur} =1{1 iştirakçı} other{{count} iştirakçı}}",
+  "totalParticipants": "{count, plural, =0{İştirakçı yoxdur} =1{1 iştirakçı} other{{count} iştirakçı}}",
+  "noParticipants": "İştirakçı yoxdur",
+  "noParticipantsDescription": "Bu çatda hələ iştirakçı yoxdur",
+  "loadingParticipants": "İştirakçılar yüklənir...",
+
+  "yesterday": "Dünən",
+  "weekday": "{day, select, 1{Baz.e} 2{Ç.a} 3{Ç} 4{C.a} 5{C} 6{Ş} 7{B} other{}}",
+  "daysAgo": "{count} gün əvvəl",
+
+  "newPost": "Yeni yazı",
+  "post": "PAYLAŞ",
+  "postTitle": "Yazı",
+  "anonymous": "Anonim",
+  "user": "İstifadəçi",
+  "whatsOnYourMind": "Nə düşünürsünüz?",
+  "characterCount": "{current} / {max}",
+  "actions": "ƏMƏLİYYATLAR",
+  "anonymousMode": "Anonim rejim",
+  "publicMode": "Açıq rejim",
+  "yourIdentityIsHidden": "Şəxsiyyətiniz gizlidir",
+  "yourNameIsVisible": "Adınız görünür",
+  "anonymousToggleEnable": "Anonim paylaş",
+  "anonymousToggleDisable": "Adınızla paylaş",
+  "anonymousToggleLabelOn": "Anonim rejim aktiv",
+  "anonymousToggleLabelOff": "Anonim rejim deaktiv",
+
+  "pleaseAddContent": "Paylaşmaq üçün mətn və ya şəkil əlavə edin",
+  "postCreatedSuccessfully": "Paylaşıldı! 🎉",
+  "failedToCreatePost": "Yazı yaradıla bilmədi",
+  "failedToLoadPosts": "Yazılar yüklənə bilmədi",
+  "beTheFirstToShare": "İlk paylaşan siz olun!",
+  "postNotFound": "Yazı tapılmadı",
+  "postMayHaveBeenDeleted": "Bu yazı silinmiş ola bilər",
+  "deletePost": "Yazını sil",
+  "deletePostConfirmation": "Bu yazını silmək istədiyinizə əminsiniz?",
+
+  "like": "Bəyən",
+  "likes": "Bəyənmələr",
+  "failedToLoadLikes": "Bəyənmələr yüklənə bilmədi",
+  "noLikesYet": "Hələ bəyənmə yoxdur",
+  "beTheFirstToLike": "Bu yazını bəyənən ilk şəxs olun",
+
+  "comment": "Şərh",
+  "noCommentsYet": "Hələ şərh yoxdur",
+  "startTheConversation": "Müzakirəyə başlayın",
+  "commentAnonymously": "Anonim şərh yazın...",
+  "writeComment": "Şərh yazın...",
+  "deleteComment": "Şərhi sil",
+  "deleteCommentConfirmation": "Bu şərhi silmək istədiyinizə əminsiniz?",
+
+  "reply": "Cavabla",
+  "repliesCount": "{count, plural, =0{Cavab yoxdur} =1{1 cavab} other{{count} cavab}}",
+  "replyAnonymously": "Anonim cavab yazın...",
+  "writeReply": "Cavab yazın...",
+  "deleteReply": "Cavabı sil",
+  "deleteReplyConfirmation": "Bu cavabı silmək istədiyinizə əminsiniz?",
+
+  "share": "Paylaş",
+  "repost": "Yenidən paylaş",
+
+  "navFeed": "Lent",
+  "navSearch": "Axtar",
+  "navChat": "Çat",
+  "navProfile": "Profil",
+
+  "searchUsers": "İstifadəçi axtar",
+  "searchUsersByName": "Ada görə axtar...",
+  "searchForUsers": "İstifadəçiləri ada görə axtarın",
+  "typeToStartSearching": "Axtarışa başlamaq üçün ən azı 2 simvol yazın",
+  "noUsersFound": "İstifadəçi tapılmadı",
+  "tryDifferentName": "Başqa adla axtarın",
+  "usersFound": "{count, plural, =0{İstifadəçi tapılmadı} =1{1 istifadəçi tapıldı} other{{count} istifadəçi tapıldı}}",
+  "userNotFound": "İstifadəçi tapılmadı",
+  "errorMessage": "Xəta: {error}",
+
+  "createMessage": "Mesaj yarat",
+  "newMessage": "Yeni mesaj",
+  "filterByStatus": "Statusa görə filter",
+  "clearFilter": "Təmizlə",
+  "allMessages": "Bütün mesajlar",
+  "pending": "Gözləyir",
+  "inProgress": "İcra olunur",
+  "resolved": "Həll olundu",
+  "closed": "Bağlandı",
+
+  "newSupportMessage": "Yeni dəstək mesajı",
+  "supportTeamResponse": "Dəstək komandamız adətən 24 saat ərzində cavab verir",
+  "category": "Kateqoriya",
+  "selectCategory": "Kateqoriya seçin",
+  "technicalIssue": "Texniki problem",
+  "accountIssue": "Hesab problemi",
+  "verificationCategory": "Yoxlanılma",
+  "contentIssue": "Kontent problemi",
+  "other": "Digər",
+
+  "verificationRequiredMessage": "Söhbətə daxil olmaq üçün təsdiqdən keçməlisiniz. Zəhmət olmasa, əvvəlcə təsdiqi tamamlayın.",
+  "goToProfile": "Profilə Keç",
+  "edit": "Redaktə Et",
+
+  "editMessage": "Mesajı Redaktə Et",
+  "deleteMessage": "Mesajı Sil",
+  "deleteMessageConfirm": "Bu mesajı silmək istədiyinizdən əminsiniz?",
+  "enterMessage": "Mesaj daxil edin",
+
+  "failedToLoadMessages": "Mesajları yükləmək alınmadı",
+
+  "unknown": "Naməlum",
+  "photo": "Şəkil",
+  "messageDeleted": "Mesaj silindi",
+  "edited": "(red.)",
+  "replyTo": "Cavab",
+  "subjectHint": "Probleminizin qısa təsviri",
+  "subjectRequired": "Mövzu vacibdir",
+  "subjectTooLong": "Mövzu 200 simvoldan qısa olmalıdır",
+
+  "message": "Mesaj",
+  "messageHint": "Mesaj...",
+  "messageRequired": "Mesaj vacibdir",
+  "messageTooLong": "Mesaj 2000 simvoldan qısa olmalıdır",
+
+  "submitMessage": "Mesajı göndər",
+  "messageSentSuccess": "Dəstək mesajı uğurla göndərildi!",
+  "messageDetails": "Mesaj detalları",
+
+  "allCaughtUp": "Hamısını gördünüz!",
+  "categoryTechnical": "Texniki",
+  "categoryAccount": "Hesab",
+  "categoryVerification": "Doğrulama",
+  "categoryContent": "Məzmun",
+  "categoryOther": "Digər",
+  "statusPending": "Gözləyir",
+  "statusInProgress": "Prosesdə",
+  "statusResolved": "Həll olundu",
+  "statusClosed": "Bağlandı",
+  "clear": "Təmizlə",
+  "dateTimeFormat": "{day}/{month}/{year} saat {hour}:{minute}",
+  "categoryTechnicalIssue": "Texniki problem",
+  "categoryAccountIssue": "Hesab problemi",
+  "categoryContentIssue": "Məzmun problemi",
+  "supportResponseTime": "Dəstək komandamız adətən 24 saat ərzində cavab verir",
+  "supportMessageSentSuccess": "Dəstək mesajı uğurla göndərildi",
+  "deleteAccount": "Hesabı sil",
+  "deleteAccountWarning": "⚠️ Xəbərdarlıq: Bu əməliyyat geri qaytarılmazdır!",
+  "deleteAccountDescription": "Hesabınızı silmək bütün məlumatlarınızı serverlərmizdən birdəfəlik siləcək. Bura daxildir:",
+  "willBeDeleted": "Nə silinəcək:",
+  "allPosts": "Bütün postlarınız",
+  "allComments": "Bütün şərhləriniz",
+  "profileData": "Profiliniz və şəxsi məlumatlarınız",
+  "thisActionCannotBeUndone": "Bu əməliyyatı geri qaytarmaq mümkün deyil!",
+  "finalConfirmation": "Son təsdiq",
+  "typeDeleteToConfirm": "Hesabın silinməsini təsdiqləmək üçün DELETE yazın:",
+  "pleaseTypeDeleteCorrectly": "Zəhmət olmasa təsdiq üçün DELETE düzgün yazın",
+  "deleteForever": "Həmişəlik sil",
+  "termsOfUse": "İstifadə şərtləri",
+  "aboutApp": "Tətbiq haqqında",
+  "appVersion": "Versiya 1.0.0",
+  "projectDescription": "Layihənin təsviri",
+  "aboutProjectText": "UniTalk «Brend və Reklam» fənni üzrə tələbə layihəsi çərçivəsində hazırlanmış müasir mobil tətbiqdir. Tətbiq universitet tələbələri arasında ünsiyyətin yaxşılaşdırılması üçün yaradılmışdır.",
+  "courseInformation": "Kurs haqqında məlumat",
+  "subject": "Fənn:",
+  "brandAndAdvertising": "Brend və Reklam",
+  "group": "Qrup:",
+  "teacher": "Müəllim:",
+  "teacherName": "Lidiya Safronova",
+  "projectTeam": "Layihə komandası",
+  "studentName1": "Rauf Xəlilov",
+  "studentName2": "Taleh Bədəlov",
+  "studentName3": "Günay Mirzəyeva",
+  "studentName4": "Anastasiya Lobastova",
+  "studentName5": "Ismayil Nağıyev",
+  "projectPurpose": "Layihənin məqsədi",
+  "purposeText": "Tələbələrin ünsiyyəti, informasiya mübadiləsi və tədris layihələri üzərində birgə işləmək üçün rahat platformanın yaradılması.",
+  "madeWithLove": "787 qrup tələbələri tərəfindən ❤️ ilə hazırlanmışdır",
+  "universityInformation": "Universitet haqqında məlumat",
+  "universityName": "Azərbaycan Dövlət İqtisad Universiteti (UNEC)",
+  "facultyName": "Dizayn",
+
+  "blockUser": "İstifadəçini blokla",
+  "unblockUser": "Bloku götür",
+  "blockedUsers": "Bloklanan istifadəçilər",
+  "noBlockedUsers": "Bloklanan istifadəçi yoxdur",
+  "blockUserConfirmation": "{name} istifadəçisini bloklamaq istədiyinizə əminsiniz?",
+  "unblockUserConfirmation": "{name} istifadəçisinin blokunu götürmək istədiyinizə əminsiniz?",
+  "youBlockedThisUser": "Bu istifadəçini bloklamısınız",
+  "thisUserBlockedYou": "Bu istifadəçi sizi bloklamışdır",
+  "userBlocked": "İstifadəçi uğurla bloklandı",
+  "userUnblocked": "İstifadəçinin bloku uğurla götürüldü",
+  "block": "Blokla",
+  "unblock": "Bloku götür",
+
+  "report": "Şikayət et",
+  "reportTitle": "Şikayət",
+  "reportPost": "Yazıya şikayət et",
+  "reportComment": "Şərhə şikayət et",
+  "reportMessage": "Mesaja şikayət et",
+  "reportUser": "İstifadəçiyə şikayət et",
+  "myReports": "Şikayətlərim",
+  "noReports": "Hələ şikayət yoxdur",
+  "selectReportCategory": "Zəhmət olmasa kateqoriya seçin",
+  "selectReportReason": "Zəhmət olmasa şikayət səbəbini seçin",
+  "reportSubmitted": "Şikayət uğurla göndərildi",
+  "submitReport": "Şikayəti göndər",
+  "cancelReport": "Şikayəti ləğv et",
+  "cancelReportConfirmation": "Bu şikayəti ləğv etmək istədiyinizə əminsiniz?",
+
+  "spam": "Spam",
+  "harassment": "Təzyiq",
+  "hateSpeech": "Nifrət nitqi",
+  "violence": "Zorakılıq",
+  "nudity": "Çılpaqlıq",
+  "falseInformation": "Yalan məlumat",
+  "impersonation": "Saxta şəxsiyyət",
+  "underReview": "Baxılır",
+  "rejected": "Rədd edildi",
+
+  "additionalDetails": "Əlavə təfərrüatlar (İstəyə bağlı)",
+  "describeIssue": "Problemi təsvir edin...",
+  "all": "Hamısı",
+  "filter": "Filter",
+  "yes": "Bəli",
+  "no": "Xeyr",
+
+  "likedByPrefix": "Bəyəndi",
+  "andOthers": "və daha {count}",
+  "likesCount": "{count} bəyənmə",
+
+  "filters": "Filtrlər",
+  "@filters": {
+    "description": "Filters title"
+  },
+
+  "active": "aktiv",
+  "@active": {
+    "description": "Active filters count suffix"
+  },
+
+  "sortBy": "Sırala",
+  "@sortBy": {
+    "description": "Sort by section title"
+  },
+
+  "newest": "Yeni",
+  "@newest": {
+    "description": "Sort by newest option"
+  },
+
+  "popular": "Populyar",
+  "@popular": {
+    "description": "Sort by popular option"
+  },
+
+  "sectorAz": "Azərbaycan",
+  "@sectorAz": {
+    "description": "Azerbaijani sector filter"
+  },
+
+  "sectorRu": "Rus",
+  "@sectorRu": {
+    "description": "Russian sector filter"
+  },
+
+  "sectorEn": "İngilis",
+  "@sectorEn": {
+    "description": "English sector filter"
+  },
+
+  "allFaculties": "Bütün Fakültələr",
+  "@allFaculties": {
+    "description": "All faculties filter option"
+  },
+
+  "clearAll": "Hamısını Təmizlə",
+  "@clearAll": {
+    "description": "Clear all filters button"
+  },
+
+  "apply": "Tətbiq Et",
+  "@apply": {
+    "description": "Apply filters button"
+  },
+
+  "replyingTo": "Cavab verir",
+  "noInternetConnection": "İnternet bağlantısı yoxdur",
+  "checkConnectionAndRetry": "Zəhmət olmasa bağlantınızı yoxlayın və yenidən cəhd edin",
+  "announcement": "Elan",
+  "advertisement": "Reklam",
+  "event": "Tədbir",
+  "information": "Məlumat",
+  "featured": "Seçilmiş",
+  "learnMore": "Ətraflı",
+  "video": "Video",
+
+  "typeToConfirm": "Təsdiq etmək üçün yazın",
+
+  "loadingImage": "Şəkil yüklənir...",
+  "imageLoadFailed": "Şəkil yüklənə bilmədi",
+  "translate": "Tərcümə et",
+  "showOriginal": "Orijinalı göstər",
+  "translating": "Tərcümə olunur...",
+  "translationFailed": "Tərcümə uğursuz oldu",
+  "pinnedPost": "Sabitlənmiş göndəriş",
+  "resubmissionInfo": "Zəhmət olmasa aşağıdakı təlimatlara əməl edərək yeni ekran görüntüsü yükləyin.",
+
+  "friends": "Dostlar",
+  "friendRequests": "Dostluq sorğuları",
+  "addFriend": "Dost əlavə et",
+  "add": "Əlavə et",
+  "removeFriend": "Dostu sil",
+  "cancelRequest": "Sorğunu ləğv et",
+  "accept": "Qəbul et",
+  "reject": "Rədd et",
+  "remove": "Sil",
+  "removeFriendConfirmation": "Bu dostu silmək istədiyinizə əminsiniz?",
+  "noFriendsYet": "Hələ dostunuz yoxdur",
+  "startAddingFriends": "Ünsiyyət qurmaq üçün dostlar əlavə etməyə başlayın",
+  "noIncomingRequests": "Gələn sorğular yoxdur",
+  "noIncomingRequestsSubtitle": "Sizin dostluq sorğularınız yoxdur",
+  "noOutgoingRequests": "Göndərilən sorğular yoxdur",
+  "noOutgoingRequestsSubtitle": "Siz dostluq sorğusu göndərməmisiniz",
+  "incoming": "Gələn",
+  "outgoing": "Göndərilən",
+  "sentAt": "Göndərildi",
+  "friendsCount": "{count, plural, =0{Dost yoxdur} =1{1 dost} few{{count} dost} other{{count} dost}}",
+
+  "postNotificationFilter": "Post bildirişlərini filtrlə",
+  "allUniversities": "Bütün universitetlər",
+  "allUniversitiesDescription": "Bütün universitetlərdən bildirişlər al",
+  "selectedUniversities": "Seçilmiş universitetlər",
+  "selectedUniversitiesDescription": "Müəyyən universitetləri seçin",
+  "universitiesSelected": "{count} universitet seçildi",
+  "friendsOnly": "Yalnız dostlar",
+  "friendsOnlyDescription": "Yalnız izlədiyiniz insanlardan",
+  "selectUniversities": "Universitetləri seçin",
+  "errorLoadingUniversities": "Universitetləri yükləmək mümkün olmadı",
+  "done": "Hazır",
+  "myUniversity": "Mənim universiteti",
+  "myUniversityDescription": "Yalnız mənim universitetimin tələbəlarından",
+  "badges": "Nişanlar",
+  "viewAll": "Hamısı",
+  "nextBadges": "Növbəti nişanlar",
+  "noBadgesYet": "Hələ nişan yoxdur",
+  "earnBadgesHint": "Nişan qazanmaq üçün aktiv olun!",
+  "selectEmoji": "Emoji seçin",
+  "noEmoji": "Emoji yoxdur",
+  "aboutMe": "Haqqımda",
+  "bio": "Bio",
+  "bioHint": "Özünüz haqqında yazın...",
+  "status": "Status",
+  "statusHint": "Nə ilə məşğulsunuz?",
+  "profileEmoji": "Profil emojisi",
+  "course": "Kurs",
+  "selectCourse": "Kurs seçin",
+  "badgeOgName": "OG",
+  "badgeOgDescription": "İstifadəçi #{value}",
+  "@badgeOgDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeOgRequirement": "İlk 1000 istifadəçi arasında olmaq",
+
+  "badgeAuthorName": "Müəllif",
+  "badgeAuthorDescription": "{value} post",
+  "@badgeAuthorDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeAuthorRequirement": "10 və ya daha çox post yazmaq",
+
+  "badgePopularName": "Populyar",
+  "badgePopularDescription": "{value} bəyənmə alındı",
+  "@badgePopularDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgePopularRequirement": "100 və ya daha çox bəyənmə almaq",
+
+  "badgeTalkativeName": "Danışqan",
+  "badgeTalkativeDescription": "{value} şərh",
+  "@badgeTalkativeDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeTalkativeRequirement": "50 və ya daha çox şərh yazmaq",
+
+  "badgeSocialName": "Sosial",
+  "badgeSocialDescription": "{value} dost",
+  "@badgeSocialDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeSocialRequirement": "20 və ya daha çox dost əldə etmək",
+
+  "tierGold": "Qızıl",
+  "tierSilver": "Gümüş",
+  "tierBronze": "Bürünc",
+
+  "year1": "1-ci kurs",
+  "year2": "2-ci kurs",
+  "year3": "3-cü kurs",
+  "year4": "4-cü kurs",
+  "master1": "Magistr 1",
+  "master2": "Magistr 2",
+  "phd": "Doktorant",
+  "graduate": "Məzun",
+
+  "totalLikesReceived": "Alınan bəyənmələr",
+
+  "removeEmoji": "Sil",
+
+
+  "phdCourse": "Doktorant",
+  "graduateCourse": "Məzun",
+
+  "likesReceived": "Bəyənmələr",
+  "badgesOverviewSubtitle": "İcma daxilində aktiv iştirak edərək nişanlar qazanın",
+
+  "userNumber": "İstifadəçi #",
+  "totalLikes": "Ümumi bəyənmələr",
+  "copiedToClipboard": "{text} kopyalandı",
+  "@copiedToClipboard": {
+    "placeholders": {
+      "text": {"type": "String"}
+    }
+  },
+  "noMorePosts": "Daha çox post yoxdur",
+  "ogUser": "OG İstifadəçi",
+  "newFriendRequests": "{count} yeni istək",
+  "@newFriendRequests": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "badges": "Nişanlar",
+  "noBadgesYet": "İlk nişanınızı qazanın!",
+  "earnBadgesHint": "qazanılıb",
+  "allBadgesEarned": "Bütün nişanlar toplandı! 🎉",
+  "nextBadge": "Növbəti"
+
+
+}
+
+
+{
+  "@@locale": "ru",
+
+  "appName": "UniTalky",
+  "@appName": {
+    "description": "Application name"
+  },
+
+  "verificationRequiredMessage": "Вам необходимо пройти верификацию для доступа к чату. Пожалуйста, завершите процесс верификации.",
+  "goToProfile": "Перейти в профиль",
+  "edit": "Редактировать",
+
+  "editMessage": "Редактировать сообщение",
+  "deleteMessage": "Удалить сообщение",
+  "deleteMessageConfirm": "Вы уверены, что хотите удалить это сообщение?",
+  "enterMessage": "Введите сообщение",
+
+  "failedToLoadMessages": "Не удалось загрузить сообщения",
+
+  "unknown": "Неизвестно",
+  "photo": "Фото",
+  "messageDeleted": "Сообщение удалено",
+  "edited": "(ред.)",
+  "replyTo": "Ответ",
+
+  "continueWithApple": "Продолжить с Apple",
+  "back": "Назад",
+  "cancel": "Отмена",
+  "save": "Сохранить",
+  "delete": "Удалить",
+  "retry": "Повторить",
+  "continueButton": "Продолжить",
+  "close": "Закрыть",
+  "complete": "Завершить",
+  "welcome": "Добро пожаловать",
+  "introSubtitle": "Общайтесь с университетским сообществом",
+  "introDescription": "Будьте в курсе жизни своего университета!",
+  "signInWithGoogle": "Войти через Google",
+  "continueWithGoogle": "Продолжить с Google",
+  "byContinuingYouAgree": "Продолжая, вы соглашаетесь с нашими",
+  "and": "и",
+  "termsOfService": "Условиями использования",
+  "privacyPolicy": "Политикой конфиденциальности",
+  "errorOccurred": "Упс! Что-то пошло не так",
+  "anErrorOccurred": "Произошла ошибка",
+
+  "profileSetup": "Настройка профиля",
+  "completeProfile": "Заполните профиль",
+  "completeProfileTitle": "Добро пожаловать!",
+  "completeProfileSubtitle": "Давайте настроим ваш профиль за пару шагов",
+  "whatsYourName": "Как вас зовут?",
+  "realNameRequired": "Используйте настоящее имя, чтобы пройти верификацию и завоевать доверие в сообществе",
+
+  "personalInformation": "Личные данные",
+  "firstName": "Имя",
+  "firstNameHint": "Введите ваше имя",
+  "enterFirstName": "Введите ваше имя",
+  "firstNameRequired": "Имя обязательно",
+  "firstNameTooShort": "Имя должно содержать минимум 2 символа",
+  "lastName": "Фамилия",
+  "lastNameHint": "Введите вашу фамилию",
+  "enterLastName": "Введите вашу фамилию",
+  "lastNameRequired": "Фамилия обязательна",
+  "lastNameTooShort": "Фамилия должна содержать минимум 2 символа",
+  "fillAllFields": "Пожалуйста, заполните все обязательные поля",
+
+  "academicInformation": "Учебная информация",
+  "university": "Университет",
+  "selectUniversity": "Выберите университет",
+  "selectYourUniversity": "Выберите ваш университет",
+  "chooseUniversityYouAttend": "Выберите университет, в котором вы учитесь",
+  "selectUniversityPrompt": "Выберите университет",
+  "selectUniversitySubtitle": "Выберите университет для просмотра ленты",
+  "selectUniversityFirst": "Сначала выберите университет",
+  "searchUniversity": "Поиск университета...",
+  "searchUniversities": "Поиск университетов...",
+  "universityRequired": "Пожалуйста, выберите университет",
+  "failedToLoadUniversities": "Не удалось загрузить университеты",
+  "noUniversitiesFound": "Университеты не найдены",
+  "yourUniversity": "Ваш университет",
+  "tapToChangeUniversity": "Нажмите, чтобы сменить университет",
+
+  "faculty": "Факультет",
+  "selectFaculty": "Выберите факультет",
+  "selectYourFaculty": "Выберите ваш факультет",
+  "chooseYourFieldOfStudy": "Выберите направление обучения",
+  "selectFacultyPrompt": "Выберите факультет",
+  "searchFaculty": "Поиск факультета...",
+  "searchFaculties": "Поиск факультетов...",
+  "facultyRequired": "Пожалуйста, выберите факультет",
+  "failedToLoadFaculties": "Не удалось загрузить факультеты",
+  "noFacultiesFound": "Факультеты не найдены",
+
+  "sector": "Сектор",
+  "selectSector": "Выберите сектор",
+  "selectSectorPrompt": "Выберите сектор",
+  "sectorAzerbaijani": "Азербайджанский",
+  "sectorRussian": "Русский",
+  "sectorEnglish": "Английский",
+
+  "select": "Выберите {item}",
+  "notSelected": "Не выбрано",
+  "tryDifferentSearchTerm": "Попробуйте другой запрос",
+
+  "accountVerification": "Верификация",
+  "getVerified": "Пройти верификацию",
+  "verifyStudentStatus": "Подтвердите свой студенческий статус",
+  "verified": "Верифицирован",
+  "verificationPending": "На проверке",
+  "verificationUnderReview": "Ваша верификация проверяется",
+  "verificationPendingTitle": "На проверке",
+  "verificationPendingMessage": "Мы проверяем ваш документ. Вы получите уведомление, когда проверка завершится (обычно 1-3 дня).",
+  "verificationRejected": "Верификация отклонена",
+  "pleaseTryAgain": "Попробуйте снова",
+  "verificationRejectedTitle": "Верификация отклонена",
+  "reason": "Причина:",
+  "uploadNewScreenshot": "Пожалуйста, загрузите новый скриншот из раздела Образование приложения MyGov",
+  "tryAgain": "Попробовать снова",
+  "accountVerifiedTitle": "Вы верифицированы! 🎉",
+  "accountVerifiedMessage": "Ваш аккаунт верифицирован! Теперь доступны все функции.",
+  "verificationWarningTitle": "Внимание!",
+  "verificationWarningMessage": "Смена университета или факультета сбросит вашу верификацию. Вам нужно будет пройти её заново.",
+  "verificationWarning": "Важно: Принимаются только скриншоты из раздела Образование приложения MyGov. Студенческие билеты не подходят.",
+  "verificationTimeline": "Верификация обычно занимает 1-3 рабочих дня. Мы уведомим вас, когда она завершится.",
+
+  "myGovDocumentUpload": "Загрузка документа MyGov",
+  "myGovUploadInstruction": "Загрузите скриншот раздела Образование из приложения MyGov",
+  "howToPrepare": "Как подготовить?",
+  "verificationStep1": "1. Откройте мобильное приложение MyGov",
+  "verificationStep2": "2. Перейдите в раздел 'Образование'",
+  "verificationStep3": "3. Сделайте скриншот, где видна ваша студенческая информация",
+  "verificationStep4": "4. Убедитесь, что изображение чёткое и читаемое",
+  "noScreenshotSelected": "Скриншот не выбран",
+  "pleaseSelectImage": "Пожалуйста, выберите изображение",
+  "uploadFailed": "Ошибка загрузки",
+  "documentUploadedSuccessfully": "Документ успешно загружен!",
+  "uploadAndSend": "Загрузить и отправить",
+
+  "fromGallery": "Из галереи",
+  "gallery": "Галерея",
+  "camera": "Камера",
+  "chooseFromGallery": "Выбрать из галереи",
+  "takePhoto": "Сделать фото",
+  "removePhoto": "Удалить фото",
+  "addImage": "Добавить изображение",
+  "attachImage": "Прикрепить изображение",
+  "changeImage": "Изменить изображение",
+  "errorPickingImage": "Ошибка выбора изображения: {error}",
+  "errorTakingPhoto": "Ошибка при создании фото: {error}",
+  "imageLoadError": "Не удалось загрузить изображение",
+
+  "settings": "Настройки",
+  "darkMode": "Тёмная тема",
+  "language": "Язык",
+  "selectLanguage": "Выберите язык",
+  "notifications": "Уведомления",
+  "notificationSettings": "Настройки уведомлений",
+  "enableNotifications": "Включить уведомления",
+  "enableNotificationsDescription": "Включить/выключить все уведомления",
+  "noNotifications": "Пока нет уведомлений",
+  "errorLoadingNotifications": "Не удалось загрузить уведомления",
+  "errorLoadingSettings": "Не удалось загрузить настройки",
+  "markAllAsRead": "Отметить все как прочитанные",
+  "deleteAll": "Удалить все",
+  "deleteNotification": "Удалить уведомление",
+  "deleteNotificationConfirm": "Удалить это уведомление?",
+  "deleteAllNotifications": "Удалить все уведомления",
+  "deleteAllNotificationsConfirm": "Удалить все уведомления? Это действие нельзя отменить.",
+  "notificationDeleted": "Уведомление удалено",
+
+  "posts": "Посты",
+  "newPosts": "Новые посты",
+  "newPostsDescription": "Уведомлять о новых постах",
+  "newComments": "Новые комментарии",
+  "newCommentsDescription": "Уведомлять о комментариях к вашим постам",
+  "newLikes": "Новые лайки",
+  "newLikesDescription": "Уведомлять о лайках к вашим постам",
+
+  "comments": "Комментарии",
+  "commentReplies": "Ответы на комментарии",
+  "commentRepliesDescription": "Уведомлять об ответах на ваши комментарии",
+  "mentions": "Упоминания",
+  "mentionsDescription": "Уведомлять, когда вас упоминают",
+
+  "chatMessages": "Сообщения в чате",
+  "chatMessagesDescription": "Уведомлять о новых сообщениях в чате факультета",
+  "chatMentions": "Упоминания в чате",
+  "chatMentionsDescription": "Уведомлять, когда вас упоминают в чате",
+
+  "privacySecurity": "Конфиденциальность и безопасность",
+  "helpSupport": "Помощь и поддержка",
+  "about": "О приложении",
+  "logout": "Выйти",
+  "areYouSureLogout": "Вы уверены, что хотите выйти?",
+
+  "profile": "Профиль",
+  "editProfile": "Редактировать профиль",
+  "failedToUpdateProfile": "Не удалось обновить профиль",
+  "myPosts": "Мои посты",
+  "postsCount": "{count, plural, =0{Нет постов} =1{1 пост} few{{count} поста} other{{count} постов}}",
+  "noPostsYet": "Постов пока нет",
+  "userHasNoPosts": "Этот пользователь пока ничего не постил",
+
+  "studentIdCard": "Студенческий билет",
+  "idLabel": "ID",
+  "notAvailable": "Н/Д",
+
+  "verificationRequired": "Требуется верификация",
+  "verificationRequiredTitle": "Пройдите верификацию",
+  "chatAccessVerifiedOnly": "Только верифицированные студенты могут общаться в чате. Пройдите верификацию, чтобы присоединиться.",
+  "verifiedUsersOnly": "Только верифицированные студенты",
+  "facultyStudentsOnly": "Только студенты вашего факультета",
+  "privateAndSecure": "Приватное и безопасное общение",
+  "canOnlyPostInOwnUniversity": "Вы можете публиковать только в своём университете",
+
+  "chat": "Чат",
+  "connecting": "Подключение...",
+  "connectionError": "Ошибка подключения",
+  "chatDescription": "Это чат факультета {facultyName}. Могут участвовать только верифицированные студенты.",
+  "noMessages": "Сообщений пока нет",
+  "noMessagesYet": "Сообщений пока нет",
+  "startConversation": "Будьте первым, кто начнёт разговор!",
+  "createFirstSupportMessage": "Создайте первое сообщение для получения помощи от нашей команды",
+  "typeMessage": "Напишите сообщение...",
+  "userIsTyping": "{name} печатает...",
+
+  "participants": "Участники",
+  "participantsCount": "{count, plural, =0{Нет участников} =1{1 участник} few{{count} участника} other{{count} участников}}",
+  "totalParticipants": "{count, plural, =0{Нет участников} =1{1 участник} few{{count} участника} other{{count} участников}}",
+  "noParticipants": "Нет участников",
+  "noParticipantsDescription": "В этом чате пока нет участников",
+  "loadingParticipants": "Загрузка участников...",
+
+  "yesterday": "Вчера",
+  "weekday": "{day, select, 1{Пн} 2{Вт} 3{Ср} 4{Чт} 5{Пт} 6{Сб} 7{Вс} other{}}",
+  "daysAgo": "{count}д назад",
+
+  "newPost": "Новый пост",
+  "post": "ОПУБЛИКОВАТЬ",
+  "postTitle": "Пост",
+  "anonymous": "Аноним",
+  "user": "Пользователь",
+  "whatsOnYourMind": "Что у вас нового?",
+  "characterCount": "{current} / {max}",
+  "actions": "ДЕЙСТВИЯ",
+  "anonymousMode": "Анонимный режим",
+  "publicMode": "Публичный режим",
+  "yourIdentityIsHidden": "Ваша личность скрыта",
+  "yourNameIsVisible": "Ваше имя видно",
+  "anonymousToggleEnable": "Опубликовать анонимно",
+  "anonymousToggleDisable": "Опубликовать под своим именем",
+  "anonymousToggleLabelOn": "Анонимный режим включён",
+  "anonymousToggleLabelOff": "Анонимный режим выключен",
+
+  "pleaseAddContent": "Добавьте текст или изображение для публикации",
+  "postCreatedSuccessfully": "Опубликовано! 🎉",
+  "failedToCreatePost": "Не удалось создать пост",
+  "failedToLoadPosts": "Не удалось загрузить посты",
+  "beTheFirstToShare": "Будьте первым, кто поделится чем-то!",
+  "postNotFound": "Пост не найден",
+  "postMayHaveBeenDeleted": "Этот пост мог быть удалён",
+  "deletePost": "Удалить пост",
+  "deletePostConfirmation": "Удалить этот пост?",
+
+  "like": "Нравится",
+  "likes": "Лайки",
+  "failedToLoadLikes": "Не удалось загрузить лайки",
+  "noLikesYet": "Лайков пока нет",
+  "beTheFirstToLike": "Будьте первым, кто поставит лайк",
+
+  "comment": "Комментарий",
+  "noCommentsYet": "Комментариев пока нет",
+  "startTheConversation": "Начните обсуждение",
+  "commentAnonymously": "Комментировать анонимно...",
+  "writeComment": "Напишите комментарий...",
+  "deleteComment": "Удалить комментарий",
+  "deleteCommentConfirmation": "Удалить этот комментарий?",
+
+  "reply": "Ответить",
+  "repliesCount": "{count, plural, =0{Нет ответов} =1{1 ответ} few{{count} ответа} other{{count} ответов}}",
+  "replyAnonymously": "Ответить анонимно...",
+  "writeReply": "Напишите ответ...",
+  "deleteReply": "Удалить ответ",
+  "deleteReplyConfirmation": "Удалить этот ответ?",
+
+  "share": "Поделиться",
+  "repost": "Репост",
+
+  "navFeed": "Лента",
+  "navSearch": "Поиск",
+  "navChat": "Чат",
+  "navProfile": "Профиль",
+
+  "searchUsers": "Поиск пользователей",
+  "searchUsersByName": "Поиск по имени...",
+  "searchForUsers": "Ищите пользователей по имени",
+  "typeToStartSearching": "Введите минимум 2 символа для начала поиска",
+  "noUsersFound": "Пользователи не найдены",
+  "tryDifferentName": "Попробуйте другое имя",
+  "usersFound": "{count, plural, =0{Пользователи не найдены} =1{Найден 1 пользователь} one{Найден {count} пользователь} few{Найдено {count} пользователя} many{Найдено {count} пользователей} other{Найдено {count} пользователей}}",
+  "userNotFound": "Пользователь не найден",
+  "errorMessage": "Ошибка: {error}",
+
+  "createMessage": "Создать сообщение",
+  "newMessage": "Новое сообщение",
+  "filterByStatus": "Фильтр по статусу",
+  "clearFilter": "Очистить",
+  "allMessages": "Все сообщения",
+  "pending": "В ожидании",
+  "inProgress": "В процессе",
+  "resolved": "Решено",
+  "closed": "Закрыто",
+
+  "newSupportMessage": "Новое обращение в поддержку",
+  "supportTeamResponse": "Наша команда обычно отвечает в течение 24 часов",
+  "category": "Категория",
+  "selectCategory": "Выберите категорию",
+  "technicalIssue": "Техническая проблема",
+  "accountIssue": "Проблема с аккаунтом",
+  "verificationCategory": "Верификация",
+  "contentIssue": "Проблема с контентом",
+  "other": "Другое",
+
+  "subjectHint": "Краткое описание вашей проблемы",
+  "subjectRequired": "Тема обязательна",
+  "subjectTooLong": "Тема должна быть короче 200 символов",
+
+  "message": "Сообщение",
+  "messageHint": "Сообщение...",
+  "messageRequired": "Сообщение обязательно",
+  "messageTooLong": "Сообщение должно быть короче 2000 символов",
+
+  "submitMessage": "Отправить сообщение",
+  "messageSentSuccess": "Сообщение успешно отправлено!",
+  "messageDetails": "Детали сообщения",
+
+  "allCaughtUp": "Вы всё просмотрели!",
+  "categoryTechnical": "Техническая",
+  "categoryAccount": "Аккаунт",
+  "categoryVerification": "Верификация",
+  "categoryContent": "Контент",
+  "categoryOther": "Другое",
+  "statusPending": "Ожидает",
+  "statusInProgress": "В процессе",
+  "statusResolved": "Решено",
+  "statusClosed": "Закрыто",
+  "clear": "Очистить",
+  "dateTimeFormat": "{day}/{month}/{year} в {hour}:{minute}",
+  "categoryTechnicalIssue": "Техническая проблема",
+  "categoryAccountIssue": "Проблема с аккаунтом",
+  "categoryContentIssue": "Проблема с контентом",
+  "supportResponseTime": "Наша служба поддержки обычно отвечает в течение 24 часов",
+  "supportMessageSentSuccess": "Сообщение в поддержку успешно отправлено",
+  "deleteAccount": "Удалить аккаунт",
+  "deleteAccountWarning": "⚠️ Внимание: Это действие необратимо!",
+  "deleteAccountDescription": "Удаление аккаунта приведет к безвозвратному удалению всех ваших данных с наших серверов. Это включает:",
+  "willBeDeleted": "Что будет удалено:",
+  "allPosts": "Все ваши посты",
+  "allComments": "Все ваши комментарии",
+  "profileData": "Ваш профиль и личные данные",
+  "thisActionCannotBeUndone": "Это действие нельзя отменить!",
+  "finalConfirmation": "Финальное подтверждение",
+  "typeDeleteToConfirm": "Введите DELETE для подтверждения удаления аккаунта:",
+  "pleaseTypeDeleteCorrectly": "Пожалуйста, введите DELETE правильно для подтверждения",
+  "deleteForever": "Удалить навсегда",
+  "termsOfUse": "Условия использования",
+
+  "aboutApp": "О приложении",
+  "appVersion": "Версия 1.0.0",
+  "projectDescription": "Описание проекта",
+  "aboutProjectText": "UniTalk - это современное мобильное приложение, разработанное в рамках студенческого проекта по предмету «Бренд и реклама». Приложение создано для улучшения коммуникации между студентами университета.",
+  "courseInformation": "Информация о курсе",
+  "subject": "Предмет:",
+  "brandAndAdvertising": "Бренд и реклама",
+  "group": "Группа:",
+  "teacher": "Преподаватель:",
+  "teacherName": "Лидия Сафронова",
+  "projectTeam": "Команда проекта",
+  "studentName1": "Рауф Халилов",
+  "studentName2": "Талех Бадалов",
+  "studentName3": "Гюнай Мирзоева",
+  "studentName4": "Анастасия Лобастова",
+  "studentName5": "Исмаил Нагиев",
+  "projectPurpose": "Цель проекта",
+  "purposeText": "Создание удобной платформы для студенческого общения, обмена информацией и совместной работы над учебными проектами.",
+  "madeWithLove": "Сделано с ❤️ студентами группы 787",
+  "universityInformation": "Информация об университете",
+  "universityName": "Азербайджанский Государственный Экономический Университет (UNEC)",
+  "facultyName": "Дизайн",
+
+  "blockUser": "Заблокировать пользователя",
+  "unblockUser": "Разблокировать пользователя",
+  "blockedUsers": "Заблокированные пользователи",
+  "noBlockedUsers": "Нет заблокированных пользователей",
+  "blockUserConfirmation": "Вы уверены, что хотите заблокировать {name}?",
+  "unblockUserConfirmation": "Вы уверены, что хотите разблокировать {name}?",
+  "youBlockedThisUser": "Вы заблокировали этого пользователя",
+  "thisUserBlockedYou": "Этот пользователь заблокировал вас",
+  "userBlocked": "Пользователь успешно заблокирован",
+  "userUnblocked": "Пользователь успешно разблокирован",
+  "block": "Заблокировать",
+  "unblock": "Разблокировать",
+
+  "report": "Пожаловаться",
+  "reportTitle": "Жалоба",
+  "reportPost": "Пожаловаться на пост",
+  "reportComment": "Пожаловаться на комментарий",
+  "reportMessage": "Пожаловаться на сообщение",
+  "reportUser": "Пожаловаться на пользователя",
+  "myReports": "Мои жалобы",
+  "noReports": "Жалоб пока нет",
+  "selectReportCategory": "Пожалуйста, выберите категорию",
+  "selectReportReason": "Пожалуйста, выберите причину жалобы",
+  "reportSubmitted": "Жалоба успешно отправлена",
+  "submitReport": "Отправить жалобу",
+  "cancelReport": "Отменить жалобу",
+  "cancelReportConfirmation": "Вы уверены, что хотите отменить эту жалобу?",
+
+  "spam": "Спам",
+  "harassment": "Домогательство",
+  "hateSpeech": "Разжигание ненависти",
+  "violence": "Насилие",
+  "nudity": "Обнажённое содержание",
+  "falseInformation": "Ложная информация",
+  "impersonation": "Имперсонация",
+  "underReview": "На рассмотрении",
+  "rejected": "Отклонено",
+
+  "additionalDetails": "Дополнительные детали (необязательно)",
+  "describeIssue": "Опишите проблему...",
+  "all": "Все",
+  "filter": "Фильтр",
+  "yes": "Да",
+  "no": "Нет",
+
+  "likedByPrefix": "Нравится",
+  "andOthers": "и еще {count}",
+  "likesCount": "{count} отметок «Нравится»",
+
+  "filters": "Фильтры",
+  "@filters": {
+    "description": "Filters title"
+  },
+
+  "active": "активно",
+  "@active": {
+    "description": "Active filters count suffix"
+  },
+
+  "sortBy": "Сортировать",
+  "@sortBy": {
+    "description": "Sort by section title"
+  },
+
+  "newest": "Новые",
+  "@newest": {
+    "description": "Sort by newest option"
+  },
+
+  "popular": "Популярные",
+  "@popular": {
+    "description": "Sort by popular option"
+  },
+
+  "sectorAz": "Азербайджанский",
+  "@sectorAz": {
+    "description": "Azerbaijani sector filter"
+  },
+
+  "sectorRu": "Русский",
+  "@sectorRu": {
+    "description": "Russian sector filter"
+  },
+
+  "sectorEn": "Английский",
+  "@sectorEn": {
+    "description": "English sector filter"
+  },
+
+  "allFaculties": "Все Факультеты",
+  "@allFaculties": {
+    "description": "All faculties filter option"
+  },
+
+  "clearAll": "Очистить Всё",
+  "@clearAll": {
+    "description": "Clear all filters button"
+  },
+
+  "apply": "Применить",
+  "@apply": {
+    "description": "Apply filters button"
+  },
+  "replyingTo": "Отвечаете",
+  "noInternetConnection": "Нет подключения к интернету",
+  "checkConnectionAndRetry": "Пожалуйста, проверьте соединение и попробуйте снова",
+  "announcement": "Объявление",
+  "advertisement": "Реклама",
+  "event": "Событие",
+  "information": "Информация",
+  "featured": "Важное",
+  "learnMore": "Подробнее",
+  "video": "Видео",
+  "addMedia": "Добавить медиа",
+  "typeToConfirm": "Введите для подтверждения",
+  "loadingImage": "Загрузка изображения...",
+  "imageLoadFailed": "Не удалось загрузить изображение",
+  "translate": "Перевести",
+  "showOriginal": "Показать оригинал",
+  "translating": "Перевод...",
+  "translationFailed": "Ошибка перевода",
+  "pinnedPost": "Закрепленный пост",
+  "resubmissionInfo": "Пожалуйста, загрузите новый скриншот, следуя инструкциям ниже.",
+
+  "friends": "Друзья",
+  "friendRequests": "Запросы в друзья",
+  "addFriend": "Добавить в друзья",
+  "add": "Добавить",
+  "removeFriend": "Удалить из друзей",
+  "cancelRequest": "Отменить запрос",
+  "accept": "Принять",
+  "reject": "Отклонить",
+  "remove": "Удалить",
+  "removeFriendConfirmation": "Вы уверены, что хотите удалить этого друга?",
+  "noFriendsYet": "У вас пока нет друзей",
+  "startAddingFriends": "Начните добавлять друзей, чтобы общаться",
+  "noIncomingRequests": "Нет входящих запросов",
+  "noIncomingRequestsSubtitle": "У вас нет запросов в друзья",
+  "noOutgoingRequests": "Нет исходящих запросов",
+  "noOutgoingRequestsSubtitle": "Вы не отправляли запросы в друзья",
+  "incoming": "Входящие",
+  "outgoing": "Исходящие",
+  "sentAt": "Отправлено",
+  "friendsCount": "{count, plural, =0{Нет друзей} =1{1 друг} few{{count} друга} other{{count} друзей}}",
+  "postNotificationFilter": "Фильтр уведомлений о постах",
+  "allUniversities": "Все университеты",
+  "allUniversitiesDescription": "Получать уведомления от всех университетов",
+  "selectedUniversities": "Выбранные университеты",
+  "selectedUniversitiesDescription": "Выберите конкретные университеты",
+  "universitiesSelected": "Выбрано университетов: {count}",
+  "friendsOnly": "Только друзья",
+  "friendsOnlyDescription": "Только от людей, на которых вы подписаны",
+  "selectUniversities": "Выбор университетов",
+  "errorLoadingUniversities": "Ошибка загрузки университетов",
+  "done": "Готово",
+  "myUniversity": "Моем университет",
+  "myUniversityDescription": "Только от студентов моего университета",
+  "badges": "Значки",
+  "viewAll": "Все",
+  "nextBadges": "Следующие значки",
+  "noBadgesYet": "Пока нет значков",
+  "earnBadgesHint": "Будьте активны, чтобы получить значки!",
+  "selectEmoji": "Выберите эмодзи",
+  "noEmoji": "Без эмодзи",
+  "aboutMe": "О себе",
+  "bio": "Био",
+  "bioHint": "Расскажите о себе...",
+  "status": "Статус",
+  "statusHint": "Чем занимаетесь?",
+  "profileEmoji": "Эмодзи профиля",
+  "course": "Курс",
+  "selectCourse": "Выберите курс",
+
+  "badgeOgName": "OG",
+  "badgeOgDescription": "Пользователь #{value}",
+  "@badgeOgDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeOgRequirement": "Быть среди первых 1000 пользователей",
+
+  "badgeAuthorName": "Автор",
+  "badgeAuthorDescription": "{value} постов",
+  "@badgeAuthorDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeAuthorRequirement": "Написать 10 и более постов",
+
+  "badgePopularName": "Популярный",
+  "badgePopularDescription": "{value} лайков получено",
+  "@badgePopularDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgePopularRequirement": "Получить 100 и более лайков",
+
+  "badgeTalkativeName": "Общительный",
+  "badgeTalkativeDescription": "{value} комментариев",
+  "@badgeTalkativeDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeTalkativeRequirement": "Написать 50 и более комментариев",
+
+  "badgeSocialName": "Социальный",
+  "badgeSocialDescription": "{value} друзей",
+  "@badgeSocialDescription": {
+    "placeholders": {
+      "value": {"type": "int"}
+    }
+  },
+  "badgeSocialRequirement": "Иметь 20 и более друзей",
+
+  "tierGold": "Золото",
+  "tierSilver": "Серебро",
+  "tierBronze": "Бронза",
+
+
+  "year1": "1 курс",
+  "year2": "2 курс",
+  "year3": "3 курс",
+  "year4": "4 курс",
+  "master1": "Магистр 1",
+  "master2": "Магистр 2",
+  "phd": "Аспирант",
+  "graduate": "Выпускник",
+
+  "totalLikesReceived": "Получено лайков",
+
+  "removeEmoji": "Убрать",
+  "phdCourse": "Аспирант",
+  "graduateCourse": "Выпускник",
+
+  "likesReceived": "Лайки",
+  "badgesOverviewSubtitle": "Зарабатывайте значки, активно участвуя в сообществе",
+  "userNumber": "Пользователь #",
+  "totalLikes": "Всего лайков",
+  "copiedToClipboard": "Скопировано {text}",
+  "noMorePosts": "Больше постов нет",
+  "ogUser": "OG Пользователь",
+  "newFriendRequests": "{count, plural, =1{1 новая заявка} few{{count} новые заявки} other{{count} новых заявок}}",
+  "@newFriendRequests": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "badges": "Значки",
+  "noBadgesYet": "Заработайте первый значок!",
+  "earnBadgesHint": "получено",
+  "allBadgesEarned": "Все значки собраны! 🎉",
+  "nextBadge": "Следующий"
+
+}import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+
+class DioClient {
+  static const String baseUrl = 'http://35.198.109.53/api';
+
+  static Dio createDio({bool withAuthInterceptor = false, FirebaseAuth? firebaseAuth}) {
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
+
+    dio.interceptors.add(PrettyDioLogger(
+      requestBody: true,
+      error: true,
+      request: true,
+      requestHeader: true,
+      responseHeader: true,
+      responseBody: true,
+    ));
+
+    if (withAuthInterceptor && firebaseAuth != null) {
+      dio.interceptors.add(AuthInterceptor(firebaseAuth));
+    }
+
+    return dio;
+  }
+}
+
+class AuthInterceptor extends Interceptor {
+  final FirebaseAuth firebaseAuth;
+
+  AuthInterceptor(this.firebaseAuth);
+
+  @override
+  Future<void> onRequest(
+      RequestOptions options,
+      RequestInterceptorHandler handler,
+      ) async {
+    try {
+      final user = firebaseAuth.currentUser;
+      if (user != null) {
+        final token = await user.getIdToken();
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
+      }
+      handler.next(options);
+    } catch (e) {
+      handler.reject(
+        DioException(
+          requestOptions: options,
+          error: 'Failed to get auth token: $e',
+        ),
+      );
+    }
+  }
+
+}
